@@ -1,4 +1,4 @@
-package src.Items.Recipe;
+package src.Items;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ public class Recipe extends Items {
     private boolean isUnlock;
 
     public  Recipe (String itemName, itemType type, boolean isEdible, String recipeID, List<Items> ingredients, boolean isUnlock) {
-        super(itemName, RECIPE, false);
+        super(itemName, type.RECIPE, false);
         this.recipeID = recipeID;
         this.ingredients = new ArrayList<Items>();
         this.isUnlock = isUnlock;

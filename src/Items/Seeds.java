@@ -1,4 +1,4 @@
-package src.Items.Seeds
+package src.Items;
 
 public class Seeds extends Items{
     private Season season;
@@ -8,7 +8,7 @@ public class Seeds extends Items{
     private int countWater;
 
     public Seeds (String itemName, itemType type, boolean isEdible, Season season, int dayToHarvest, int buyPrice, int sellPrice, int countWater) {
-        super(itemName, SEEDS, false);
+        super(itemName, type.SEEDS, false);
         this.season = season;
         this.dayToHarvest = dayToHarvest;
         this.buyPrice = buyPrice;

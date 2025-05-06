@@ -3,7 +3,7 @@ package src.Items;
 public class Items {
     private String itemName;
 
-    private enum itemType {
+    public enum itemType {
         FURNITURE, SEEDS, FISH, CROP, FOOD, EQUIPMENT, MISC, RECIPE
     }
 

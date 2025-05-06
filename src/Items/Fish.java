@@ -1,4 +1,4 @@
-package src.Items.Fish;
+package src.Items;
 
 public class Fish extends Items {
     private enum fishType {
@@ -7,15 +7,15 @@ public class Fish extends Items {
     private fishType fishType;
     private Season season;
     private Time time;
-    private enum fishLocation {
-        FOREST RIVER, MOUNTAIN LAKE, OCEAN, POND
-    }
+    public enum fishLocation{
+        FORESTRIVER, MOUNTAINLAKE, OCEAN, POND
+        }
     private fishLocation loc;
     private Weather weather;
     private int typeValue; //5, 10, 15
 
     public Fish(String itemName, itemType type, boolean isEdible, Season season, Time time, fishType fishType, fishLocation loc, Weather weather, int typeValue) {
-        super(itemName, FISH, true);
+        super(itemName, type.FISH, true);
         this.season = season;
         this.time = time;
         this.loc = loc;

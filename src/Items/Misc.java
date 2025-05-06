@@ -1,23 +1,13 @@
-package src.Items.Food;
+package src.Items;
 
-public class Food extends Items {
-    private int energy;
+public class Misc extends Items {
     private int buyPrice;
     private int sellPrice;
 
-    public Food (String itemName, itemType type, boolean isEdible, int energy, int buyPrice, int sellPrice) {
-        super(itemName, FISH, true);
-        this.energy = energy;
+    public Misc (String itemName, itemType type, boolean isEdible, int buyPrice, int sellPrice) {
+        super(itemName, type.MISC, false);
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;
-    }
-
-    public int getEnergy() {
-        return energy;
-    }
-
-    public void setEnergy(int energy) {
-        this.energy = energy;
     }
 
     public int getBuyPrice() {

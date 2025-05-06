@@ -1,4 +1,4 @@
-package src.Items.Furniture;
+package src.Items;
 
 public class Furniture extends Items {
     private String furnitureID;
@@ -6,7 +6,7 @@ public class Furniture extends Items {
     private Tile size;
 
     public Furniture(String itemName, itemType type, boolean isEdible, String furnitureID, int countOrang, Tile size) {
-        super(itemName, FURNITURE, false);
+        super(itemName, type.FURNITURE, false);
         this.furnitureID = furnitureID;
         this.countOrang = countOrang;
         this.size = size;

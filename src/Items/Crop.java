@@ -1,4 +1,4 @@
-packaga src.Items.Crop
+package src.Items;
 
 public class Crop extends Items{
     private int buyPrice;
@@ -8,7 +8,7 @@ public class Crop extends Items{
     private int energy;
 
     public Crop(String itemName, itemType type, boolean isEdible, int buyPrice, int sellPrice, Time time, int harvestAmount, int energy) {
-        super(itemName, CROP, true);
+        super(itemName, type.CROP, true);
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;
         this.time = time;
