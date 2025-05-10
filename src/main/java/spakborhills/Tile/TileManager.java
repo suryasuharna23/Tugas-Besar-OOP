@@ -21,7 +21,7 @@
         public TileManager(GamePanel gp){
             this.gp = gp;
 
-            InputStream is = getClass().getResourceAsStream("/maps/tiledata.txt");
+            InputStream is = getClass().getResourceAsStream("/maps/abigail_house_tiledata.txt");
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
             //Getting Tile Name and Collision Info
@@ -39,7 +39,7 @@
             getTilesImage();
 
             //Get maxWorldCol & maxWorldRow
-            is = getClass().getResourceAsStream("/maps/sample.txt");
+            is = getClass().getResourceAsStream("/maps/abigail_house.txt");
             br = new BufferedReader(new InputStreamReader(is));
 
 
@@ -54,7 +54,8 @@
             }catch (IOException e){
                 System.out.println(e.getMessage());
             }
-            loadMap("/maps/sample.txt");
+
+            loadMap("/maps/abigail_house.txt");
         }
         public void getTilesImage(){
             for(int i  = 0; i < fileNames.size(); i++){
@@ -65,12 +66,7 @@
                 fileName = fileNames.get(i);
 
                 //Get collision status
-                if(collisionStatus.get(i).equals("true")){
-                    collision = true;
-                }
-                else{
-                    collision = false;
-                }
+                collision = collisionStatus.get(i).equals("true");
                 setup(i, fileName, collision);
             }
         }

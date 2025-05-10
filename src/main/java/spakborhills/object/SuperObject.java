@@ -2,7 +2,6 @@ package spakborhills.object;
 
 import spakborhills.GamePanel;
 import spakborhills.UtilityTool;
-import spakborhills.entity.Entity;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
