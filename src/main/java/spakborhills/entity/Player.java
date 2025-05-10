@@ -2,11 +2,13 @@ package spakborhills.entity;
 
 import spakborhills.GamePanel;
 import spakborhills.KeyHandler;
+import spakborhills.UtilityTool;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Player extends  Entity{
     GamePanel gp;
@@ -14,6 +16,7 @@ public class Player extends  Entity{
 
     public final int screenX;
     public final int screenY;
+    int hasKey = 0;
 
     public Player(GamePanel gp, KeyHandler keyH){
         this.gp = gp;
@@ -25,6 +28,8 @@ public class Player extends  Entity{
         solidArea = new Rectangle();
         solidArea.x = 8;
         solidArea.y = 16;
+        solidAreaDefaultX = solidArea.x;
+        solidAreaDefaultY = solidArea.y;
         solidArea.width = 32;
         solidArea.height = 32;
 
@@ -34,24 +39,30 @@ public class Player extends  Entity{
     }
 
     public void getPlayerImage(){
-        try{
-            up1 = ImageIO.read(getClass().getResourceAsStream("/player/boy_up_1.png"));
-            up2 = ImageIO.read(getClass().getResourceAsStream("/player/boy_up_2.png"));
-            down1 = ImageIO.read(getClass().getResourceAsStream("/player/boy_down_1.png"));
-            down2 = ImageIO.read(getClass().getResourceAsStream("/player/boy_down_2.png"));
-            left1 = ImageIO.read(getClass().getResourceAsStream("/player/boy_left_1.png"));
-            left2 = ImageIO.read(getClass().getResourceAsStream("/player/boy_left_2.png"));
-            right1 = ImageIO.read(getClass().getResourceAsStream("/player/boy_right_1.png"));
-            right2 = ImageIO.read(getClass().getResourceAsStream("/player/boy_right_2.png"));
-
+        up1 = setup("boy_up_1");
+        up2 = setup("boy_up_2");
+        down1 = setup("boy_down_1");
+        down2 = setup("boy_down_2");
+        left1 = setup("boy_left_1");
+        left2 = setup("boy_left_2");
+        right1 = setup("boy_right_1");
+        right2 = setup("boy_right_2");
+    }
+    public BufferedImage setup(String imageName){
+        UtilityTool utilityTool = new UtilityTool();
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/player/" + imageName + ".png")));
+            image = utilityTool.scaleImage(image, gp.tileSize, gp.tileSize);
         }catch (IOException e){
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
+        return image;
     }
 
     public void setDefaultValues(){
-        worldX = gp.tileSize * 23;
-        worldY = gp.tileSize * 21;
+        worldX = gp.tileSize * 21;
+        worldY = gp.tileSize * 26;
         speed = 4;
         direction = "down";
     }
@@ -67,7 +78,7 @@ public class Player extends  Entity{
         else if (keyH.leftPressed){
             direction = "left";
         }
-        else {
+        else if (keyH.rightPressed){
             direction = "right";
         }
     }
@@ -82,6 +93,11 @@ public class Player extends  Entity{
         //CHECK TILE COLLISION
         collisionON = false;
         gp.collisionChecker.checkTile(this);
+
+        // Check object collision
+        int objIndex = gp.collisionChecker.checkObject(this,true);
+        pickUpObject(objIndex);
+
         //IF COLLISION FALSE, PLAYER CAN MOVE
         if (!collisionON){
             switch (direction){
@@ -92,6 +108,45 @@ public class Player extends  Entity{
             }
         }
     }
+
+
+    public void pickUpObject(int i){
+        if (i != 999){
+            String objectName = gp.obj[i].name;
+
+            switch (objectName){
+                case "Key":
+                    gp.playSE(1);
+                    hasKey++;
+                    gp.obj[i] = null;
+                    System.out.println("Key: " + hasKey);
+                    break;
+                case "Door":
+                    if(hasKey > 0){
+                        gp.playSE(4);
+                        gp.obj[i] = null;
+                        hasKey--;
+                    }
+                    System.out.println("Key: " + hasKey);
+                    break;
+
+                case "Boots":
+                    gp.playSE(2);
+                    speed += 10;
+                    gp.obj[i] = null;
+                    break;
+
+                case "Chest":
+                    if(hasKey > 0){
+                        gp.playSE(1);
+                        gp.obj[i] = null;
+                        hasKey--;
+                    }
+                    System.out.println("Key: " + hasKey);
+            }
+        }
+    }
+
     private void updateSprite(){
         spriteCounter++;
         if(spriteCounter > 12){
