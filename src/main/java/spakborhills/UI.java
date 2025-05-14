@@ -4,6 +4,7 @@ import spakborhills.object.OBJ_Key;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.text.DecimalFormat;
 
 public class UI {
     GamePanel gp;
@@ -13,6 +14,9 @@ public class UI {
     public String message = "";
     int messageCounter = 0;
     public boolean gameFinished = false;
+
+    double playTime;
+    DecimalFormat dFormat = new DecimalFormat("#0.00");
 
     public UI(GamePanel gp){
         this.gp = gp;
@@ -30,6 +34,9 @@ public class UI {
     public void draw(Graphics2D g2){
 
         if(gameFinished){
+            g2.setFont(arial_40);
+            g2.setColor(Color.white);
+
             String text;
             int textLength;
             int x;
@@ -58,6 +65,9 @@ public class UI {
             g2.setColor(Color.white);
             g2.drawImage(keyImage, gp.tileSize / 2, gp.tileSize / 2, gp.tileSize, gp.tileSize, null);
             g2.drawString("Key = " + gp.player.hasKey, 74, 65 );
+
+            playTime += (double) 1 / 60;
+            g2.drawString("Time: " + dFormat.format(playTime), gp.tileSize * 11, 65);
 
             if (messageOn){
                 g2.setFont(g2.getFont().deriveFont(30F));
