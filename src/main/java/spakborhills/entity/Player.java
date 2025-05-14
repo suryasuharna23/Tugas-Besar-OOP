@@ -147,7 +147,11 @@ public class Player extends  Entity{
                         gp.playSE(1);
                         gp.obj[i] = null;
                         hasKey--;
+                        gp.ui.gameFinished = true;
                         gp.ui.showMessage("You Opened A Chest!");
+                        gp.stopMusic();
+                        gp.playSE(4);
+                        break;
                     }
                     else{
                         gp.ui.showMessage("You Need A Key!");
