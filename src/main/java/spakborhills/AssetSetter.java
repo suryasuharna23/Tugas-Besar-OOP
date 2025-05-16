@@ -1,11 +1,7 @@
 package spakborhills;
 
-import spakborhills.entity.NPC_GIRL;
-import spakborhills.entity.NPC_OLDMAN;
-import spakborhills.object.OBJ_Boots;
-import spakborhills.object.OBJ_Chest;
-import spakborhills.object.OBJ_Door;
-import spakborhills.object.OBJ_Key;
+import spakborhills.entity.*;
+import spakborhills.object.*;
 
 public class AssetSetter {
     GamePanel gp;

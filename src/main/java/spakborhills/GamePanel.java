@@ -25,7 +25,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public int maxWorldRow = 50;
 
     //FPS
-    final int fps = 75;
+    final int fps = 60;
 
     //SYSTEM
     public KeyHandler keyH = new KeyHandler(this);
