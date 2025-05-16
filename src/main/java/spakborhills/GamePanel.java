@@ -7,6 +7,7 @@ import spakborhills.object.SuperObject;
 
 import  javax.swing.JPanel;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class GamePanel extends  JPanel implements Runnable {
 
@@ -39,7 +40,7 @@ public class GamePanel extends  JPanel implements Runnable {
     //Entity & OBJECT
     public Player player = new Player(this, keyH);
     public SuperObject[] obj = new SuperObject[10];
-    public Entity[] npc = new Entity[10];
+    public ArrayList<Entity> npc = new ArrayList<>();
 
     //GAME STATE
     public int gameState;
@@ -102,10 +103,8 @@ public class GamePanel extends  JPanel implements Runnable {
             //PLAYER
             player.update();
             //NPC
-            for(int i = 0; i < npc.length; i++){
-                if(npc[i] != null){
-                    npc[i].update();
-                }
+            for(Entity character: npc){
+                character.update();
             }
         }
         if (gameState == pauseState){
@@ -125,10 +124,8 @@ public class GamePanel extends  JPanel implements Runnable {
         }
 
         //NPC
-        for(int i = 0; i < npc.length; i++){
-            if(npc[i] != null){
-                npc[i].draw(g2);
-            }
+        for(Entity character: npc){
+            character.draw(g2);
         }
         //Player
         player.draw(g2);
