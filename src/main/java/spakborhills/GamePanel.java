@@ -1,5 +1,6 @@
 package spakborhills;
 
+import spakborhills.entity.Entity;
 import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
 import spakborhills.object.SuperObject;
@@ -26,7 +27,7 @@ public class GamePanel extends  JPanel implements Runnable {
     final int fps = 60;
 
     //SYSTEM
-    KeyHandler keyH = new KeyHandler(this);
+    public KeyHandler keyH = new KeyHandler(this);
     Sound music = new Sound();
     Sound se = new Sound();
     TileManager tileManager = new TileManager(this);
@@ -38,11 +39,13 @@ public class GamePanel extends  JPanel implements Runnable {
     //Entity & OBJECT
     public Player player = new Player(this, keyH);
     public SuperObject[] obj = new SuperObject[10];
+    public Entity[] npc = new Entity[10];
 
     //GAME STATE
     public int gameState;
     public final int playState = 1;
     public final int pauseState = 2;
+    public final int dialogueState = 3;
 
 
     public GamePanel(){
@@ -55,8 +58,9 @@ public class GamePanel extends  JPanel implements Runnable {
 
     public void setupGame(){
         assetSetter.setObject();
+        assetSetter.setNPC();
         playMusic(0);
-
+        stopMusic();
         gameState = playState;
     }
     public void startGameThread(){
@@ -95,7 +99,14 @@ public class GamePanel extends  JPanel implements Runnable {
 
     public void update(){
         if (gameState == playState){
+            //PLAYER
             player.update();
+            //NPC
+            for(int i = 0; i < npc.length; i++){
+                if(npc[i] != null){
+                    npc[i].update();
+                }
+            }
         }
         if (gameState == pauseState){
             // nothing
@@ -104,12 +115,19 @@ public class GamePanel extends  JPanel implements Runnable {
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        //Tiles
+        //Ti les
         tileManager.draw(g2);
         //Objects
         for (SuperObject superObject : obj) {
             if (superObject != null) {
                 superObject.draw(g2, this);
+            }
+        }
+
+        //NPC
+        for(int i = 0; i < npc.length; i++){
+            if(npc[i] != null){
+                npc[i].draw(g2);
             }
         }
         //Player

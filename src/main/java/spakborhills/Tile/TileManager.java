@@ -21,7 +21,7 @@
         public TileManager(GamePanel gp){
             this.gp = gp;
 
-            InputStream is = getClass().getResourceAsStream("/maps/mayor_tadi_house_data.txt");
+            InputStream is = getClass().getResourceAsStream("/maps/oceantiledata.txt");
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
             //Getting Tile Name and Collision Info
@@ -39,7 +39,7 @@
             getTilesImage();
 
             //Get maxWorldCol & maxWorldRow
-            is = getClass().getResourceAsStream("/maps/mayor_tadi_house.txt");
+            is = getClass().getResourceAsStream("/maps/ocean.txt");
             br = new BufferedReader(new InputStreamReader(is));
 
 
@@ -54,7 +54,7 @@
             }catch (IOException e){
                 System.out.println(e.getMessage());
             }
-            loadMap("/maps/mayor_tadi_house.txt");
+            loadMap("/maps/ocean.txt");
         }
         public void getTilesImage(){
             for(int i  = 0; i < fileNames.size(); i++){
@@ -65,12 +65,7 @@
                 fileName = fileNames.get(i);
 
                 //Get collision status
-                if(collisionStatus.get(i).equals("true")){
-                    collision = true;
-                }
-                else{
-                    collision = false;
-                }
+                collision = collisionStatus.get(i).equals("true");
                 setup(i, fileName, collision);
             }
         }
@@ -79,8 +74,7 @@
             UtilityTool utilityTool = new UtilityTool();
             try {
                 tile[index] = new Tile();
-                tile[index].image = ImageIO.read(getClass().getResourceAsStream("/asset/map_resources/" + imagePath));
-                tile[index].image = utilityTool.scaleImage(tile[index].image,gp.tileSize, gp.tileSize);
+                tile[index].image = ImageIO.read(getClass().getResourceAsStream("/asset/map_resources/ocean/" + imagePath));
                 tile[index].collision = collision;
                 
             } catch (IOException e) {
