@@ -10,7 +10,7 @@ public class NPC_OLDMAN extends Entity{
         super(gp);
         direction = "down";
         speed = 1;
-
+        setDialogue();
         getNPCImage();
     }
 
@@ -23,6 +23,15 @@ public class NPC_OLDMAN extends Entity{
         left2 = setup("/npc/oldman_left_2");
         right1 = setup("/npc/oldman_right_1");
         right2 = setup("/npc/oldman_right_2");
+    }
+
+    public void setDialogue(){
+        dialogues.add("HIDUP UNPADDDDDDDDDDDDD\nDDDDDDDDDDDDDDDDDDD!");
+        dialogues.add("PERSIB NU AINGG!");
+        dialogues.add("MALAM KEOS INIEEHHH");
+        dialogues.add("Geda Gedi Geda Gedaooo");
+        dialogues.add("Lumah enak, lah gua");
+        dialogues.add("Selain donatur dilarang ngatur");
     }
 
     @Override
@@ -46,5 +55,8 @@ public class NPC_OLDMAN extends Entity{
             }
             actionLockCounter = 0;
         }
+    }
+    public void speak(){
+        super.speak();
     }
 }

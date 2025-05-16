@@ -7,6 +7,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public abstract class Entity {
@@ -21,6 +22,8 @@ public abstract class Entity {
     public int solidAreaDefaultX, solidAreaDefaultY;
     public boolean collisionON = false;
     public int actionLockCounter = 0;
+    ArrayList<String> dialogues = new ArrayList<>();
+    int dialogueIndex = 0;
 
     public Entity(GamePanel gp){
         this.gp = gp;
@@ -38,6 +41,29 @@ public abstract class Entity {
     }
 
     public void setAction(){}
+    public void speak(){
+        gp.ui.currentDialogue = dialogues.get(dialogueIndex);
+        dialogueIndex++;
+
+        if (dialogueIndex == dialogues.size()){
+            dialogueIndex = 0;
+        }
+
+        switch (gp.player.direction){
+            case "up":
+                direction = "down";
+                break;
+            case "down":
+                direction = "up";
+                break;
+            case "left":
+                direction = "right";
+                break;
+            case "right":
+                direction = "left";
+                break;
+        }
+    };
 
     public void update(){
         setAction();
