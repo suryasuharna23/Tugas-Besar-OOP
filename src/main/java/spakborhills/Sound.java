@@ -5,22 +5,23 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class Sound {
     Clip clip;
-    URL[] soundURL = new URL[30];
+    ArrayList<URL> soundURL = new ArrayList<>();
 
     public Sound(){
-        soundURL[0] = getClass().getResource("/sound/littleroottown.wav");
-        soundURL[1] = getClass().getResource("/sound/coin.wav");
-        soundURL[2] = getClass().getResource("/sound/powerup.wav");
-        soundURL[3] = getClass().getResource("/sound/fanfare.wav");
-        soundURL[4] = getClass().getResource("/sound/unlock.wav");
+        soundURL.add(getClass().getResource("/sound/littleroottown.wav"));
+        soundURL.add(getClass().getResource("/sound/coin.wav"));
+        soundURL.add(getClass().getResource("/sound/powerup.wav"));
+        soundURL.add(getClass().getResource("/sound/fanfare.wav"));
+        soundURL.add(getClass().getResource("/sound/unlock.wav"));
     }
 
     public void setFile(int i){
         try{
-            AudioInputStream ais = AudioSystem.getAudioInputStream(soundURL[i]);
+            AudioInputStream ais = AudioSystem.getAudioInputStream(soundURL.get(i));
             clip = AudioSystem.getClip();
             clip.open(ais);
         }catch (Exception e){

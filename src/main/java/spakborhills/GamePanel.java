@@ -25,7 +25,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public int maxWorldRow = 50;
 
     //FPS
-    final int fps = 60;
+    final int fps = 75;
 
     //SYSTEM
     public KeyHandler keyH = new KeyHandler(this);
@@ -39,7 +39,7 @@ public class GamePanel extends  JPanel implements Runnable {
 
     //Entity & OBJECT
     public Player player = new Player(this, keyH);
-    public SuperObject[] obj = new SuperObject[10];
+    public ArrayList<SuperObject> obj = new ArrayList<>();
     public ArrayList<Entity> npc = new ArrayList<>();
 
     //GAME STATE
