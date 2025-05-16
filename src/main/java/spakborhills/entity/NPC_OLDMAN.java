@@ -1,39 +1,50 @@
 package spakborhills.entity;
 
 import spakborhills.GamePanel;
-import spakborhills.UtilityTool;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.Objects;
+import java.util.Random;
+
 
 public class NPC_OLDMAN extends Entity{
     public NPC_OLDMAN(GamePanel gp){
         super(gp);
         direction = "down";
         speed = 1;
+
+        getNPCImage();
     }
 
     public void getNPCImage(){
-        up1 = setup("boy_up_1");
-        up2 = setup("boy_up_2");
-        down1 = setup("boy_down_1");
-        down2 = setup("boy_down_2");
-        left1 = setup("boy_left_1");
-        left2 = setup("boy_left_2");
-        right1 = setup("boy_right_1");
-        right2 = setup("boy_right_2");
+        up1 = setup("/npc/oldman_up_1");
+        up2 = setup("/npc/oldman_up_2");
+        down1 = setup("/npc/oldman_down_1");
+        down2 = setup("/npc/oldman_down_2");
+        left1 = setup("/npc/oldman_left_1");
+        left2 = setup("/npc/oldman_left_2");
+        right1 = setup("/npc/oldman_right_1");
+        right2 = setup("/npc/oldman_right_2");
     }
-    public BufferedImage setup(String imageName){
-        UtilityTool utilityTool = new UtilityTool();
-        BufferedImage image = null;
-        try {
-            image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/player/" + imageName + ".png")));
-            image = utilityTool.scaleImage(image, gp.tileSize, gp.tileSize);
-        }catch (IOException e){
-            System.out.println(e.getMessage());
+
+    @Override
+    public void setAction(){
+        actionLockCounter++;
+
+        if(actionLockCounter == 120){
+            Random random = new Random();
+            int i = random.nextInt(100) + 1;
+            if (i <= 25){
+                direction = "up";
+            }
+            if (i > 25 && i <= 50){
+                direction = "down";
+            }
+            if (i > 50 && i <= 75){
+                direction = "left";
+            }
+            if (i > 75 && i <= 100){
+                direction = "right";
+            }
+            actionLockCounter = 0;
         }
-        return image;
     }
 }
