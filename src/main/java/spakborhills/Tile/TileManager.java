@@ -21,7 +21,7 @@
         public TileManager(GamePanel gp){
             this.gp = gp;
 
-            InputStream is = getClass().getResourceAsStream("/maps/tiledata.txt");
+            InputStream is = getClass().getResourceAsStream("/maps/mayor_tadi_house_data.txt");
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
             //Getting Tile Name and Collision Info
@@ -39,7 +39,7 @@
             getTilesImage();
 
             //Get maxWorldCol & maxWorldRow
-            is = getClass().getResourceAsStream("/maps/sample.txt");
+            is = getClass().getResourceAsStream("/maps/mayor_tadi_house.txt");
             br = new BufferedReader(new InputStreamReader(is));
 
 
@@ -54,7 +54,7 @@
             }catch (IOException e){
                 System.out.println(e.getMessage());
             }
-            loadMap("/maps/sample.txt");
+            loadMap("/maps/mayor_tadi_house.txt");
         }
         public void getTilesImage(){
             for(int i  = 0; i < fileNames.size(); i++){
@@ -79,7 +79,7 @@
             UtilityTool utilityTool = new UtilityTool();
             try {
                 tile[index] = new Tile();
-                tile[index].image = ImageIO.read(getClass().getResourceAsStream("/tiles/" + imagePath));
+                tile[index].image = ImageIO.read(getClass().getResourceAsStream("/asset/map_resources/" + imagePath));
                 tile[index].image = utilityTool.scaleImage(tile[index].image,gp.tileSize, gp.tileSize);
                 tile[index].collision = collision;
                 
