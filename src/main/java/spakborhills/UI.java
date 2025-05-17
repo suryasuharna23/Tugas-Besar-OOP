@@ -1,5 +1,7 @@
 package spakborhills;
 
+import spakborhills.entity.Entity;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -17,6 +19,10 @@ public class UI {
     double playTime;
     public String currentDialogue = "";
     public int commandNumber = 0;
+
+    public int inventoryCommandNum = 0;
+    public int inventorySlotCol = 0;
+    public int inventorySlotRow = 0;
 
     // TITLE BACKGROUND
     BufferedImage titleScreenBackground;
@@ -80,6 +86,9 @@ public class UI {
         // DIALOGUE STATE
         if (gp.gameState == gp.dialogueState){
             drawDialogueScreen();
+        }
+        if (gp.gameState == gp.inventoryState){
+            drawInventoryScreen();
         }
     }
 
@@ -213,19 +222,7 @@ public class UI {
             g2.fillRect(currentSegmentX, y, segmentWidth, segmenHeight);
 
             if (i < filledSegments){
-                Color segmentColor;
-                double segmentPercentage = (double) (i + 1)  / totalSegments;
-                double currentEnergyPercentage = (double) gp.player.currentEnergy / gp.player.maxEnergy;
-
-                if (currentEnergyPercentage > 0.6){
-                    segmentColor = new Color(0, 200, 0);
-                }
-                else if (currentEnergyPercentage > 0.3){
-                    segmentColor = new Color(255, 200, 0);
-                }
-                else{
-                    segmentColor = new Color(200, 0 ,0);
-                }
+                Color segmentColor = getColor(i, totalSegments);
 
                 g2.setColor(segmentColor);
                 g2.fillRect(currentSegmentX, y, segmentWidth, segmenHeight);
@@ -240,5 +237,123 @@ public class UI {
         FontMetrics fmText = g2.getFontMetrics(silkScreen);
         int textHeightOffset = (segmenHeight - fmText.getAscent() - fmText.getDescent()) / 2 + fmText.getAscent();
         g2.drawString(energyText, x + segmentsBarTotalWidth + 10, y + textHeightOffset);
+    }
+
+    private Color getColor(int i, int totalSegments) {
+        Color segmentColor;
+        double segmentPercentage = (double) (i + 1)  / totalSegments;
+        double currentEnergyPercentage = (double) gp.player.currentEnergy / gp.player.maxEnergy;
+
+        if (currentEnergyPercentage > 0.6){
+            segmentColor = new Color(0, 200, 0);
+        }
+        else if (currentEnergyPercentage > 0.3){
+            segmentColor = new Color(255, 200, 0);
+        }
+        else{
+            segmentColor = new Color(200, 0 ,0);
+        }
+        return segmentColor;
+    }
+
+    public int getXForInventoryTitle(String text, int frameX, int frameWidth){
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth() ;
+        return frameX + (frameWidth / 2) - (length / 2);
+    }
+
+    public void drawInventoryScreen() {
+        // Gambar Latar Belakang Inventory (Window)
+        // Ukuran frame mungkin perlu dinamis atau cukup besar untuk menampung banyak item,
+        // atau Anda perlu implementasi scrolling jika terlalu banyak.
+        // Untuk contoh ini, kita buat frame dengan tinggi tetap, item akan mengalir ke bawah.
+        int frameX = gp.tileSize * 2;
+        int frameY = gp.tileSize;
+        int frameWidth = gp.screenWidth - (gp.tileSize * 4);
+        int frameHeight = gp.tileSize * 10; // Tinggi frame bisa disesuaikan
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+
+        // Judul Inventaris
+        g2.setColor(Color.white);
+        g2.setFont(g2.getFont().deriveFont(24F)); // Sesuaikan ukuran font jika perlu
+        g2.drawString("INVENTORY", getXForInventoryTitle("INVENTORY", frameX, frameWidth), frameY + gp.tileSize - 10);
+
+        // Pengaturan Slot Awal
+        final int slotStartX = frameX + gp.tileSize / 2;
+        final int slotStartY = frameY + gp.tileSize; // Mulai slot setelah judul
+        int currentSlotX = slotStartX;
+        int currentSlotY = slotStartY;
+        final int slotSize = gp.tileSize + 10; // Ukuran slot
+        final int slotGap = 5;                 // Jarak antar slot
+        final int itemsPerRow = (frameWidth - gp.tileSize) / (slotSize + slotGap); // Item per baris
+
+        int currentItemIndex = 0; // Variabel untuk melacak indeks item saat ini (untuk penyorotan)
+
+        // Gunakan enhanced for loop untuk menggambar setiap item dalam inventaris
+        for (Entity item : gp.player.inventory) {
+            // Cek apakah slot saat ini masih dalam batas frame vertikal
+            if (currentSlotY + slotSize > frameY + frameHeight - gp.tileSize / 2) {
+                // Jika melebihi batas bawah frame, berhenti menggambar item lebih lanjut
+                // (Ini adalah batasan visual sederhana; scrolling akan lebih baik untuk inventaris besar)
+                g2.setColor(Color.white);
+                g2.drawString("...", currentSlotX, currentSlotY + slotSize / 2); // Indikasi ada item lain
+                break;
+            }
+
+            // Gambar kotak slot (karena kita hanya menggambar slot yang ada itemnya)
+            g2.setColor(new Color(100, 100, 100, 150)); // Warna slot
+            g2.fillRoundRect(currentSlotX, currentSlotY, slotSize, slotSize, 10, 10);
+            g2.setColor(Color.white);
+            g2.drawRoundRect(currentSlotX, currentSlotY, slotSize, slotSize, 10, 10);
+
+            // Gambar ikon item
+            if (item.down1 != null) {
+                g2.drawImage(item.down1, currentSlotX + 5, currentSlotY + 5, gp.tileSize, gp.tileSize, null);
+            } else if (item.image != null) { // Fallback jika down1 tidak ada tapi image ada
+                g2.drawImage(item.image, currentSlotX + 5, currentSlotY + 5, gp.tileSize, gp.tileSize, null);
+            }
+
+            // Tandai slot yang dipilih berdasarkan inventoryCommandNum
+            // inventoryCommandNum sekarang harus merujuk ke indeks dalam gp.player.inventory
+            if (currentItemIndex == inventoryCommandNum) {
+                g2.setColor(Color.yellow);
+                g2.setStroke(new BasicStroke(3));
+                g2.drawRoundRect(currentSlotX - 2, currentSlotY - 2, slotSize + 4, slotSize + 4, 12, 12);
+                g2.setStroke(new BasicStroke(1)); // Reset stroke
+
+                // Tampilkan nama item yang dipilih
+                g2.setColor(Color.white); // Set ulang warna setelah highlight
+                g2.setFont(g2.getFont().deriveFont(18F));
+                int itemInfoY = frameY + frameHeight + gp.tileSize / 2; // Posisi di bawah frame
+                g2.drawString("Item: " + item.name, slotStartX, itemInfoY);
+                // Anda bisa menambahkan deskripsi atau detail lain di sini:
+                // if (item.description != null) {
+                //     g2.drawString(item.description, slotStartX, itemInfoY + 20);
+                // }
+            }
+
+            // Pindah ke posisi slot berikutnya
+            currentSlotX += slotSize + slotGap;
+            if ((currentItemIndex + 1) % itemsPerRow == 0) { // Jika item berikutnya adalah awal baris baru
+                currentSlotX = slotStartX;  // Kembali ke kolom pertama
+                currentSlotY += slotSize + slotGap; // Pindah ke baris baru
+            }
+
+            currentItemIndex++; // Increment indeks item saat ini
+        }
+
+        // Jika inventaris kosong atau tidak ada item yang dipilih (misalnya, commandNum di luar jangkauan)
+        // Bagian ini perlu disesuaikan karena info item kini digambar di dalam loop jika slot terpilih.
+        if (gp.player.inventory.isEmpty()) {
+            g2.setColor(Color.white);
+            g2.setFont(g2.getFont().deriveFont(18F));
+            int itemInfoY = frameY + frameHeight + gp.tileSize / 2;
+            g2.drawString("Inventory is Empty", slotStartX, itemInfoY);
+        } else if (inventoryCommandNum < 0 || inventoryCommandNum >= gp.player.inventory.size()) {
+            // Jika kursor menunjuk ke luar jangkauan item yang ada (seharusnya tidak sering terjadi dengan navigasi yang benar)
+            g2.setColor(Color.white);
+            g2.setFont(g2.getFont().deriveFont(18F));
+            int itemInfoY = frameY + frameHeight + gp.tileSize / 2;
+            g2.drawString("Select Item...", slotStartX, itemInfoY);
+        }
     }
 }

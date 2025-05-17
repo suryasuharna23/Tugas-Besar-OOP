@@ -3,11 +3,12 @@ package spakborhills;
 import spakborhills.entity.Entity;
 import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
-import spakborhills.object.SuperObject;
 
 import  javax.swing.JPanel;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class GamePanel extends  JPanel implements Runnable {
     // GAME WINDOW
@@ -35,11 +36,11 @@ public class GamePanel extends  JPanel implements Runnable {
     public CollisionChecker collisionChecker = new CollisionChecker(this);
     public UI ui = new UI(this);
     Thread gameThread;
+    public  EventHandler eventHandler = new EventHandler(this);
 
     //Entity & OBJECT
     public Player player = new Player(this, keyH);
-    public ArrayList<SuperObject> obj = new ArrayList<>();
-    public ArrayList<Entity> npc = new ArrayList<>();
+    public ArrayList<Entity> entities = new ArrayList<>();
 
     //GAME STATE
     public int gameState;
@@ -47,6 +48,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int playState = 1;
     public final int pauseState = 2;
     public final int dialogueState = 3;
+    public final int inventoryState = 4;
 
     public GamePanel(){
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -57,8 +59,8 @@ public class GamePanel extends  JPanel implements Runnable {
     }
 
     public void setupGame(){
-        assetSetter.setObject();
         assetSetter.setNPC();
+        assetSetter.setObject();
         gameState = titleState;
     }
     public void startGameThread(){
@@ -96,11 +98,10 @@ public class GamePanel extends  JPanel implements Runnable {
     }
 
     public void update(){
+        player.update();
         if (gameState == playState){
-            //PLAYER
-            player.update();
             //NPC
-            for(Entity character: npc){
+            for(Entity character: entities){
                 character.update();
             }
         }
@@ -120,12 +121,15 @@ public class GamePanel extends  JPanel implements Runnable {
             // TILES
             tileManager.draw(g2);
 
-            //Objects
-            for (SuperObject superObject : obj) {
-                superObject.draw(g2, this);
-            }
-            //NPC
-            for(Entity character: npc){
+            Collections.sort(entities, new Comparator<Entity>() {
+                @Override
+                public int compare(Entity o1, Entity o2) {
+                    int result = Integer.compare(o1.worldY, o2.worldY);
+                    return result;
+                }
+            });
+            // Entities
+            for(Entity character: entities){
                 character.draw(g2);
             }
             //Player

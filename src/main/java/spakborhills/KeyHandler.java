@@ -5,7 +5,7 @@ import java.awt.event.KeyListener;
 import java.security.Key;
 
 public class KeyHandler implements KeyListener {
-    public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed;
+    public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, inventoryPressed;
     GamePanel gp;
     public KeyHandler(GamePanel gp){
         this.gp = gp;
@@ -34,6 +34,7 @@ public class KeyHandler implements KeyListener {
                 if (gp.ui.commandNumber == 0){
                     gp.gameState = gp.playState;
                     gp.playMusic(0);
+                    gp.stopMusic();
                 }
                 if (gp.ui.commandNumber == 1){
 
@@ -63,6 +64,9 @@ public class KeyHandler implements KeyListener {
             if (code == KeyEvent.VK_ENTER){
                 enterPressed = true;
             }
+            if (code == KeyEvent.VK_I){
+                inventoryPressed = true;
+            }
         }
 
         // PAUSE STATE
@@ -73,9 +77,34 @@ public class KeyHandler implements KeyListener {
 
         }
         // DIALOGUE STATE
-        if (gp.gameState == gp.dialogueState){
+        else if (gp.gameState == gp.dialogueState){
             if (code == KeyEvent.VK_ENTER){
                 gp.gameState = gp.playState;
+            }
+        }
+
+        // INVENTORY STATE
+        else if (gp.gameState == gp.inventoryState) {
+            if (code == KeyEvent.VK_I) {
+                inventoryPressed = true; // Untuk menutup inventaris
+            }
+
+            if (!gp.player.inventory.isEmpty()) { // Hanya proses navigasi jika ada item
+                if (code == KeyEvent.VK_W) { // Tombol Atas (atau Kiri jika linear)
+                    gp.ui.inventoryCommandNum--;
+                    if (gp.ui.inventoryCommandNum < 0) {
+                        gp.ui.inventoryCommandNum = gp.player.inventory.size() - 1; // Wrap ke item terakhir
+                    }
+                }
+                if (code == KeyEvent.VK_S) { // Tombol Bawah (atau Kanan jika linear)
+                    gp.ui.inventoryCommandNum++;
+                    if (gp.ui.inventoryCommandNum >= gp.player.inventory.size()) {
+                        gp.ui.inventoryCommandNum = 0; // Wrap ke item pertama
+                    }
+                }
+                if (code == KeyEvent.VK_ENTER) { // Ketika Enter ditekan di inventaris
+                    gp.player.selectItemAndUse(); // Panggil metode untuk menggunakan item
+                }
             }
         }
     }
@@ -95,6 +124,8 @@ public class KeyHandler implements KeyListener {
         if (code == KeyEvent.VK_D){
             rightPressed = false;
         }
-
+        if (code == KeyEvent.VK_ENTER){
+            enterPressed = false;
+        }
     }
 }

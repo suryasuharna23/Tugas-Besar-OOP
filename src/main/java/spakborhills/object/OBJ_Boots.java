@@ -1,19 +1,16 @@
 package spakborhills.object;
 
 import spakborhills.GamePanel;
+import spakborhills.entity.Entity;
+import spakborhills.enums.EntityType;
 
-import javax.imageio.ImageIO;
-import java.io.IOException;
-
-public class OBJ_Boots extends SuperObject{
+public class OBJ_Boots extends Entity {
     GamePanel gp;
     public OBJ_Boots(GamePanel gp){
+        super(gp);
+        type = EntityType.INTERACTIVE_OBJECT;
         name = "Boots";
-        try {
-            image = ImageIO.read(getClass()  .getResourceAsStream("/objects/boots.png"));
-            utilityTool.scaleImage(image, gp.tileSize, gp.tileSize);
-        }catch (IOException e){
-            System.out.println(e.getMessage());
-        }
+        setup("/objects/boots");
     }
+    public void update() {}
 }

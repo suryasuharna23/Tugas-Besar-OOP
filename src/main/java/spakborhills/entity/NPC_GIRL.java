@@ -1,6 +1,7 @@
 package spakborhills.entity;
 
 import spakborhills.GamePanel;
+import spakborhills.enums.EntityType;
 
 import java.util.Random;
 
@@ -10,6 +11,7 @@ public class NPC_GIRL extends Entity{
         super(gp);
         direction = "down";
         speed = 1;
+        type = EntityType.NPC;
         setDialogue();
         getNPCImage();
     }

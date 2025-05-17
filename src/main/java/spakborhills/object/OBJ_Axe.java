@@ -4,16 +4,13 @@ import spakborhills.GamePanel;
 import spakborhills.entity.Entity;
 import spakborhills.enums.EntityType;
 
-public class OBJ_Door extends Entity {
+public class OBJ_Axe extends Entity {
     GamePanel gp;
-    public OBJ_Door(GamePanel gp){
+    public OBJ_Axe(GamePanel gp){
         super(gp);
         type = EntityType.INTERACTIVE_OBJECT;
-        name = "Door";
-        down1 = setup("/objects/door");
-        collision = true;
+        name = "Axe";
+        down1 = setup("/objects/axe");
     }
-
-    @Override
     public void update() {}
 }
