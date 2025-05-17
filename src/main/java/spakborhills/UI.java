@@ -70,6 +70,7 @@ public class UI {
 
         if (gp.gameState == gp.playState){
             // Do playstate stuff later
+            drawEnergyBar();
         }
         // PAUSE STATE
         if (gp.gameState == gp.pauseState){
@@ -180,4 +181,64 @@ public class UI {
         return gp.screenWidth / 2 - length / 2;
     }
 
+    public void drawEnergyBar(){
+        int x = gp.tileSize / 2;
+        int y = gp.tileSize / 2;
+        int segmentWidth = gp.tileSize / 2;
+        int segmenHeight = gp.tileSize / 2 - 5;
+        int segmentSpacing = 3;
+        int totalSegments = 10;
+
+        int filledSegments = 0;
+        if (gp.player.maxEnergy > 0){
+            double energyPerSegments = (double) gp.player.maxEnergy / totalSegments;
+            if (energyPerSegments > 0){
+                filledSegments = (int) (gp.player.currentEnergy / energyPerSegments);
+            }
+        }
+        g2.setFont(silkScreen);
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 25f));
+        g2.setColor(Color.black);
+        FontMetrics fmLabel = g2.getFontMetrics(silkScreen);
+        String labelText = "Energy";
+        g2.drawString(labelText, x, y - fmLabel.getDescent());
+        y += 5;
+
+        for (int i = 0; i < totalSegments; i++){
+            int currentSegmentX = x + (i * (segmentWidth + segmentSpacing));
+
+            g2.setColor(Color.black);
+            g2.fillRect(currentSegmentX - 1, y - 1, segmentWidth + 2, segmenHeight + 2);
+            g2.setColor(Color.gray);
+            g2.fillRect(currentSegmentX, y, segmentWidth, segmenHeight);
+
+            if (i < filledSegments){
+                Color segmentColor;
+                double segmentPercentage = (double) (i + 1)  / totalSegments;
+                double currentEnergyPercentage = (double) gp.player.currentEnergy / gp.player.maxEnergy;
+
+                if (currentEnergyPercentage > 0.6){
+                    segmentColor = new Color(0, 200, 0);
+                }
+                else if (currentEnergyPercentage > 0.3){
+                    segmentColor = new Color(255, 200, 0);
+                }
+                else{
+                    segmentColor = new Color(200, 0 ,0);
+                }
+
+                g2.setColor(segmentColor);
+                g2.fillRect(currentSegmentX, y, segmentWidth, segmenHeight);
+            }
+            g2.setColor(Color.darkGray);
+            g2.drawRect(currentSegmentX, y, segmentWidth, segmenHeight);
+        }
+        String energyText = gp.player.currentEnergy + "/" + gp.player.maxEnergy;
+        g2.setFont(silkScreen);
+        g2.setColor(Color.WHITE);
+        int segmentsBarTotalWidth = totalSegments * (segmentWidth + segmentSpacing) - segmentSpacing;
+        FontMetrics fmText = g2.getFontMetrics(silkScreen);
+        int textHeightOffset = (segmenHeight - fmText.getAscent() - fmText.getDescent()) / 2 + fmText.getAscent();
+        g2.drawString(energyText, x + segmentsBarTotalWidth + 10, y + textHeightOffset);
+    }
 }

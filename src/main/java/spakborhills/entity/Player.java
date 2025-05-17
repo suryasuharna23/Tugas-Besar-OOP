@@ -8,9 +8,11 @@ import java.awt.image.BufferedImage;
 
 public class Player extends  Entity{
     KeyHandler keyH;
-
     public final int screenX;
     public final int screenY;
+    public int maxEnergy;
+    public int currentEnergy;
+
     public Player(GamePanel gp, KeyHandler keyH){
         super(gp);
         this.keyH = keyH;
@@ -28,7 +30,7 @@ public class Player extends  Entity{
 
         setDefaultValues();
         getPlayerImage();
-
+        setDefaultEnergy();
     }
 
     public void getPlayerImage(){
@@ -47,6 +49,25 @@ public class Player extends  Entity{
         worldY = gp.tileSize * 26;
         speed = 4;
         direction = "down";
+    }
+
+    public void setDefaultEnergy(){
+        maxEnergy = 100;
+        currentEnergy = maxEnergy;
+    }
+
+    public void decreaseEnergy(int amount){
+        currentEnergy -= amount;
+        if (currentEnergy < 0){
+            currentEnergy = 0;
+        }
+    }
+
+    public void increaseEnergy(int amount){
+        currentEnergy += amount;
+        if (currentEnergy > maxEnergy){
+            currentEnergy = maxEnergy;
+        }
     }
 
     private void updateDirection(){
