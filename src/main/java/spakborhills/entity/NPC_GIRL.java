@@ -29,8 +29,8 @@ public class NPC_GIRL extends Entity{
         dialogues.add("Kamu ganteng banget deh.");
         dialogues.add("I love you.");
         dialogues.add("Kangen kamu deh.");
-        dialogues.add("Kamu mau gak jadi pacar aku?");
-        dialogues.add("Jadi kapan nih halalin aku?");
+        dialogues.add("Kamu mau gak \njadi pacar aku?");
+        dialogues.add("Jadi kapan \nnih halalin aku?");
     }
 
     @Override
