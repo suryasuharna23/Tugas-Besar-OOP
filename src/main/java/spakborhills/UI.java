@@ -230,7 +230,7 @@ public class UI {
                 g2.setColor(segmentColor);
                 g2.fillRect(currentSegmentX, y, segmentWidth, segmenHeight);
             }
-            g2.setColor(Color.darkGray);
+            g2.setColor(Color.white);
             g2.drawRect(currentSegmentX, y, segmentWidth, segmenHeight);
         }
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 15F));
