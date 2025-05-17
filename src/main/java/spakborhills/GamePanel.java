@@ -10,10 +10,9 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class GamePanel extends  JPanel implements Runnable {
-
+    // GAME WINDOW
     final int originalTileSize = 16;
     final int scale = 3;
-
     public final int tileSize = originalTileSize * scale; //48x48 tile
     public final int maxScreenCol = 16;
     public final int maxScreenRow = 12;
@@ -44,10 +43,10 @@ public class GamePanel extends  JPanel implements Runnable {
 
     //GAME STATE
     public int gameState;
+    public final int titleState = 0;
     public final int playState = 1;
     public final int pauseState = 2;
     public final int dialogueState = 3;
-
 
     public GamePanel(){
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -60,9 +59,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public void setupGame(){
         assetSetter.setObject();
         assetSetter.setNPC();
-        playMusic(0);
-        stopMusic();
-        gameState = playState;
+        gameState = titleState;
     }
     public void startGameThread(){
         gameThread = new Thread(this);
@@ -114,27 +111,30 @@ public class GamePanel extends  JPanel implements Runnable {
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        //Ti les
-        tileManager.draw(g2);
-        //Objects
-        for (SuperObject superObject : obj) {
-            if (superObject != null) {
+
+        // TITLE SCREEN
+        if (gameState == titleState){
+            ui.draw(g2);
+        }
+        else {
+            // TILES
+            tileManager.draw(g2);
+
+            //Objects
+            for (SuperObject superObject : obj) {
                 superObject.draw(g2, this);
             }
+            //NPC
+            for(Entity character: npc){
+                character.draw(g2);
+            }
+            //Player
+            player.draw(g2);
+            //UI
+            ui.draw(g2);
         }
-
-        //NPC
-        for(Entity character: npc){
-            character.draw(g2);
-        }
-        //Player
-        player.draw(g2);
-        //UI
-        ui.draw(g2);
-
         g2.dispose();
     }
-
     public void playMusic(int i){
         music.setFile(i);
         music.play();

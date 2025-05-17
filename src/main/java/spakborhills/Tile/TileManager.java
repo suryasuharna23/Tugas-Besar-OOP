@@ -21,15 +21,15 @@
         public TileManager(GamePanel gp){
             this.gp = gp;
 
-            InputStream is = getClass().getResourceAsStream("/maps/oceantiledata.txt");
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            InputStream inputStream = getClass().getResourceAsStream("/maps/oceantiledata.txt");
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
             //Getting Tile Name and Collision Info
             String line;
             try {
-                while ((line = br.readLine()) != null){
+                while ((line = bufferedReader.readLine()) != null){
                     fileNames.add(line);
-                    collisionStatus.add(br.readLine());
+                    collisionStatus.add(bufferedReader.readLine());
                 }
             }catch (IOException e){
                 System.out.println(e.getMessage());
@@ -39,18 +39,18 @@
             getTilesImage();
 
             //Get maxWorldCol & maxWorldRow
-            is = getClass().getResourceAsStream("/maps/ocean.txt");
-            br = new BufferedReader(new InputStreamReader(is));
+            inputStream = getClass().getResourceAsStream("/maps/ocean.txt");
+            bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
 
 
             try {
-                String line2 = br.readLine();
+                String line2 = bufferedReader.readLine();
                 String[] maxTile = line2.split(" ");
                 gp.maxWorldCol = maxTile.length;
                 gp.maxWorldRow = maxTile.length;
                 mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
-                br.close();
+                bufferedReader.close();
             }catch (IOException e){
                 System.out.println(e.getMessage());
             }
