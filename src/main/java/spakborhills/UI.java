@@ -233,9 +233,9 @@ public class UI {
             g2.setColor(Color.darkGray);
             g2.drawRect(currentSegmentX, y, segmentWidth, segmenHeight);
         }
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 15F));
         String energyText = gp.player.currentEnergy + "/" + gp.player.maxEnergy;
-        g2.setFont(silkScreen);
-        g2.setColor(Color.WHITE);
+        g2.setColor(Color.BLACK);
         int segmentsBarTotalWidth = totalSegments * (segmentWidth + segmentSpacing) - segmentSpacing;
         FontMetrics fmText = g2.getFontMetrics(silkScreen);
         int textHeightOffset = (segmenHeight - fmText.getAscent() - fmText.getDescent()) / 2 + fmText.getAscent();
