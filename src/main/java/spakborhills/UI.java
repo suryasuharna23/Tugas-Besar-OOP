@@ -262,44 +262,34 @@ public class UI {
     }
 
     public void drawInventoryScreen() {
-        // Gambar Latar Belakang Inventory (Window)
-        // Ukuran frame mungkin perlu dinamis atau cukup besar untuk menampung banyak item,
-        // atau Anda perlu implementasi scrolling jika terlalu banyak.
-        // Untuk contoh ini, kita buat frame dengan tinggi tetap, item akan mengalir ke bawah.
         int frameX = gp.tileSize * 2;
         int frameY = gp.tileSize;
         int frameWidth = gp.screenWidth - (gp.tileSize * 4);
         int frameHeight = gp.tileSize * 10; // Tinggi frame bisa disesuaikan
         drawSubWindow(frameX, frameY, frameWidth, frameHeight);
 
-        // Judul Inventaris
         g2.setColor(Color.white);
-        g2.setFont(g2.getFont().deriveFont(24F)); // Sesuaikan ukuran font jika perlu
+        g2.setFont(g2.getFont().deriveFont(24F));
         g2.drawString("INVENTORY", getXForInventoryTitle("INVENTORY", frameX, frameWidth), frameY + gp.tileSize - 10);
 
         // Pengaturan Slot Awal
         final int slotStartX = frameX + gp.tileSize / 2;
-        final int slotStartY = frameY + gp.tileSize; // Mulai slot setelah judul
+        final int slotStartY = frameY + gp.tileSize;
         int currentSlotX = slotStartX;
         int currentSlotY = slotStartY;
-        final int slotSize = gp.tileSize + 10; // Ukuran slot
-        final int slotGap = 5;                 // Jarak antar slot
-        final int itemsPerRow = (frameWidth - gp.tileSize) / (slotSize + slotGap); // Item per baris
+        final int slotSize = gp.tileSize + 10;
+        final int slotGap = 5;
+        final int itemsPerRow = (frameWidth - gp.tileSize) / (slotSize + slotGap);
 
-        int currentItemIndex = 0; // Variabel untuk melacak indeks item saat ini (untuk penyorotan)
+        int currentItemIndex = 0;
 
-        // Gunakan enhanced for loop untuk menggambar setiap item dalam inventaris
         for (Entity item : gp.player.inventory) {
-            // Cek apakah slot saat ini masih dalam batas frame vertikal
             if (currentSlotY + slotSize > frameY + frameHeight - gp.tileSize / 2) {
-                // Jika melebihi batas bawah frame, berhenti menggambar item lebih lanjut
-                // (Ini adalah batasan visual sederhana; scrolling akan lebih baik untuk inventaris besar)
                 g2.setColor(Color.white);
-                g2.drawString("...", currentSlotX, currentSlotY + slotSize / 2); // Indikasi ada item lain
+                g2.drawString("...", currentSlotX, currentSlotY + slotSize / 2);
                 break;
             }
 
-            // Gambar kotak slot (karena kita hanya menggambar slot yang ada itemnya)
             g2.setColor(new Color(100, 100, 100, 150)); // Warna slot
             g2.fillRoundRect(currentSlotX, currentSlotY, slotSize, slotSize, 10, 10);
             g2.setColor(Color.white);
@@ -325,7 +315,8 @@ public class UI {
                 g2.setFont(g2.getFont().deriveFont(18F));
                 int itemInfoY = frameY + frameHeight + gp.tileSize / 2; // Posisi di bawah frame
                 g2.drawString("Item: " + item.name, slotStartX, itemInfoY);
-                // Anda bisa menambahkan deskripsi atau detail lain di sini:
+
+                // kalo mau menambahkan deskripsi atau detail lain di sini:
                 // if (item.description != null) {
                 //     g2.drawString(item.description, slotStartX, itemInfoY + 20);
                 // }
