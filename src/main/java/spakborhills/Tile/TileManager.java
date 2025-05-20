@@ -1,7 +1,6 @@
     package spakborhills.Tile;
 
     import spakborhills.GamePanel;
-    import spakborhills.UtilityTool;
 
     import javax.imageio.ImageIO;
     import java.awt.*;
@@ -71,7 +70,6 @@
         }
 
         public void setup(int index, String imagePath, boolean collision){
-            UtilityTool utilityTool = new UtilityTool();
             try {
                 tile[index] = new Tile();
                 tile[index].image = ImageIO.read(getClass().getResourceAsStream("/asset/map_resources/ocean/" + imagePath));

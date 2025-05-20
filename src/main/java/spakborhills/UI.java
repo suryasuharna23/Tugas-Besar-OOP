@@ -241,7 +241,6 @@ public class UI {
 
     private Color getColor(int i, int totalSegments) {
         Color segmentColor;
-        double segmentPercentage = (double) (i + 1)  / totalSegments;
         double currentEnergyPercentage = (double) gp.player.currentEnergy / gp.player.maxEnergy;
 
         if (currentEnergyPercentage > 0.6){
