@@ -1,7 +1,6 @@
     package spakborhills.entity;
 
     import spakborhills.GamePanel;
-    import spakborhills.UtilityTool;
     import spakborhills.enums.EntityType;
 
     import javax.imageio.ImageIO;
@@ -18,7 +17,6 @@
         public BufferedImage image;
         public String name;
         public boolean collision = false;
-        public UtilityTool utilityTool = new UtilityTool();
         public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2;
         public String direction = "down";
         public int spriteCounter = 0;
@@ -36,7 +34,6 @@
         }
 
         public BufferedImage setup(String imagePath){
-            UtilityTool utilityTool = new UtilityTool();
             BufferedImage image = null;
             try {
                 image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(  imagePath + ".png")));
@@ -72,7 +69,7 @@
             else{
                 System.err.println("Peringatan: speak() dipanggil pada entitas non-NPC: " + this.name + " Tipe: " + this.type);
             }
-        };
+        }
 
         public void update(){
             setAction();
