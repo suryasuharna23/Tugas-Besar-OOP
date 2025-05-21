@@ -3,8 +3,9 @@ package spakborhills;
 import spakborhills.entity.Entity;
 import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
+import spakborhills.Time;
 
-import  javax.swing.JPanel;
+import javax.swing.JPanel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,9 +35,13 @@ public class GamePanel extends  JPanel implements Runnable {
     TileManager tileManager = new TileManager(this);
     public AssetSetter assetSetter = new AssetSetter(this);
     public CollisionChecker collisionChecker = new CollisionChecker(this);
-    public UI ui = new UI(this);
+    public UI ui;
     Thread gameThread;
-    public  EventHandler eventHandler = new EventHandler(this);
+    public EventHandler eventHandler = new EventHandler(this);
+
+    private Time time;
+    private Weather weather;
+    public GameClock gameClock;
 
     //Entity & OBJECT
     public Player player = new Player(this, keyH);
@@ -66,6 +71,18 @@ public class GamePanel extends  JPanel implements Runnable {
     public void startGameThread(){
         gameThread = new Thread(this);
         gameThread.start();
+    }
+    public void setTime(Time time) {
+        this.time = time;
+    }
+
+    public void setWeather(Weather weather) {
+        this.weather = weather;
+    }
+
+    public void setGameClock(GameClock gameClock) {
+        this.gameClock = gameClock;
+        this.ui = new UI(this, gameClock);
     }
 
     public void run(){
@@ -138,6 +155,7 @@ public class GamePanel extends  JPanel implements Runnable {
         }
         g2.dispose();
     }
+
     public void playMusic(int i){
         music.setFile(i);
         music.play();

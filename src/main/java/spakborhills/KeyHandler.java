@@ -6,6 +6,7 @@ import java.awt.event.KeyListener;
 public class KeyHandler implements KeyListener {
     public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, inventoryPressed;
     GamePanel gp;
+    GameClock gameClock;
     public KeyHandler(GamePanel gp){
         this.gp = gp;
     }
@@ -34,6 +35,7 @@ public class KeyHandler implements KeyListener {
                     gp.gameState = gp.playState;
                     gp.playMusic(0);
                     gp.stopMusic();
+                    gp.gameClock.start();
                 }
                 if (gp.ui.commandNumber == 1){
 
@@ -59,6 +61,7 @@ public class KeyHandler implements KeyListener {
             }
             if (code == KeyEvent.VK_P){
                 gp.gameState = gp.pauseState;
+                gp.gameClock.getTime().pauseTime();
             }
             if (code == KeyEvent.VK_ENTER){
                 enterPressed = true;
@@ -72,6 +75,7 @@ public class KeyHandler implements KeyListener {
         else if (gp.gameState == gp.pauseState){
             if (code == KeyEvent.VK_P){
                 gp.gameState = gp.playState;
+                gp.gameClock.getTime().resumeTime();
             }
 
         }

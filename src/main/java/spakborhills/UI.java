@@ -10,6 +10,7 @@ import java.io.InputStream;
 
 public class UI {
     GamePanel gp;
+    GameClock gameClock;
     Font silkScreen, pressStart;
     public boolean messageOn = false;
     public String message = "";
@@ -28,8 +29,9 @@ public class UI {
     BufferedImage titleScreenBackground;
 
 
-    public UI(GamePanel gp){
+    public UI(GamePanel gp, GameClock gameClock){
         this.gp = gp;
+        this.gameClock = gameClock;
 
         InputStream inputStream = getClass().getResourceAsStream("/fonts/SilkscreenRegular.ttf");
         try {
@@ -72,11 +74,12 @@ public class UI {
         // TITLE STATE
         if (gp.gameState == gp.titleState){
             drawTitleScreen();
+            return;
         }
 
         if (gp.gameState == gp.playState){
-            // Do playstate stuff later
-            drawEnergyBar();
+            drawTimeHUD(g2);
+            drawEnergyBar(g2);
         }
         // PAUSE STATE
         if (gp.gameState == gp.pauseState){
@@ -190,7 +193,7 @@ public class UI {
         return gp.screenWidth / 2 - length / 2;
     }
 
-    public void drawEnergyBar(){
+    public void drawEnergyBar(Graphics2D g2){
         int x = gp.tileSize / 2;
         int y = gp.tileSize / 2;
         int segmentWidth = gp.tileSize / 2;
@@ -345,5 +348,29 @@ public class UI {
             int itemInfoY = frameY + frameHeight + gp.tileSize / 2;
             g2.drawString("Select Item...", slotStartX, itemInfoY);
         }
+    }
+    private void drawTimeHUD(Graphics2D g2) {
+        if (gp.gameState != gp.playState) return;
+        String text = "Time: " + gameClock.getFormattedTime()
+                + " | Season: " + gameClock.getCurrentSeason().name()
+                + " | Weather: " + gameClock.getWeather().getWeatherName();
+
+        int padding = 10;
+        int x = gp.screenWidth - g2.getFontMetrics().stringWidth(text) - padding * 33;
+        int y = gp.tileSize / 2;
+
+        g2.setFont(new Font("Arial", Font.BOLD, 16));
+        g2.setColor(new Color(0, 0, 0, 170));
+        g2.fillRoundRect(
+                x - 10,
+                y - 24,
+                g2.getFontMetrics().stringWidth(text) + padding * 2,
+                36,
+                10,
+                10
+        );
+
+        g2.setColor(Color.white);
+        g2.drawString(text, x, y);
     }
 }
