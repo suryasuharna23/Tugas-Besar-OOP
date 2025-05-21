@@ -25,6 +25,12 @@ public class UI {
     public int inventorySlotCol = 0;
     public int inventorySlotRow = 0;
 
+    // FARM NAME
+    public String farmNameInput = ""; // Menyimpan teks input nama farm
+    private String farmNamePromptMessage = "Enter Your Farm's Name:";
+    private String farmNameSubMessage = "(Press ENTER to confirm, BACKSPACE to delete)";
+    public int farmNameMaxLength = 20; // Batas maksimal karakter nama farm
+
     // TITLE BACKGROUND
     BufferedImage titleScreenBackground;
 
@@ -71,28 +77,32 @@ public class UI {
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setColor(Color.white);
 
-        // TITLE STATE
+        // Menggunakan struktur if-else if
         if (gp.gameState == gp.titleState){
             drawTitleScreen();
-            return;
         }
-
-        if (gp.gameState == gp.playState){
+        // FARM NAME INPUT STATE
+        else if (gp.gameState == gp.farmNameInputState) {
+            drawFarmNameInputScreen();
+        }
+        // PLAY STATE
+        else if (gp.gameState == gp.playState){
             drawTimeHUD(g2);
             drawEnergyBar(g2);
         }
         // PAUSE STATE
-        if (gp.gameState == gp.pauseState){
+        else if (gp.gameState == gp.pauseState){
             drawPauseScreen();
         }
-
         // DIALOGUE STATE
-        if (gp.gameState == gp.dialogueState){
+        else if (gp.gameState == gp.dialogueState){
             drawDialogueScreen();
         }
-        if (gp.gameState == gp.inventoryState){
+        // INVENTORY STATE
+        else if (gp.gameState == gp.inventoryState){
             drawInventoryScreen();
         }
+
     }
 
     public void drawTitleScreen(){
@@ -128,6 +138,14 @@ public class UI {
         g2.drawString(text, x, y);
         if (commandNumber == 0){
             g2.drawString(">", x-gp.tileSize, y);
+            if (gp.keyH.enterPressed){
+                gp.gameState = gp.farmNameInputState;
+                farmNameInput = "";
+                gp.keyH.enterPressed = false;
+                if (gp.gameClock != null && !gp.gameClock.isPaused()){
+                    gp.gameClock.pauseTime();
+                }
+            }
         }
 
         text = "LOAD GAME";
@@ -161,23 +179,168 @@ public class UI {
         g2.drawString(text, x, y);
     }
 
-    public void drawDialogueScreen(){
+    public void drawFarmNameInputScreen() {
+        // Latar belakang (bisa sama dengan title screen atau warna solid)
+        g2.setColor(new Color(0, 0, 0, 200)); // Warna hitam semi-transparan
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 30F));
+        g2.setColor(Color.white);
+
+        // Pesan Prompt
+        int x = getXForCenteredText(farmNamePromptMessage);
+        int y = gp.screenHeight / 2 - gp.tileSize * 2;
+        g2.drawString(farmNamePromptMessage, x, y);
+
+        // Kotak Input Teks (atau hanya teks yang diketik)
+        String displayText = farmNameInput;
+        // Tambahkan kursor berkedip sederhana
+        if (System.currentTimeMillis() % 1000 < 500) { // Setiap 0.5 detik
+            displayText += "_";
+        } else {
+            displayText += " "; // Beri spasi agar lebar konsisten saat tidak ada kursor
+        }
+
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
+        int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
+        x = gp.screenWidth / 2 - textWidth / 2;
+        y += gp.tileSize * 2;
+        g2.drawString(displayText, x, y);
+
+        // Pesan Sub/Instruksi
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 16F));
+        x = getXForCenteredText(farmNameSubMessage);
+        y += gp.tileSize * 1.5;
+        g2.drawString(farmNameSubMessage, x, y);
+    }
+
+    public void drawDialogueScreen() {
         // WINDOW
         int x = gp.tileSize * 2;
         int y = gp.tileSize / 2;
         int width = gp.screenWidth - (gp.tileSize * 4);
-        int height = gp.tileSize * 4;
+        int height = gp.tileSize * 4; // Tinggi window dialog
 
         drawSubWindow(x, y, width, height);
 
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20));
-        x += gp.tileSize;
-        y += gp.tileSize;
-        for (String line: currentDialogue.split("\n")){
-            g2.drawString(line, x, y);
-            y += 40;
+        // TEXT SETTINGS
+        g2.setColor(Color.white); // Warna teks
+        // Gunakan font yang sudah diinisialisasi
+        if (pressStart != null) {
+            g2.setFont(pressStart.deriveFont(Font.PLAIN, 20F));
+        } else {
+            g2.setFont(new Font("Arial", Font.PLAIN, 20)); // Fallback jika pressStart gagal load
+        }
+
+
+        int textPadding = gp.tileSize / 2; // Padding di dalam subWindow
+        int dialogueContentX = x + textPadding;
+        int currentY = y + textPadding;    // Y awal untuk baris pertama teks
+
+        FontMetrics fm = g2.getFontMetrics();
+        currentY += fm.getAscent(); // Menyesuaikan Y awal agar teks tidak terlalu menempel ke atas
+
+        int lineHeight = fm.getHeight() + 5; // Jarak antar baris, tambahkan sedikit spasi jika perlu
+        // fm.getHeight() sudah termasuk ascent, descent, dan leading
+
+        // Menggambar Nama NPC jika ada
+        String npcNamePrefix = "";
+        if (gp.currentInteractingNPC != null && gp.currentInteractingNPC.name != null && !gp.currentInteractingNPC.name.isEmpty()) {
+            npcNamePrefix = gp.currentInteractingNPC.name + ": ";
+             Font currentFont = g2.getFont();
+             g2.setFont(currentFont.deriveFont(Font.BOLD));
+             g2.drawString(npcNamePrefix, dialogueContentX, currentY);
+             g2.setFont(currentFont); // Kembalikan font
+             currentY += lineHeight; // Pindah ke bawah untuk dialognya
+            // Jika nama NPC ingin berada di baris yang sama dengan awal dialog, gabungkan saja:
+        }
+
+        // TEXT WRAPPING LOGIC
+        int maxTextWidth = width - (2 * textPadding);
+        String textToDisplay =  currentDialogue; // Gabungkan nama NPC dengan dialognya
+
+        String[] words = textToDisplay.split(" ");
+        StringBuilder currentLine = new StringBuilder();
+
+        for (String word : words) {
+            // Cek apakah kata ini mengandung \n (untuk pemaksaan baris baru manual)
+            if (word.contains("\n")) {
+                String[] subWords = word.split("\n", -1); // -1 untuk menjaga token kosong jika \n di akhir
+                for (int i = 0; i < subWords.length; i++) {
+                    String subWord = subWords[i];
+                    // Coba tambahkan subWord ke baris saat ini
+                    String testLineWithSubWord = currentLine.toString() + (currentLine.length() > 0 && !subWord.isEmpty() ? " " : "") + subWord;
+
+                    if (!subWord.isEmpty() && fm.stringWidth(testLineWithSubWord) <= maxTextWidth) {
+                        if (currentLine.length() > 0 && !subWord.isEmpty()) currentLine.append(" ");
+                        currentLine.append(subWord);
+                    } else {
+                        // Gambar baris sebelumnya jika ada isinya
+                        if (currentLine.length() > 0) {
+                            g2.drawString(currentLine.toString(), dialogueContentX, currentY);
+                            currentY += lineHeight;
+                        }
+                        currentLine = new StringBuilder(subWord); // subWord memulai baris baru
+                        // Jika subWord sendiri sudah melebihi lebar, ia akan digambar apa adanya (dan mungkin keluar)
+                        // Penanganan kata yang terlalu panjang lebih kompleks (misalnya, memotong kata)
+                        if (fm.stringWidth(currentLine.toString()) > maxTextWidth && currentLine.length() > 0){
+                            g2.drawString(currentLine.toString(), dialogueContentX, currentY);
+                            currentY += lineHeight;
+                            currentLine = new StringBuilder();
+                        }
+                    }
+
+                    // Jika ini adalah hasil split dari \n (dan bukan bagian terakhir), paksa gambar baris dan pindah
+                    if (i < subWords.length - 1) {
+                        if (currentLine.length() > 0) {
+                            g2.drawString(currentLine.toString(), dialogueContentX, currentY);
+                        }
+                        currentY += lineHeight;
+                        currentLine = new StringBuilder();
+                    }
+                }
+            } else { // Proses kata biasa tanpa newline manual
+                String testLine = currentLine.toString() + (currentLine.length() > 0 ? " " : "") + word;
+                if (fm.stringWidth(testLine) <= maxTextWidth) {
+                    if (currentLine.length() > 0) currentLine.append(" ");
+                    currentLine.append(word);
+                } else {
+                    // Gambar baris saat ini
+                    if (currentLine.length() > 0) {
+                        g2.drawString(currentLine.toString(), dialogueContentX, currentY);
+                    }
+                    currentY += lineHeight; // Pindah ke baris berikutnya
+                    currentLine = new StringBuilder(word); // Mulai baris baru dengan kata ini
+
+                    // Jika kata pertama di baris baru sudah melebihi lebar
+                    if (fm.stringWidth(currentLine.toString()) > maxTextWidth && currentLine.length() > 0){
+                        g2.drawString(currentLine.toString(), dialogueContentX, currentY);
+                        currentY += lineHeight;
+                        currentLine = new StringBuilder();
+                    }
+                }
+            }
+
+            // Hentikan jika teks melebihi tinggi kotak dialog
+            if (currentY > y + height - textPadding - fm.getDescent()) {
+                // Bisa tambahkan indikator "..." jika teks terpotong
+                if (currentLine.length() > 0) { // Gambar sisa terakhir yang mungkin masih muat sebagian
+                    g2.drawString(currentLine.toString().trim() + "...", dialogueContentX, currentY);
+                } else if (words[words.length-1] != word) { // Jika bukan kata terakhir yang menyebabkan overflow
+                    String lastDrawnLine = g2.getFontMetrics().toString(); // Ini tidak benar, perlu cara lain ambil line terakhir
+                    // Untuk simpelnya, kita bisa tambahkan ... di akhir baris terakhir yang berhasil digambar sebelumnya
+                    // Ini agak tricky tanpa menyimpan state baris sebelumnya.
+                }
+                break;
+            }
+        }
+
+        // Gambar sisa baris terakhir jika masih ada dan belum melebihi tinggi
+        if (currentLine.length() > 0 && currentY <= y + height - textPadding - fm.getDescent()) {
+            g2.drawString(currentLine.toString(), dialogueContentX, currentY);
         }
     }
+
     public void drawSubWindow(int x, int y, int width, int height){
         Color c = new Color(0, 0 ,0, 210);
         g2.setColor(c);
@@ -363,7 +526,7 @@ public class UI {
         g2.setColor(new Color(0, 0, 0, 170));
         g2.fillRoundRect(
                 x - 10,
-                y - 24,
+                0,
                 g2.getFontMetrics().stringWidth(text) + padding * 2,
                 36,
                 10,

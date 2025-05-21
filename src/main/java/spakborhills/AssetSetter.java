@@ -31,16 +31,30 @@ public class AssetSetter {
 
     public void setNPC(){
         // Buat instance NPC dan LANGSUNG atur propertinya sebelum menambahkannya ke daftar
-        Entity npcGirl = new NPC_GIRL(gp);
-        npcGirl.worldX = gp.tileSize * 21;   // Atur X untuk npcGirl
-        npcGirl.worldY = gp.tileSize * 21;   // Atur Y untuk npcGirl
-        // Pastikan npcGirl.type = EntityType.NPC; diatur di dalam konstruktor NPC_GIRL
-        gp.entities.add(npcGirl);            // Baru tambahkan npcGirl yang sudah diatur ke daftar
+        Entity abigail = new NPC_ABIGAIL(gp);
+        abigail.worldX = gp.tileSize * 21;   // Atur X untuk npcGirl
+        abigail.worldY = gp.tileSize * 21;   // Atur Y untuk npcGirl
+        gp.entities.add(abigail);
 
-        Entity npcOldman = new NPC_OLDMAN(gp);
-        npcOldman.worldX = gp.tileSize * 20; // Atur X untuk npcOldman
-        npcOldman.worldY = gp.tileSize * 21; // Atur Y untuk npcOldman
-        // Pastikan npcOldman.type = EntityType.NPC; diatur di dalam konstruktor NPC_OLDMAN
-        gp.entities.add(npcOldman);          // Baru tambahkan npcOldman yang sudah diatur ke daftar
+        gp.entities.add(abigail);
+        Entity caroline = new NPC_CAROLINE(gp);
+        caroline.worldX = gp.tileSize * 21;
+        caroline.worldY = gp.tileSize * 21;
+        gp.entities.add(caroline);
+
+        Entity dasco = new NPC_DASCO(gp);
+        dasco.worldX = gp.tileSize * 21;
+        dasco.worldY = gp.tileSize * 21;
+        gp.entities.add(dasco);
+
+        Entity emily = new NPC_EMILY(gp);
+        emily.worldX = gp.tileSize * 21;
+        emily.worldY = gp.tileSize * 21;
+        gp.entities.add(emily);
+
+        Entity mayorTadi = new NPC_MAYOR_TADI(gp);
+        mayorTadi.worldX = gp.tileSize * 21;
+        mayorTadi.worldY = gp.tileSize * 21;
+        gp.entities.add(mayorTadi);
     }
 }

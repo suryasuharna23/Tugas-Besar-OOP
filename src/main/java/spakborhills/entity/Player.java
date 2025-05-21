@@ -16,10 +16,12 @@ public class Player extends  Entity{
     KeyHandler keyH;
     public final int screenX;
     public final int screenY;
+    private String farmName;
     public int maxEnergy;
     public int currentEnergy;
     public ArrayList<Entity> inventory = new ArrayList<>();
     public int currentEquippedItemIndex = -1;
+
 
     public Player(GamePanel gp, KeyHandler keyH){
         super(gp);
@@ -67,6 +69,15 @@ public class Player extends  Entity{
         maxEnergy = 100;
         currentEnergy = 75;
     }
+
+    public String getFarmName() {
+        return farmName;
+    }
+
+    public void setFarmName(String farmName) {
+        this.farmName = farmName;
+    }
+
 
     public void decreaseEnergy(int amount){
         currentEnergy -= amount;
@@ -133,6 +144,7 @@ public class Player extends  Entity{
                 if (interactedEntity.type == EntityType.NPC) {
                     // Jika itu NPC, masuk ke mode dialog dan panggil metode speak() dari NPC tersebut
                     gp.gameState = gp.dialogueState;
+                    gp.currentInteractingNPC = interactedEntity;
                     interactedEntity.speak(); // Ini akan menjalankan metode speak() milik NPC
                 } else if (interactedEntity.type == EntityType.INTERACTIVE_OBJECT) {
                     // Jika itu objek interaktif (pintu, peti, dll.)
@@ -185,7 +197,11 @@ public class Player extends  Entity{
         if (i != 999){
             if(gp.keyH.enterPressed){
                 gp.gameState = gp.dialogueState;
-                gp.entities.get(i).speak();
+                Entity npc = gp.entities.get(i);
+                if (npc.type == EntityType.NPC){
+                    gp.currentInteractingNPC = npc;
+                    npc.speak();
+                }
             }
         }
         gp.keyH.enterPressed = false;
