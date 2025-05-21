@@ -37,7 +37,7 @@ public class Time {
             minute -= 60;
             hour++;
 
-            if (hour >= 24) {
+            if (hour >= 26) {
                 hour = 6;
                 day++;
                 isNewDay = true;
@@ -50,7 +50,11 @@ public class Time {
     }
 
     public String getFormattedTime() {
-        return String.format("%02d:%02d", hour, minute);
+        int displayHour = hour;
+        if (displayHour >= 24) {
+            displayHour -= 24;
+        }
+        return String.format("%02d:%02d", displayHour, minute);
     }
 
     public void pauseTime() {
