@@ -3,13 +3,11 @@ package spakborhills;
 import spakborhills.entity.Entity;
 import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
-import spakborhills.Time;
 import spakborhills.enums.EntityType;
 
 import javax.swing.JPanel;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 
 public class GamePanel extends  JPanel implements Runnable {
@@ -38,7 +36,6 @@ public class GamePanel extends  JPanel implements Runnable {
     public CollisionChecker collisionChecker = new CollisionChecker(this);
     public UI ui;
     Thread gameThread;
-    public EventHandler eventHandler = new EventHandler(this);
 
     private Time time;
     private Weather weather;
@@ -71,10 +68,27 @@ public class GamePanel extends  JPanel implements Runnable {
         assetSetter.setObject();
         gameState = titleState;
     }
+
     public void startGameThread(){
         gameThread = new Thread(this);
-        gameThread.start();
+        gameThread.start(); // Mulai thread utama game
+
+        // Mulai GameClock thread di sini jika belum berjalan dan sudah di-set
+        if (gameClock != null && !gameClock.isAlive()) { // (A)
+            try {
+                System.out.println("[GamePanel] Attempting to start GameClock thread..."); // Tambahkan log
+                gameClock.start(); // << HANYA PANGGIL SEKALI DI SINI
+                System.out.println("[GamePanel] GameClock thread started successfully."); // Tambahkan log
+            } catch (IllegalThreadStateException e) {
+                System.err.println("[GamePanel] GameClock thread may have already been started: " + e.getMessage());
+            }
+        } else if (gameClock != null) {
+            System.out.println("[GamePanel] GameClock thread was already alive."); // Tambahkan log
+        } else {
+            System.err.println("[GamePanel] GameClock is null, cannot start."); // Tambahkan log
+        }
     }
+
     public void setTime(Time time) {
         this.time = time;
     }
@@ -226,7 +240,7 @@ public class GamePanel extends  JPanel implements Runnable {
             // TILES
             tileManager.draw(g2);
 
-            Collections.sort(entities, new Comparator<Entity>() {
+            entities.sort(new Comparator<Entity>() {
                 @Override
                 public int compare(Entity o1, Entity o2) {
                     return Integer.compare(o1.worldY, o2.worldY);
