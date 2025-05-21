@@ -1,67 +1,76 @@
+// Asumsi ini ada di kelas Time.java Anda
 package spakborhills;
 
 public class Time {
+    private int day;
     private int hour;
     private int minute;
-    private int day;
+    private boolean newDay; // Flag untuk menandakan hari baru
 
-    private boolean isPaused = false;
-    private boolean isNewDay = false;
+    // Nilai awal default
+    private static final int DEFAULT_START_DAY = 1;
+    private static final int DEFAULT_START_HOUR = 6; // Jam 6 pagi
+    private static final int DEFAULT_START_MINUTE = 0;
 
     public Time() {
-        this.hour = 6;
-        this.minute = 0;
-        this.day = 1;
+        resetToDefault();
     }
 
-    // Memulai hari baru (dipanggil saat sudah hari berikutnya)
-    public void startNewDay() {
-        isNewDay = false;
+    public void resetToDefault() {
+        this.day = DEFAULT_START_DAY;
+        this.hour = DEFAULT_START_HOUR;
+        this.minute = DEFAULT_START_MINUTE;
+        this.newDay = false; // Reset flag hari baru
+        System.out.println("Time reset to Day " + day + ", " + getFormattedTime());
     }
 
-    // Getter status hari baru
-    public boolean isNewDay() {
-        if (isNewDay) {
-            isNewDay = false;
-            return true;
-        }
-        return false;
-    }
-
-    public void advanceTime(int amount) {
-        if (isPaused) return;
-
-        minute += amount;
-
-        if (minute >= 60) {
-            minute -= 60;
-            hour++;
-
-            if (hour >= 26) {
-                hour = 6;
-                day++;
-                isNewDay = true;
+    public void advanceTime(int minutes) {
+        this.newDay = false; // Reset flag setiap kali waktu maju
+        this.minute += minutes;
+        while (this.minute >= 60) {
+            this.minute -= 60;
+            this.hour++;
+            if (this.hour >= 24) {
+                this.hour = 0; // Tengah malam, hari baru akan dihandle setelah ini
+                // Sebenarnya, jika jam 24:00 adalah akhir hari, hari baru dimulai saat jam 00:00
+                // Logika isNewDay() akan menangani penambahan hari
+                this.newDay = true; // Tandai bahwa hari baru telah tiba
             }
         }
+    }
+
+    public boolean isNewDay() {
+        // Hari dianggap baru jika flag newDay diset oleh advanceTime()
+        // atau jika logika tidur pemain memajukan hari.
+        return newDay;
+    }
+
+    public void startNewDay() {
+        // Dipanggil setelah isNewDay() true atau saat pemain tidur
+        if (newDay) { // Hanya tambah hari jika memang sudah waktunya
+            this.day++;
+        }
+        // Waktu default bangun tidur atau awal hari baru
+        this.hour = DEFAULT_START_HOUR; // Jam 6 pagi
+        this.minute = DEFAULT_START_MINUTE;
+        this.newDay = false; // Reset flag setelah hari baru dimulai
+        System.out.println("Started new day: Day " + this.day);
+    }
+
+
+    public String getFormattedTime() {
+        return String.format("%02d:%02d", hour, minute);
     }
 
     public int getDay() {
         return day;
     }
 
-    public String getFormattedTime() {
-        int displayHour = hour;
-        if (displayHour >= 24) {
-            displayHour -= 24;
-        }
-        return String.format("%02d:%02d", displayHour, minute);
+    public int getHour() {
+        return hour;
     }
 
-    public void pauseTime() {
-        isPaused = true;
-    }
-
-    public void resumeTime() {
-        isPaused = false;
+    public int getMinute() {
+        return minute;
     }
 }
