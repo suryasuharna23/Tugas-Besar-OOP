@@ -6,7 +6,7 @@ import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
 
 public class OBJ_Item extends Entity {
-    private ItemType itemType;
+    private ItemType itemType; 
     private int buyPrice;
     private int sellPrice;
     private boolean isEdible;

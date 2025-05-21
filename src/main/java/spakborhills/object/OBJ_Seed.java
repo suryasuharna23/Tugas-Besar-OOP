@@ -13,7 +13,7 @@ public class OBJ_Seed extends OBJ_Item {
     private int countWater;
     private Season season;
     private Weather weather;
-
+ 
     public OBJ_Seed(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice, int countWater, int dayToHarvest, Season season, Weather weather){
         super(gp, itemType, name, isEdible, buyPrice, sellPrice);
         this.type = EntityType.INTERACTIVE_OBJECT;
