@@ -3,9 +3,13 @@ package spakborhills.entity;
 import spakborhills.GamePanel;
 import spakborhills.KeyHandler;
 import spakborhills.enums.EntityType;
+import spakborhills.enums.ItemType;
+import spakborhills.enums.Season;
+import spakborhills.enums.Weather;
 import spakborhills.object.OBJ_Door;
 import spakborhills.object.OBJ_Key;
 import spakborhills.object.OBJ_Potion;
+import spakborhills.object.OBJ_Seed;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -63,6 +67,11 @@ public class Player extends  Entity{
         inventory.add(new OBJ_Door(gp));
         inventory.add(new OBJ_Key(gp));
         inventory.add(new OBJ_Potion(gp));
+        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Pumpkin", false, 150, 75, 1,7,Season.FALL, Weather.RAINY));
+        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Cranberry", false,100, 50, 1,2,Season.FALL, Weather.RAINY));
+        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Melon", false,80, 40, 1,4,Season.FALL, Weather.RAINY));
+        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Hot Pepper", false, 40, 20, 1,1,Season.FALL, Weather.RAINY));
+        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
     }
 
     public void setDefaultEnergy(){
@@ -321,4 +330,22 @@ public class Player extends  Entity{
         }
         g2.drawImage(image, screenX, screenY, gp.tileSize, gp.tileSize, null);
     }
+
+    public void plantSeed(String name) {
+        if (currentEnergy < 5) {
+            System.out.println("Tidur bossss");
+        }
+        else {
+            currentEnergy -= 5;
+            gp.gameClock.getTime().advanceTime(5);
+        }
+    }
+//
+//    public void fishing(Fish fish) {
+//
+//    }
+//
+//    public void eating(Items item) {
+//
+//    }
 }
