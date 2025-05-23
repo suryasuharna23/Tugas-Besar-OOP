@@ -58,6 +58,13 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int interactionMenuState = 6;
     public final int giftSelectionState = 7;
     public final int playerNameInputState = 8;
+    public final int sleepTransitionState = 9; // <-- State baru untuk transisi tidur
+
+    // Variabel untuk mengelola transisi tidur dan event harian
+    private boolean hasForcedSleepAt2AMToday = false;
+    private boolean isProcessingNewDayDataInTransition = false;
+    private long sleepTransitionStartTime = 0;
+    private final long SLEEP_TRANSITION_MESSAGE_DURATION = 3500;
 
 
     public GamePanel(){
@@ -136,81 +143,207 @@ public class GamePanel extends  JPanel implements Runnable {
         }
     }
 
-    public void update(){
-        if (gameState == playState){
-            player.update(); // Update player
-            //NPC
-            for(NPC character: npcs){ // Pastikan entities adalah daftar NPC, bukan semua entitas termasuk objek
-                character.update();
+    public void update() {
+        // PENANGANAN TIDUR OTOMATIS (2 PAGI) & INISIASI TRANSISI TIDUR
+        // Cek ini sebelum logika state utama, tapi pastikan tidak mengganggu state non-play seperti title screen
+        if (gameState != titleState && gameState != sleepTransitionState && gameClock != null && player != null) {
+            // 1. Cek untuk tidur otomatis jam 2 pagi
+            if (gameClock.getTime().getHour() == 2 && !player.isCurrentlySleeping()) {
+                if (!hasForcedSleepAt2AMToday) {
+                    System.out.println("[GamePanel] 2 AM detected. Forcing player to sleep.");
+                    player.sleep("It's 2 AM! You pass out \n from staying up too late.");
+                    // Player.sleep() akan set player.isCurrentlySleeping(true)
+                    // Flag hasForcedSleepAt2AMToday akan di-handle di bawah saat transisi dimulai
+                }
             }
-            if (gameClock != null && gameClock.isPaused()) { // Jika game masuk playState dan clock masih pause
+
+            // 2. Jika pemain memulai tidur (atau dipaksa tidur), mulai transisi di GamePanel
+            if (player.isCurrentlySleeping() && gameState != sleepTransitionState) {
+                System.out.println("[GamePanel] Player initiated sleep. Switching to sleepTransitionState.");
+                // previousGameState = gameState; // Simpan state saat ini jika perlu
+                gameState = sleepTransitionState;
+                gameClock.pauseTime(); // Jeda GameClock segera
+                isProcessingNewDayDataInTransition = false; // Reset flag untuk proses data
+                sleepTransitionStartTime = System.currentTimeMillis(); // Catat waktu mulai transisi
+                hasForcedSleepAt2AMToday = true; // Tandai bahwa siklus tidur malam ini sedang/sudah terjadi
+                // (mencegah pemicu 2AM berulang jika transisi lambat)
+                // Pesan dialog sudah di-set oleh player.sleep() di gp.ui.currentDialogue
+                // UI akan menggambar pesan ini selama sleepTransitionState
+                return; // Keluar dari update() agar transisi dimulai bersih di frame berikutnya
+            }
+        }
+
+        // LOGIKA GAME STATE UTAMA
+        if (gameState == playState) {
+            // Pastikan GameClock berjalan jika kita di playState dan tidak dalam proses tidur
+            if (gameClock != null && gameClock.isPaused()) {
+                // Hanya resume jika tidak ada proses tidur yang akan segera dimulai.
+                // Flag player.isCurrentlySleeping() sudah ditangani di atas.
+                System.out.println("[GamePanel] Resuming GameClock in playState.");
                 gameClock.resumeTime();
             }
-        }
-        else if(gameState == playerNameInputState){
-            if (this.gameClock != null && !this.gameClock.isPaused()) {
-                this.gameClock.pauseTime(); // Pastikan waktu dijeda
-            }
-        }
-        else if (gameState == pauseState){
-            // nothing, waktu sudah di-pause oleh KeyHandler
-        } else if (gameState == dialogueState) {
-            // Waktu mungkin di-pause saat dialog dimulai (misalnya di Player.interactNPC)
-            // dan di-resume saat dialog selesai (di KeyHandler atau Player.interactNPC)
-        } else if (gameState == inventoryState) {
-            // Waktu di-pause oleh KeyHandler saat inventaris dibuka
-        } else if (gameState == farmNameInputState) {
-            // Tidak ada update game logic yang signifikan di sini selain menunggu input.
-            // GameClock idealnya di-pause di state ini.
-            if (this.gameClock != null && !this.gameClock.isPaused()) {
-                this.gameClock.pauseTime(); // Pastikan waktu dijeda
+
+            if (player.justGotMarried){
+                player.justGotMarried = false;
+                handleEndOfWeddingEvent();
             }
 
-            if (keyH.enterPressed) { // Jika Enter ditekan untuk konfirmasi nama farm
+            player.update();
+            for (NPC character : npcs) {
+                if (character != null) { // Tambahkan null check untuk keamanan
+                    character.update();
+                }
+            }
+        } else if (gameState == sleepTransitionState) {
+            // Sedang dalam transisi tidur ke hari baru
+            if (!isProcessingNewDayDataInTransition) {
+                System.out.println("[GamePanel] sleepTransitionState: Processing new day data...");
+
+                Time currentTime = gameClock.getTime();
+                currentTime.forceStartNewDay(); // Ini akan ++day dan set waktu ke 06:00
+
+                gameClock.updateSeasonBasedOnDay(currentTime.getDay()); // Update musim
+                // Update cuaca untuk hari baru
+                if ((currentTime.getDay() - 1) % 10 == 0) { // Awal siklus 10 hari (musim)
+                    gameClock.getWeather().resetRainyCount();
+                }
+                gameClock.getWeather().generateNewWeather();
+
+                performDailyResets(); // Lakukan reset harian untuk NPC, dll.
+
+                isProcessingNewDayDataInTransition = true; // Tandai data sudah diproses
+                System.out.println("[GamePanel] New day data processed. Day: " + currentTime.getDay() +
+                        ", Time: " + currentTime.getFormattedTime() +
+                        ", Season: " + gameClock.getCurrentSeason() +
+                        ", Weather: " + gameClock.getWeather().getWeatherName());
+                // Pesan (gp.ui.currentDialogue) akan digambar oleh UI.draw()
+            }
+
+            // Tunggu beberapa saat untuk menampilkan pesan tidur
+            if (System.currentTimeMillis() - sleepTransitionStartTime >= SLEEP_TRANSITION_MESSAGE_DURATION) {
+                System.out.println("[GamePanel] Sleep transition message duration ended. Returning to playState.");
+                player.setCurrentlySleeping(false); // Pemain tidak lagi dalam proses tidur
+                hasForcedSleepAt2AMToday = false;   // Reset flag untuk malam berikutnya
+                isProcessingNewDayDataInTransition = false; // Reset flag untuk tidur berikutnya
+                ui.currentDialogue = ""; // Hapus pesan tidur dari UI
+
+                gameState = playState;
+                // GameClock akan di-resume oleh logika playState di atas pada frame berikutnya,
+                // atau bisa juga di-resume di sini secara eksplisit:
+                if (gameClock != null && gameClock.isPaused()) {
+                    gameClock.resumeTime();
+                }
+            }
+            // Selama state ini, UI.draw() harusnya menampilkan gp.ui.currentDialogue
+            // dan mungkin efek fade. Tidak ada update game logic lain.
+
+        } else if (gameState == pauseState) {
+            if (gameClock != null && !gameClock.isPaused()) {
+                gameClock.pauseTime();
+            }
+        } else if (gameState == dialogueState || gameState == inventoryState ||
+                gameState == interactionMenuState || gameState == giftSelectionState) {
+            if (gameClock != null && !gameClock.isPaused()) {
+                gameClock.pauseTime();
+            }
+        } else if (gameState == playerNameInputState || gameState == farmNameInputState) {
+            if (this.gameClock != null && !this.gameClock.isPaused()) {
+                this.gameClock.pauseTime();
+            }
+            // Logika spesifik untuk farmNameInputState (dari kode Anda)
+            if (gameState == farmNameInputState && keyH.enterPressed) {
                 String finalFarmName = ui.farmNameInput.trim();
                 if (!finalFarmName.isEmpty()) {
-                    // Pindahkan logika player.setFarmName setelah resetGameForNewGame
-                    // agar tidak tertimpa oleh setDefaultValues() di dalam reset.
-
-                    resetGameForNewGame(); // Reset SEMUA state game untuk NEW GAME
-                    player.setFarmName(finalFarmName); // Set nama farm setelah player direset
-
-                    System.out.println("Farm Name Confirmed: " + player.getFarmName()); // Untuk Debug
+                    resetGameForNewGame(); // Ini akan mereset GameClock juga
+                    player.setFarmName(finalFarmName);
+                    System.out.println("Farm Name Confirmed: " + player.getFarmName());
                     gameState = playState; // Pindah ke play state
-
-                    // Mulai/Lanjutkan musik dan GameClock
-                    if(gameClock != null) {
-                        // gameClock.start() HANYA dipanggil sekali saat game pertama kali setup.
-                        // Jika gameClock sudah pernah start dan sekarang di-pause, gunakan resumeTime.
-                        if (gameClock.isAlive() && gameClock.isPaused()) {
-                            gameClock.resumeTime();
-                        } else if (!gameClock.isAlive()) {
-                            // Ini seharusnya tidak terjadi jika gameClock sudah di-start di startGameThread
-                            System.err.println("GameClock was not alive. Attempting to start.");
-                            try {
-                                gameClock.start();
-                            } catch (IllegalThreadStateException e) {
-                                System.err.println("GameClock already started: " + e.getMessage());
-                            }
-                        }
+                    // GameClock akan di-resume oleh blok playState di atas
+                    // atau jika resetGameForNewGame() mereset GameClock ke kondisi berjalan.
+                    // Jika GameClock direset ke paused, pastikan playState meresumenya.
+                    if(gameClock != null && gameClock.isPaused()) { // Eksplisit resume jika perlu
+                        gameClock.resumeTime();
                     }
+
                 } else {
                     ui.showMessage("Farm name cannot be empty!");
                 }
-                keyH.enterPressed = false; // Reset flag enter setelah diproses di sini
+                keyH.enterPressed = false;
             }
         }
-        else if (gameState == interactionMenuState) {
-            // Biasanya hanya menunggu input, game logic utama di-pause
-            if (this.gameClock != null && !this.gameClock.isPaused()) {
-                this.gameClock.pauseTime();
-            }
-        } else if (gameState == giftSelectionState) {
-            // Mirip inventoryState, waktu di-pause
-            if (this.gameClock != null && !this.gameClock.isPaused()) {
-                this.gameClock.pauseTime();
+        // Pastikan state lain (titleState) tidak memicu update game logic atau GameClock.
+    }
+
+    // Di dalam GamePanel.java, atau di kelas yang mengelola event spesifik
+
+    // Contoh penggunaannya dalam sebuah metode event di GamePanel:
+    public void handleEndOfWeddingEvent() { // Atau nama event lain
+        System.out.println("[GamePanel] Wedding event concluded. Skipping time to 22:00.");
+
+        if (gameClock != null && gameClock.getTime() != null && player != null) {
+            gameClock.pauseTime(); // 1. Jeda GameClock agar tidak ada update waktu lain saat kita atur manual
+
+            Time currentTime = gameClock.getTime();
+            currentTime.setCurrentTime(22, 0); // 2. Set waktu ke 22:00 pada hari ini
+
+            // 3. Pindahkan pemain ke rumah (jika ini bagian dari event)
+            // player.worldX = player.defaultWorldX; // Ganti dengan koordinat rumah/tempat tidur
+            // player.worldY = player.defaultWorldY;
+            // System.out.println("[GamePanel] Player moved home.");
+
+            // 4. Tampilkan pesan bahwa hari telah berakhir atau event selesai
+            ui.showMessage("The day flew by! It's now 10:00 PM."); // Pesan singkat
+            // GamePanel.update() akan mendeteksi player.isCurrentlySleeping() dan masuk ke sleepTransitionState.
+            // Di sleepTransitionState:
+            // - Waktu akan dipaksa ke hari berikutnya jam 6 pagi (via currentTime.forceStartNewDay())
+            // - Musim dan cuaca akan diupdate.
+            // - Reset harian akan dilakukan.
+            // - GameClock akan di-resume setelah transisi selesai.
+        } else {
+            System.err.println("[GamePanel] Cannot skip time: GameClock, Time, or Player is null.");
+            // Jika tidak bisa skip time, mungkin langsung kembalikan ke playState
+            // gameState = playState;
+            // if (gameClock != null && gameClock.isPaused()) gameClock.resumeTime();
+        }
+        // Tidak perlu resume gameClock di sini jika player.sleep() dipanggil,
+        // karena sleepTransitionState yang akan menanganinya.
+    }
+
+
+    /**
+     * Melakukan reset harian untuk berbagai entitas dan sistem dalam game.
+     * Dipanggil saat transisi ke hari baru (misalnya, setelah pemain tidur).
+     */
+    public void performDailyResets() {
+        if (gameClock == null || gameClock.getTime() == null) {
+            System.err.println("[GamePanel] Cannot perform daily resets: GameClock or Time is null.");
+            return;
+        }
+        System.out.println("[GamePanel] Performing daily resets for Day " + gameClock.getTime().getDay() + "...");
+
+        // 1. Reset status NPC (misalnya, status penerimaan hadiah)
+        for (NPC npc : npcs) {
+            if (npc != null) {
+                npc.hasReceivedGiftToday = false;
+                // Anda bisa menambahkan reset lain untuk NPC di sini jika perlu
+                // npc.dialogueIndex = 0; // Jika dialog harian kembali ke awal
             }
         }
+        System.out.println("[GamePanel] NPC daily states reset.");
+
+        // 2. Reset status pemain jika ada batasan harian
+        // Contoh: player.resetDailyActionCount();
+
+        // 3. Update status ladang (jika ada tanaman yang tumbuh, dll.)
+        // Contoh: tileManager.updateFarmPlotsForNewDay();
+        //         System.out.println("[GamePanel] Farm plots updated for new day.");
+
+        // 4. Reset toko jika inventory berubah harian
+        // Contoh: assetSetter.refreshShopInventories();
+        //         System.out.println("[GamePanel] Shop inventories refreshed.");
+
+        // Logika reset harian lainnya bisa ditambahkan di sini.
+        System.out.println("[GamePanel] Daily resets completed.");
     }
 
     public void resetGameForNewGame() {

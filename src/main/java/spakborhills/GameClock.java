@@ -14,11 +14,28 @@ public class GameClock extends Thread {
     public GameClock(Time time, Weather weather) {
         this.time = time;
         this.weather = weather;
+        // Inisialisasi musim saat GameClock dibuat
+        if (this.time != null) {
+            updateSeasonBasedOnDay(this.time.getDay());
+        }
     }
 
-    private void updateSeason(int day) {
-        int index = ((day - 1) / 10) % 4; // Asumsi 1 musim = 10 hari
-        currentSeason = Season.values()[index];
+    // Mengubah nama agar lebih jelas dan menjadikannya publik
+    /**
+     * Memperbarui musim berdasarkan hari saat ini.
+     * Dapat dipanggil secara eksternal jika hari dimajukan di luar siklus normal run().
+     * @param currentDay hari saat ini.
+     */
+    public void updateSeasonBasedOnDay(int currentDay) {
+        int index = ((currentDay - 1) / 10) % 4; // Asumsi 1 musim = 10 hari
+        if (index < Season.values().length) {
+            currentSeason = Season.values()[index];
+        } else {
+            // Fallback jika perhitungan indeks salah, default ke SPRING
+            currentSeason = Season.SPRING;
+            System.err.println("[GameClock] Warning: Season index out of bounds. Defaulting to SPRING.");
+        }
+        // System.out.println("[GameClock] Season updated to: " + currentSeason.name() + " for Day " + currentDay); // Debug
     }
 
     @Override
@@ -28,61 +45,39 @@ public class GameClock extends Thread {
                 synchronized (pauseLock) {
                     if (paused) {
                         try {
-                            // System.out.println("[GameClock] Time is paused. Waiting..."); // Debug
-                            pauseLock.wait(); // Thread akan menunggu di sini sampai notify() dipanggil
-                            // System.out.println("[GameClock] Time resumed."); // Debug
+                            pauseLock.wait();
                         } catch (InterruptedException e) {
-                            // System.err.println("GameClock pause wait interrupted"); // Debug
-                            if (!running) { // Jika stopClock() dipanggil saat paused
-                                break; // Keluar dari loop while(running)
-                            }
-                            // Jika diinterupsi karena alasan lain, setel ulang status interupsi
+                            if (!running) break;
                             Thread.currentThread().interrupt();
-                            // Anda mungkin ingin melanjutkan atau menghentikan tergantung kasusnya
-                            // Untuk saat ini, kita lanjutkan saja jika 'running' masih true
                         }
                     }
                 }
 
-                // Jika tidak di-pause atau baru saja di-resume, lanjutkan logika waktu
-                if (!running) break; // Cek lagi karena bisa diubah saat pause
+                if (!running) break;
 
-                Thread.sleep(1000); // Kecepatan game: 1 detik nyata = 5 menit game
+                Thread.sleep(1000); // Kecepatan game (sesuaikan jika perlu)
 
-                // Logika utama pembaruan waktu
-                // Tidak perlu lagi cek time.isPaused() di sini karena GameClock sendiri yang di-pause
-                time.advanceTime(5);
+                time.advanceTime(5); // Majukan waktu 5 menit game
 
                 if (time.isNewDay()) {
-                    time.startNewDay();
-                    updateSeason(time.getDay());
+                    time.startNewDay(); // Proses hari baru secara alami
+                    updateSeasonBasedOnDay(time.getDay()); // Perbarui musim
 
-                    if ((time.getDay() - 1) % 10 == 0) { // Setiap awal musim baru
+                    if ((time.getDay() - 1) % 10 == 0) {
                         weather.resetRainyCount();
                     }
-                    weather.generateNewWeather();
+                    weather.generateNewWeather(); // Hasilkan cuaca baru
                 }
-
-                // Output ini bisa dipindahkan ke UI atau di-toggle untuk debug
-                // System.out.printf("[Time] %s | Day %d | Season: %s | Weather: %s%n",
-                //         time.getFormattedTime(),
-                //         time.getDay(),
-                //         currentSeason.name(),
-                //         weather.getWeatherName());
-
             } catch (InterruptedException e) {
-                // Jika sleep utama diinterupsi
-                if (running) { // Hanya log jika kita masih seharusnya berjalan
-                    // System.err.println("GameClock run sleep interrupted: " + e.getMessage()); // Debug
+                if (running) {
+                    // Handle interupsi jika perlu
                 }
-                // Thread.currentThread().interrupt(); // Setel ulang status interupsi jika perlu
             } catch (Exception e) {
                 System.err.println("Error in GameClock run loop: " + e.getMessage());
                 e.printStackTrace();
-                running = false; // Hentikan clock jika ada error tak terduga
+                running = false;
             }
         }
-        // System.out.println("GameClock thread has stopped."); // Debug
     }
 
     public Time getTime() {
@@ -149,25 +144,19 @@ public class GameClock extends Thread {
     public void resetTime() {
         boolean wasPaused = this.paused;
         if (wasPaused) {
-            resumeTime(); // Pastikan tidak dalam state wait saat mereset
+            resumeTime();
         }
 
         if (this.time != null) {
             this.time.resetToDefault();
+            updateSeasonBasedOnDay(this.time.getDay()); // Panggil setelah time direset
+        } else {
+            currentSeason = Season.SPRING; // Default jika time null
         }
+
         if (this.weather != null) {
             this.weather.resetToDefault();
         }
-        if (this.time != null) {
-            updateSeason(this.time.getDay());
-        } else {
-            currentSeason = Season.SPRING;
-        }
-
-        // Tidak perlu set ulang paused di sini karena objek Time tidak lagi mengelola pause
-        // Jika GameClock perlu di-pause lagi setelah reset (misalnya game dimulai dalam keadaan pause),
-        // itu harus dilakukan oleh pemanggil resetTime().
-        // Untuk reset ke kondisi awal game, biasanya waktu berjalan, jadi tidak perlu pauseTime() di sini.
 
         System.out.println("GameClock system has been reset. New time: Day " + (this.time != null ? this.time.getDay() : "N/A") +
                 ", Season: " + currentSeason.name() +

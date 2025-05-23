@@ -25,10 +25,9 @@ public class NPC extends Entity{
     public String giftReactionDialogue = "Oh, for me? Thank you!";
     public String proposalAcceptedDialogue = "Yes! A thousand times yes!";
     public String proposalRejectedDialogue_LowHearts = "I like you, but I'm not quite ready for that.";
-    public String proposalRejectedDialogue_NotCandidate = "I'm flattered, but that's not what I'm looking for.";
-    public String alreadyMarriedDialogue = "We're already together, my love!";
+     public String alreadyMarriedDialogue = "We're already together, my love!";
     public String alreadyGiftedDialogue = "You've already given me something today, thank you!";
-    public String notEngagedDialogue = "Kamu saja belum melamar akU!";
+    public String notEngagedDialogue = "Kamu saja belum melamar aku!";
     public String marriageDialogue = "Ini hari terbahagia dalam hidupku. Aku akan menemanimu seumur hidupku. (Ceritanya nikah)";
 
     public NPC(GamePanel gp){
@@ -50,7 +49,7 @@ public class NPC extends Entity{
         gp.ui.npcMenuCommandNum = 0; // Reset pilihan menu
     }
 
-    public void talk() {
+    public void chat() {
         facePlayer();
         if (dialogues.isEmpty()) {
             gp.ui.currentDialogue = name + ": ..."; // Default jika tidak ada dialog
@@ -64,9 +63,26 @@ public class NPC extends Entity{
                 dialogueIndex = 0; // Kembali ke awal jika sudah semua dialog ditampilkan
             }
         }
+        gp.player.tryDecreaseEnergy(10);
+        gp.gameClock.getTime().advanceTime(10);
+        addHeartPoints(10);
         gp.gameState = gp.dialogueState;
     }
-
+    public int getCurrentHeartPoints() {
+        return currentHeartPoints;
+    }
+    public void setCurrentHeartPoints(int currentHeartPoints){
+        this.currentHeartPoints = currentHeartPoints;
+        if (this.currentHeartPoints > maxHeartPoints){
+            this.currentHeartPoints = maxHeartPoints;
+        }
+    }
+    public void addHeartPoints(int heartPoints){
+        currentHeartPoints += heartPoints;
+        if (currentHeartPoints + heartPoints > maxHeartPoints){
+            currentHeartPoints = maxHeartPoints;
+        }
+    }
     public void receiveGift(Entity item, Player player) {
         facePlayer();
         if (hasReceivedGiftToday) {
@@ -75,26 +91,28 @@ public class NPC extends Entity{
             // Logika penerimaan hadiah sederhana
             // Di masa depan, bisa ada preferensi item
             if (lovedGiftsName.contains(item.name)){
-                this.currentHeartPoints += 25; // loved items +10 point
+                addHeartPoints(25); // loved items +25 point
                 this.hasReceivedGiftToday = true;
                 player.inventory.remove(item); // Hapus item dari inventaris pemain
             }
             else if (likedGiftsName.contains(item.name)){
-                this.currentHeartPoints += 10; // Liked items +10 point
+                 addHeartPoints(20); // Liked items +10 point
                 this.hasReceivedGiftToday = true;
                 player.inventory.remove(item); // Hapus item dari inventaris pemain
             }
             else if (!lovedGiftsName.contains(item.name) && !likedGiftsName.contains(item.name) && !hatedItems.contains(item.name)){
-                this.currentHeartPoints += 5; // Neutral Items +5 point
+                addHeartPoints(0); // Neutral Items +5 point
                 this.hasReceivedGiftToday = true;
                 player.inventory.remove(item); // Hapus item dari inventaris pemain
             }
             else{
-                this.currentHeartPoints += 1; // Hated Items +1 point
+                addHeartPoints(-25); // Hated Items -25 point
                 this.hasReceivedGiftToday = true;
                 player.inventory.remove(item); // Hapus item dari inventaris pemain
             }
             // Berikan reaksi spesifik atau default
+            gp.gameClock.getTime().advanceTime(10);
+            gp.player.tryDecreaseEnergy(5);
             gp.ui.currentDialogue = giftReactionDialogue + " (HP: " + this.currentHeartPoints + ")";
         }
         gp.gameState = gp.dialogueState;
@@ -103,25 +121,25 @@ public class NPC extends Entity{
     public void getProposedTo() {
         facePlayer();
         if (!isMarriageCandidate) {
-            gp.ui.currentDialogue = proposalRejectedDialogue_NotCandidate;
+            return;
         } else if (engaged || gp.player.isMarried()) { // Cek juga apakah pemain sudah menikah
             gp.ui.currentDialogue = alreadyMarriedDialogue;
-        } else if (currentHeartPoints < 80) { // Misal butuh 80 poin hati (setara 8 hati jika 1 hati = 10 poin)
+        } else if (currentHeartPoints < 150) {
             gp.ui.currentDialogue = proposalRejectedDialogue_LowHearts + " (Current HP: " + currentHeartPoints + ")";
+            gp.player.tryDecreaseEnergy(20);
         } else {
-            // Cek apakah pemain punya item lamaran (misal: "Mermaid Pendant")
             boolean hasProposalItem = false;
             for (Entity item : gp.player.inventory) {
-                if (item.name.equals("Wedding Ring")) { // Nama item lamaran
+                if (item.name.equals("Proposal Ring")) { // Nama item lamaran
                     hasProposalItem = true;
-                    gp.player.inventory.remove(item); // Konsumsi item lamaran
                     break;
                 }
             }
             if (hasProposalItem) {
                 gp.ui.currentDialogue = proposalAcceptedDialogue;
-                // Di sini bisa set flag misal: isEngaged = true;
                 this.engaged = true;
+                gp.player.tryDecreaseEnergy(10);
+                gp.gameClock.getTime().advanceTime(60);
                 // Tambahkan dialog atau event setelah menikah jika perlu
             } else {
                 gp.ui.currentDialogue = "You need a special item to propose...";
@@ -130,24 +148,69 @@ public class NPC extends Entity{
         gp.gameState = gp.dialogueState;
     }
 
+    // Di dalam kelas NPC.java
+
     public void getMarried() {
         facePlayer();
         if (!engaged) {
             gp.ui.currentDialogue = notEngagedDialogue;
+            gp.gameState = gp.dialogueState; // Tetap di dialogue state untuk menampilkan pesan
         } else if (marriedToPlayer || gp.player.isMarried()) {
-            gp.ui.currentDialogue = alreadyMarriedDialogue; // Seharusnya tidak terjadi jika engaged = true dan isMarriedToPlayer = false
+            gp.ui.currentDialogue = alreadyMarriedDialogue;
+            gp.gameState = gp.dialogueState; // Tetap di dialogue state
         } else {
-            // Proses pernikahan
-            gp.ui.currentDialogue = marriageDialogue;
+            // Proses internal pernikahan untuk NPC dan Player
             this.marriedToPlayer = true;
             this.engaged = false; // Setelah menikah, tidak lagi engaged
             gp.player.setMarried(true);
-            // Di sini Anda bisa menambahkan event setelah menikah, misal:
-            // - Memindahkan NPC ke rumah pemain (jika ada sistemnya)
-            // - Mengubah dialog harian NPC
-            // - Trigger sebuah cutscene pernikahan (jika ada)
+            gp.player.partner = this; // Set NPC ini sebagai partner pemain
+
+            // Mengurangi energi pemain sebagai "biaya" pernikahan (opsional, sesuai desain Anda)
+            // Anda bisa menyesuaikan jumlahnya atau menghapusnya jika tidak diperlukan.
+            boolean energySpent = gp.player.tryDecreaseEnergy(80); // Mengurangi 80 energi
+            // if (!energySpent) {
+            //     // Jika pemain pingsan karena energi habis saat menikah,
+            //     // Player.sleep() sudah akan di-trigger oleh tryDecreaseEnergy.
+            //     // GamePanel akan menangani transisi tidurnya.
+            //     // Tidak perlu melakukan time skip ke 22:00 secara manual di sini jika pemain sudah pingsan.
+            //     // Namun, jika Anda tetap ingin event pernikahan "selesai" sebelum pingsan,
+            //     // maka time skip ke 22:00 bisa diprioritaskan.
+            //     // Untuk skenario ini, kita asumsikan pernikahan selesai dulu, baru efek energi.
+            // }
+
+            // Tampilkan dialog pernikahan awal
+            gp.ui.currentDialogue = marriageDialogue; // "Ini hari terbahagia..."
+
+            // Setelah dialog ini ditampilkan (pemain menekan Enter),
+            // kita akan memicu event di GamePanel untuk time skip dan tidur.
+            // Kita bisa menggunakan flag atau mengubah gameState ke state khusus
+            // yang akan dikenali oleh GamePanel untuk memulai event akhir hari pernikahan.
+
+            // Untuk implementasi yang lebih sederhana saat ini:
+            // Setelah dialog pernikahan ditampilkan, dan pemain menekan Enter untuk menutupnya,
+            // KeyHandler atau logika setelah dialogueState bisa memanggil metode event di GamePanel.
+
+            // Atau, cara yang lebih langsung jika getMarried() sendiri bisa memicu event GamePanel:
+            // Panggil metode di GamePanel untuk menangani akhir hari pernikahan
+            // (yang akan melakukan time skip ke 22:00 dan memicu tidur pemain)
+            // Pastikan gp.handleEndOfWeddingEvent() ada di GamePanel Anda.
+
+            // gp.handleEndOfWeddingEvent(); // Panggil ini jika ingin langsung trigger dari sini
+            // Namun, ini akan langsung terjadi tanpa menampilkan marriageDialogue terlebih dahulu.
+
+            // Pendekatan yang lebih baik: Biarkan dialogueState menampilkan marriageDialogue.
+            // Kemudian, di KeyHandler (saat Enter ditekan untuk menutup dialog terakhir pernikahan)
+            // atau di GamePanel.update() (jika dialogueState selesai dan NPC yang baru dinikahi terdeteksi),
+            // panggil gp.handleEndOfWeddingEvent().
+
+            // Untuk saat ini, kita set dialogueState. Logika pemicu event akhir hari
+            // akan bergantung pada bagaimana Anda menangani akhir dari sebuah dialog.
+            // Misal, Anda bisa menambahkan flag di NPC atau Player:
+            gp.player.justGotMarried = true; // Tambahkan flag ini di kelas Player: public boolean justGotMarried = false;
+            // Atau di NPC: this.triggerWeddingDayEndEvent = true;
+
+            gp.gameState = gp.dialogueState; // Tampilkan marriageDialogue
         }
-        gp.gameState = gp.dialogueState;
     }
 
     public void facePlayer() {

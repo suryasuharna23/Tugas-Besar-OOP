@@ -145,13 +145,11 @@ public class KeyHandler implements KeyListener {
 
         // Buat daftar opsi yang dinamis sesuai kondisi NPC (HARUS SAMA DENGAN DI UI)
         ArrayList<String> options = new ArrayList<>();
-        options.add("Talk");
+        options.add("Chat");
         options.add("Give Gift");
 
         if (npc.isMarriageCandidate && !npc.marriedToPlayer && !npc.engaged && !gp.player.isMarried()) {
-            if (npc.currentHeartPoints >= 80) {
-                options.add("Propose");
-            }
+            options.add("Propose");
         }
         if (npc.isMarriageCandidate && npc.engaged && !npc.marriedToPlayer && !gp.player.isMarried()) {
             options.add("Marry");
@@ -176,8 +174,8 @@ public class KeyHandler implements KeyListener {
             String selectedOption = options.get(gp.ui.npcMenuCommandNum);
 
             switch (selectedOption) {
-                case "Talk":
-                    npc.talk();
+                case "Chat":
+                    npc.chat();
                     break;
                 case "Give Gift":
                     gp.ui.isSelectingGift = true;

@@ -6,10 +6,7 @@ import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
-import spakborhills.object.OBJ_Door;
-import spakborhills.object.OBJ_Key;
-import spakborhills.object.OBJ_Potion;
-import spakborhills.object.OBJ_Seed;
+import spakborhills.object.*;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -21,12 +18,22 @@ public class Player extends  Entity{
     public final int screenX;
     public final int screenY;
     private String farmName;
-    public int maxEnergy;
     public int currentEnergy;
-    private boolean married = false;
+
     public ArrayList<Entity> inventory = new ArrayList<>();
     public int currentEquippedItemIndex = -1;
+
+    // WEDDING
     public NPC partner;
+    public boolean justGotMarried = false;
+    private boolean married = false;
+    // ENERGY
+    public int MAX_POSSIBLE_ENERGY = 100;
+    public static final int MIN_ENERGY_THRESHOLD = -20;
+    public static final int LOW_ENERGY_PENALTY_THRESHOLD_PERCENT = 10;
+    public static final int ENERGY_REFILL_AT_ZERO = 10;
+    private boolean isCurrentlySleeping = false;
+
 
     public Player(GamePanel gp, KeyHandler keyH){
         super(gp);
@@ -45,7 +52,6 @@ public class Player extends  Entity{
 
         setDefaultValues();
         getPlayerImage();
-        setDefaultEnergy();
     }
 
     public void getPlayerImage(){
@@ -65,9 +71,11 @@ public class Player extends  Entity{
         speed = 4;
         direction = "down";
         type = EntityType.PLAYER;
+        currentEnergy = MAX_POSSIBLE_ENERGY;
+        this.isCurrentlySleeping = false;
         inventory.add(new OBJ_Door(gp));
-        inventory.add(new OBJ_Key(gp));
         inventory.add(new OBJ_Potion(gp));
+        inventory.add(new OBJ_ProposalRing(gp));
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Pumpkin", false, 150, 75, 1,7,Season.FALL, Weather.RAINY));
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Cranberry", false,100, 50, 1,2,Season.FALL, Weather.RAINY));
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Melon", false,80, 40, 1,4,Season.FALL, Weather.RAINY));
@@ -75,10 +83,6 @@ public class Player extends  Entity{
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
     }
 
-    public void setDefaultEnergy(){
-        maxEnergy = 100;
-        currentEnergy = 75;
-    }
 
     public String getFarmName() {
         return farmName;
@@ -88,20 +92,72 @@ public class Player extends  Entity{
         this.farmName = farmName;
     }
 
+    public boolean tryDecreaseEnergy(int cost){
+        if (cost <= 0) return true; // Tidak ada biaya atau malah menambah (ditangani increaseEnergy)
 
-    public void decreaseEnergy(int amount){
-        currentEnergy -= amount;
-        if (currentEnergy < 0){
-            currentEnergy = 0;
+        if (currentEnergy <= MIN_ENERGY_THRESHOLD) {
+            gp.ui.showMessage("You're completely exhausted and can't do anything else!");
+            // Otomatis tidur jika mencoba beraksi saat sudah -20 (seharusnya sudah tidur sebelumnya)
+            // Namun, untuk keamanan, bisa panggil sleep() di sini jika belum tidur.
+            if (!isCurrentlySleeping) {
+                sleep("You tried to work while utterly exhausted and passed out again!");
+            }
+            return false; // Aksi gagal
         }
-    }
 
+        currentEnergy -= cost;
+        gp.ui.showMessage("Energy -" + cost); // Feedback ke UI
+
+        if (currentEnergy <= MIN_ENERGY_THRESHOLD) {
+            currentEnergy = MIN_ENERGY_THRESHOLD; // Pastikan tidak lebih rendah dari -20
+            gp.ui.showMessage("You've collapsed from exhaustion!");
+            sleep("You collapsed from sheer exhaustion!"); // Otomatis tidur
+            return true; // Aksi dilakukan, tapi pemain pingsan setelahnya
+        }
+        return true;
+    }
     public void increaseEnergy(int amount){
         currentEnergy += amount;
-        if (currentEnergy > maxEnergy){
-            currentEnergy = maxEnergy;
+        if (currentEnergy > MAX_POSSIBLE_ENERGY){
+            currentEnergy = MAX_POSSIBLE_ENERGY;
         }
     }
+    public boolean isCurrentlySleeping() {
+        return isCurrentlySleeping;
+    }
+    public void setCurrentlySleeping(boolean currentlySleeping) {
+        isCurrentlySleeping = currentlySleeping;
+    }
+
+    // Metode utama untuk tidur
+    public void sleep(String sleepMessagePrefix) {
+        if (isCurrentlySleeping()) { // Gunakan getter jika ada
+            System.out.println("[Player] sleep() called while already isCurrentlySleeping. Duplicate call ignored.");
+            return;
+        }
+        setCurrentlySleeping(true); // Tandai bahwa pemain memulai proses tidur
+
+        // 1. Logika Pemulihan Energi
+        String energyRecoveryMessage;
+        if (currentEnergy == 0) {
+            currentEnergy = ENERGY_REFILL_AT_ZERO;
+            energyRecoveryMessage = "You slept right on the brink and only recovered " + ENERGY_REFILL_AT_ZERO + " energy.";
+        } else if (currentEnergy < (MAX_POSSIBLE_ENERGY * LOW_ENERGY_PENALTY_THRESHOLD_PERCENT / 100.0)) {
+            // Contoh: jika maxEnergy 100, threshold 10% adalah 10. Jika energi < 10.
+            currentEnergy = MAX_POSSIBLE_ENERGY / 2;
+            energyRecoveryMessage = "You were deeply exhausted and \n only recovered half your energy.";
+        } else {
+            currentEnergy = MAX_POSSIBLE_ENERGY;
+            energyRecoveryMessage = "You feel fully refreshed after a good night's sleep!";
+        }
+
+        // 2. Siapkan dialog untuk ditampilkan oleh GamePanel/UI
+        // GamePanel akan mengambil gp.ui.currentDialogue ini saat dalam state transisi tidur.
+        gp.ui.currentDialogue = sleepMessagePrefix + "\n" + energyRecoveryMessage;
+        System.out.println("[Player] Sleeping. Message: " + gp.ui.currentDialogue); // Debug
+
+    }
+
     public boolean isMarried() {
         return married;
     }
@@ -320,14 +376,11 @@ public class Player extends  Entity{
     }
 
     public void plantSeed(String name) {
-        if (currentEnergy < 5) {
-            System.out.println("Tidur bossss");
+        tryDecreaseEnergy(5);
+        gp.gameClock.getTime().advanceTime(5);
         }
-        else {
-            currentEnergy -= 5;
-            gp.gameClock.getTime().advanceTime(5);
-        }
-    }
+}
+
 //
 //    public void fishing(Fish fish) {
 //
@@ -336,4 +389,3 @@ public class Player extends  Entity{
 //    public void eating(Items item) {
 //
 //    }
-}

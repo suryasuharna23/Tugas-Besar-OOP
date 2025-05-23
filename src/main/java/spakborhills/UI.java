@@ -80,15 +80,20 @@ public class UI {
         }
     }
 
-    public void draw(Graphics2D g2){
+    public void draw(Graphics2D g2) {
         this.g2 = g2;
 
-        g2.setFont(pressStart);
+        // Set rendering hints dan font default di awal jika belum
+        if (pressStart != null) {
+            g2.setFont(pressStart);
+        } else {
+            g2.setFont(new Font("Arial", Font.PLAIN, 20)); // Font fallback umum
+        }
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2.setColor(Color.white);
+        g2.setColor(Color.white); // Warna default untuk teks, bisa di-override per komponen
 
         // Menggunakan struktur if-else if
-        if (gp.gameState == gp.titleState){
+        if (gp.gameState == gp.titleState) {
             drawTitleScreen();
         }
         // PLAYER NAME INPUT STATE
@@ -99,26 +104,54 @@ public class UI {
         else if (gp.gameState == gp.farmNameInputState) {
             drawFarmNameInputScreen();
         }
+        // SLEEP TRANSITION STATE  <-- TAMBAHKAN INI
+        else if (gp.gameState == gp.sleepTransitionState) {
+            drawSleepTransitionScreen(g2); // Panggil metode baru
+        }
         // PLAY STATE
-        else if (gp.gameState == gp.playState){
+        else if (gp.gameState == gp.playState) {
             drawTimeHUD(g2);
             drawEnergyBar(g2);
+            // Jika ada pesan singkat yang ingin ditampilkan (messageOn)
+            if (messageOn) {
+                g2.setFont(g2.getFont().deriveFont(20F)); // Sesuaikan ukuran font pesan
+                g2.setColor(Color.YELLOW); // Warna pesan
+                int messageX = gp.tileSize / 2;
+                int messageY = gp.tileSize * 2; // Posisi pesan di bawah energy bar
+                g2.drawString(message, messageX, messageY);
+
+                messageCounter++;
+                if (messageCounter > 120) { // Tampilkan pesan selama 2 detik (60fps * 2)
+                    messageCounter = 0;
+                    messageOn = false;
+                    message = "";
+                }
+            }
         }
         // PAUSE STATE
-        else if (gp.gameState == gp.pauseState){
+        else if (gp.gameState == gp.pauseState) {
             drawPauseScreen();
         }
         // DIALOGUE STATE
-        else if (gp.gameState == gp.dialogueState){
-            drawDialogueScreen();
+        else if (gp.gameState == gp.dialogueState) {
+            // Gambar HUD dasar seperti waktu dan energi dulu jika diinginkan
+            // drawTimeHUD(g2);
+            // drawEnergyBar(g2);
+            drawDialogueScreen(); // Kemudian gambar window dialog di atasnya
         }
-        // INVENTORY STATE
-        else if (gp.gameState == gp.inventoryState || gp.gameState == gp.giftSelectionState){
+        // INVENTORY STATE / GIFT SELECTION
+        else if (gp.gameState == gp.inventoryState || gp.gameState == gp.giftSelectionState) {
+            // drawTimeHUD(g2);
+            // drawEnergyBar(g2);
             drawInventoryScreen();
         }
+        // NPC INTERACTION MENU
         else if (gp.gameState == gp.interactionMenuState) {
+            // drawTimeHUD(g2);
+            // drawEnergyBar(g2);
             drawNPCInteractionMenu();
         }
+        // Pastikan semua state lain sudah tertangani atau tidak memerlukan penggambaran khusus
     }
 
     public void drawTitleScreen(){
@@ -416,8 +449,8 @@ public class UI {
         int totalSegments = 10;
 
         int filledSegments = 0;
-        if (gp.player.maxEnergy > 0){
-            double energyPerSegments = (double) gp.player.maxEnergy / totalSegments;
+        if (gp.player.MAX_POSSIBLE_ENERGY > 0){
+            double energyPerSegments = (double) gp.player.MAX_POSSIBLE_ENERGY / totalSegments;
             if (energyPerSegments > 0){
                 filledSegments = (int) (gp.player.currentEnergy / energyPerSegments);
             }
@@ -448,7 +481,7 @@ public class UI {
             g2.drawRect(currentSegmentX, y, segmentWidth, segmenHeight);
         }
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 15F));
-        String energyText = gp.player.currentEnergy + "/" + gp.player.maxEnergy;
+        String energyText = gp.player.currentEnergy + "/" + gp.player.MAX_POSSIBLE_ENERGY;
         g2.setColor(Color.BLACK);
         int segmentsBarTotalWidth = totalSegments * (segmentWidth + segmentSpacing) - segmentSpacing;
         FontMetrics fmText = g2.getFontMetrics(silkScreen);
@@ -458,7 +491,7 @@ public class UI {
 
     private Color getColor(int i, int totalSegments) {
         Color segmentColor;
-        double currentEnergyPercentage = (double) gp.player.currentEnergy / gp.player.maxEnergy;
+        double currentEnergyPercentage = (double) gp.player.currentEnergy / gp.player.MAX_POSSIBLE_ENERGY;
 
         if (currentEnergyPercentage > 0.6){
             segmentColor = new Color(0, 200, 0);
@@ -582,13 +615,11 @@ public class UI {
         int textY = frameY + gp.tileSize;
 
         ArrayList<String> options = new ArrayList<>();
-        options.add("Talk");
+        options.add("Chat");
         options.add("Give Gift");
 
         if (npc.isMarriageCandidate && !npc.marriedToPlayer && !gp.player.isMarried() && !npc.engaged) {
-            if (npc.currentHeartPoints >= 80) { // Asumsi 8 hati = 80 poin
                 options.add("Propose");
-            }
         }
         // Kondisi untuk Marry
         if (npc.isMarriageCandidate && npc.engaged && !npc.marriedToPlayer && !gp.player.isMarried()) {
@@ -596,16 +627,54 @@ public class UI {
         }
         options.add("Leave");
 
-        if (options.size() > 4){
-            frameHeight = gp.tileSize * (options.size() + 2);
-            drawSubWindow(frameX, frameY, frameWidth, frameHeight);
-        }
-
         for (int i = 0; i < options.size(); i++) {
             if (i == npcMenuCommandNum) {
                 g2.drawString(">", textX - gp.tileSize / 4, textY + i * gp.tileSize);
             }
             g2.drawString(options.get(i), textX, textY + i * gp.tileSize);
+        }
+    }
+
+    private void drawSleepTransitionScreen(Graphics2D g2) {
+        // 1. Gambar latar belakang gelap (untuk efek transisi)
+        g2.setColor(Color.BLACK);
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        // 2. Tampilkan currentDialogue (yang berisi pesan tidur & pemulihan energi)
+        if (currentDialogue != null && !currentDialogue.isEmpty()) {
+            // Atur font dan warna untuk pesan
+            if (pressStart != null) {
+                g2.setFont(pressStart.deriveFont(Font.PLAIN, 20F)); // Ukuran font bisa disesuaikan
+            } else {
+                g2.setFont(new Font("Arial", Font.PLAIN, 20)); // Fallback
+            }
+            g2.setColor(Color.WHITE);
+
+            // Bagi dialog menjadi beberapa baris berdasarkan karakter newline (\n)
+            // dan gambar setiap baris di tengah layar.
+            int yPosition = gp.screenHeight / 3; // Posisi Y awal untuk baris pertama
+            int lineHeight = g2.getFontMetrics().getHeight() + 8; // Jarak antar baris
+
+            for (String line : currentDialogue.split("\n")) {
+                int xPosition = getXForCenteredText(line); // Gunakan helper yang sudah ada
+                g2.drawString(line, xPosition, yPosition);
+                yPosition += lineHeight; // Pindah ke posisi Y untuk baris berikutnya
+            }
+
+            // GamePanel akan mengatur durasi tampilan state ini.
+            // Tidak perlu input "Press Enter" di sini karena transisi otomatis.
+
+        } else {
+            // Fallback jika currentDialogue kosong (seharusnya tidak terjadi jika Player.sleep() bekerja)
+            if (pressStart != null) {
+                g2.setFont(pressStart.deriveFont(Font.PLAIN, 22F));
+            } else {
+                g2.setFont(new Font("Arial", Font.PLAIN, 22)); // Fallback
+            }
+            g2.setColor(Color.WHITE);
+            String wakingUpMsg = "Waking up...";
+            int x = getXForCenteredText(wakingUpMsg);
+            g2.drawString(wakingUpMsg, x, gp.screenHeight / 2);
         }
     }
 
