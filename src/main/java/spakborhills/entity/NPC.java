@@ -84,7 +84,7 @@ public class NPC extends Entity{
                 this.hasReceivedGiftToday = true;
                 player.inventory.remove(item); // Hapus item dari inventaris pemain
             }
-            else if (!lovedGiftsName.contains(item.name) && !likedGiftsName.contains(item.name)){
+            else if (!lovedGiftsName.contains(item.name) && !likedGiftsName.contains(item.name) && !hatedItems.contains(item.name)){
                 this.currentHeartPoints += 5; // Neutral Items +5 point
                 this.hasReceivedGiftToday = true;
                 player.inventory.remove(item); // Hapus item dari inventaris pemain
@@ -126,7 +126,6 @@ public class NPC extends Entity{
             } else {
                 gp.ui.currentDialogue = "You need a special item to propose...";
             }
-
         }
         gp.gameState = gp.dialogueState;
     }
