@@ -3,6 +3,8 @@ package spakborhills.entity;
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
 
+import java.util.Collections;
+
 public class NPC_EMILY extends NPC{
     public NPC_EMILY(GamePanel gp){
         super(gp);
@@ -10,6 +12,11 @@ public class NPC_EMILY extends NPC{
         speed = 1;
         name = "Emily";
         type = EntityType.NPC;
+        isMarriageCandidate = true;
+        currentHeartPoints = 0;
+        Collections.addAll(lovedGiftsName, "seluruh item seeds"); // tunggu seeds selesai implement
+        Collections.addAll(likedGiftsName, "Catfish", "Salmon", "Sardine");
+        Collections.addAll(hatedItems, "Coal", "Wood");
         setDialogue();
         getNPCImage();
     }

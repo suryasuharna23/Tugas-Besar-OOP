@@ -3,6 +3,8 @@ package spakborhills.entity;
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class NPC extends Entity{
@@ -15,7 +17,11 @@ public class NPC extends Entity{
     public int actionLockCounter = 0;
     public int actionLockInterval = 120;
 
-    // GIFT DIALOGUES
+
+    // GIFTING
+    public List<String> lovedGiftsName = new ArrayList<>();
+    public List<String> likedGiftsName = new ArrayList<>();
+    public List<String> hatedItems = new ArrayList<>();
     public String giftReactionDialogue = "Oh, for me? Thank you!";
     public String proposalAcceptedDialogue = "Yes! A thousand times yes!";
     public String proposalRejectedDialogue_LowHearts = "I like you, but I'm not quite ready for that.";
@@ -68,10 +74,26 @@ public class NPC extends Entity{
         } else {
             // Logika penerimaan hadiah sederhana
             // Di masa depan, bisa ada preferensi item
-            this.currentHeartPoints += 10; // Misal: setiap hadiah +10 poin
-            this.hasReceivedGiftToday = true;
-            player.inventory.remove(item); // Hapus item dari inventaris pemain
-
+            if (lovedGiftsName.contains(item.name)){
+                this.currentHeartPoints += 25; // loved items +10 point
+                this.hasReceivedGiftToday = true;
+                player.inventory.remove(item); // Hapus item dari inventaris pemain
+            }
+            else if (likedGiftsName.contains(item.name)){
+                this.currentHeartPoints += 10; // Liked items +10 point
+                this.hasReceivedGiftToday = true;
+                player.inventory.remove(item); // Hapus item dari inventaris pemain
+            }
+            else if (!lovedGiftsName.contains(item.name) && !likedGiftsName.contains(item.name)){
+                this.currentHeartPoints += 5; // Neutral Items +5 point
+                this.hasReceivedGiftToday = true;
+                player.inventory.remove(item); // Hapus item dari inventaris pemain
+            }
+            else{
+                this.currentHeartPoints += 1; // Hated Items +1 point
+                this.hasReceivedGiftToday = true;
+                player.inventory.remove(item); // Hapus item dari inventaris pemain
+            }
             // Berikan reaksi spesifik atau default
             gp.ui.currentDialogue = giftReactionDialogue + " (HP: " + this.currentHeartPoints + ")";
         }
@@ -90,7 +112,7 @@ public class NPC extends Entity{
             // Cek apakah pemain punya item lamaran (misal: "Mermaid Pendant")
             boolean hasProposalItem = false;
             for (Entity item : gp.player.inventory) {
-                if (item.name.equals("Potion")) { // Nama item lamaran
+                if (item.name.equals("Wedding Ring")) { // Nama item lamaran
                     hasProposalItem = true;
                     gp.player.inventory.remove(item); // Konsumsi item lamaran
                     break;

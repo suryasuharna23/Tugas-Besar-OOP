@@ -3,12 +3,21 @@ package spakborhills.entity;
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
 
+import java.util.Collections;
+
 public class NPC_CAROLINE extends NPC{
     public NPC_CAROLINE(GamePanel gp){
         super(gp);
         direction = "down";
         speed = 1;
         name = "Caroline";
+        isMarriageCandidate = true;
+        currentHeartPoints = 0;
+        Collections.addAll(lovedGiftsName, "Firewood", "Coal");
+        Collections.addAll(likedGiftsName, "Potato", "Wheat");
+        Collections.addAll(hatedItems, "Hot Pepper");
+        giftReactionDialogue = "Wahh, buat aku? Makasih banyak yaa! Aku sangat suka ini!";
+        proposalAcceptedDialogue = "Ya, aku mau menikahi mu!";
         type = EntityType.NPC;
         setDialogue();
         getNPCImage();

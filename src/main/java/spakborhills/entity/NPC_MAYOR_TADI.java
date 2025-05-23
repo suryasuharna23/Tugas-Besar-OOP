@@ -3,6 +3,8 @@ package spakborhills.entity;
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
 
+import java.util.Collections;
+
 public class NPC_MAYOR_TADI extends NPC{
     public NPC_MAYOR_TADI(GamePanel gp){
         super(gp);
@@ -10,6 +12,9 @@ public class NPC_MAYOR_TADI extends NPC{
         speed = 1;
         name = "Mayor Tadi";
         type = EntityType.NPC;
+        Collections.addAll(lovedGiftsName, "Legend");
+        Collections.addAll(likedGiftsName, "Angler", "Crimsonfish", "Glacierfish");
+        Collections.addAll(hatedItems, "Seluruh item yang bukan merupakan lovedItems dan likedItems"); // Tunggu selesai implement items
         setDialogue();
         getNPCImage();
     }

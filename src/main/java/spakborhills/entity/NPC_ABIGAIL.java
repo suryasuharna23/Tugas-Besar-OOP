@@ -3,11 +3,12 @@ package spakborhills.entity;
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
 
+import java.util.Collections;
 import java.util.List;
 
 
 public class NPC_ABIGAIL extends NPC{
-    private List<String> lovedGiftsName = List.of("Blueberry", "Melon", "Pumpkin", "Grape", "Cranberry");
+
 
     public NPC_ABIGAIL(GamePanel gp){
         super(gp);
@@ -17,6 +18,9 @@ public class NPC_ABIGAIL extends NPC{
         type = EntityType.NPC;
         isMarriageCandidate = true;
         currentHeartPoints = 95;
+        Collections.addAll(lovedGiftsName, "Blueberry", "Melon", "Pumpkin", "Grape", "Cranberry");
+        Collections.addAll(likedGiftsName, "Baguette", "Pumpkin Pie", "Wine");
+        Collections.addAll(hatedItems, "Hot Pepper", "Cauliflower", "Parsnip", "Wheat");
         giftReactionDialogue = "Wahh, buat aku? Makasih banyak yaa! Aku sangat suka ini!";
         proposalAcceptedDialogue = "Ya, aku mau menikahi mu!";
         setDialogue();
@@ -34,12 +38,5 @@ public class NPC_ABIGAIL extends NPC{
     }
     public void setDialogue(){
         dialogues.add("Haii aku Abigail! Salam kenal yaa!");
-    }
-
-    public List<String> getLovedGiftsName() {
-        return lovedGiftsName;
-    }
-    public void setLovedGiftsName(List<String> lovedGiftsName) {
-        this.lovedGiftsName = lovedGiftsName;
     }
 }
