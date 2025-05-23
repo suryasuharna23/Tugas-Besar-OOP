@@ -16,7 +16,7 @@ public class NPC_ABIGAIL extends NPC{
         name = "Abigail";
         type = EntityType.NPC;
         isMarriageCandidate = true;
-        currentHeartPoints = 0;
+        currentHeartPoints = 95;
         giftReactionDialogue = "Wahh, buat aku? Makasih banyak yaa! Aku sangat suka ini!";
         proposalAcceptedDialogue = "Ya, aku mau menikahi mu!";
         setDialogue();

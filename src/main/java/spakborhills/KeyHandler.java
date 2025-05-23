@@ -106,14 +106,18 @@ public class KeyHandler implements KeyListener {
         if (gp.currentInteractingNPC == null) return;
         NPC npc = (NPC) gp.currentInteractingNPC;
 
-        // Buat daftar opsi yang dinamis sesuai kondisi NPC
+        // Buat daftar opsi yang dinamis sesuai kondisi NPC (HARUS SAMA DENGAN DI UI)
         ArrayList<String> options = new ArrayList<>();
         options.add("Talk");
         options.add("Give Gift");
-        if (npc.isMarriageCandidate && !npc.isMarriedToPlayer && !gp.player.isMarried()) {
-            if (npc.currentHeartPoints >= 80) { // Threshold yang sama seperti di UI
+
+        if (npc.isMarriageCandidate && !npc.marriedToPlayer && !npc.engaged && !gp.player.isMarried()) {
+            if (npc.currentHeartPoints >= 80) {
                 options.add("Propose");
             }
+        }
+        if (npc.isMarriageCandidate && npc.engaged && !npc.marriedToPlayer && !gp.player.isMarried()) {
+            options.add("Marry");
         }
         options.add("Leave");
         int maxCommands = options.size();
@@ -123,17 +127,15 @@ public class KeyHandler implements KeyListener {
             if (gp.ui.npcMenuCommandNum < 0) {
                 gp.ui.npcMenuCommandNum = maxCommands - 1;
             }
-//            gp.playSE(0); // Contoh suara navigasi
         }
         if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
             gp.ui.npcMenuCommandNum++;
             if (gp.ui.npcMenuCommandNum >= maxCommands) {
                 gp.ui.npcMenuCommandNum = 0;
             }
-//            gp.playSE(0);
         }
         if (code == KeyEvent.VK_ENTER) {
-            enterPressed = false; // Konsumsi Enter
+            enterPressed = false;
             String selectedOption = options.get(gp.ui.npcMenuCommandNum);
 
             switch (selectedOption) {
@@ -142,23 +144,22 @@ public class KeyHandler implements KeyListener {
                     break;
                 case "Give Gift":
                     gp.ui.isSelectingGift = true;
-                    gp.gameState = gp.giftSelectionState; // Pindah ke state pemilihan hadiah
-                    // Navigasi inventory (inventoryCommandNum) akan direset atau dihandle di state inventory
-                    gp.ui.inventoryCommandNum = 0; // Reset pilihan item di inventory
-                    gp.ui.inventorySlotCol = 0;
-                    gp.ui.inventorySlotRow = 0;
+                    gp.gameState = gp.giftSelectionState;
+                    gp.ui.inventoryCommandNum = 0;
                     break;
                 case "Propose":
                     npc.getProposedTo();
+                    break;
+                case "Marry": // <-- TAMBAHKAN CASE UNTUK MARRY
+                    npc.getMarried();
                     break;
                 case "Leave":
                     gp.gameState = gp.playState;
                     if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
                     break;
             }
-//            gp.playSE(1); // Contoh suara konfirmasi
         }
-        if (code == KeyEvent.VK_ESCAPE) { // Kembali ke play state
+        if (code == KeyEvent.VK_ESCAPE) {
             gp.gameState = gp.playState;
             if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
         }

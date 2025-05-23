@@ -29,4 +29,3 @@ public class NPC_CAROLINE extends NPC{
         dialogues.add("Nama saya Caroline, salam kenal!");
     }
 }
-

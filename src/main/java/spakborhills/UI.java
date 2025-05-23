@@ -540,14 +540,21 @@ public class UI {
         options.add("Talk");
         options.add("Give Gift");
 
-        if (npc.isMarriageCandidate && !npc.isMarriedToPlayer && !gp.player.isMarried()) {
+        if (npc.isMarriageCandidate && !npc.marriedToPlayer && !gp.player.isMarried() && !npc.engaged) {
             if (npc.currentHeartPoints >= 80) { // Asumsi 8 hati = 80 poin
                 options.add("Propose");
             }
         }
-        // Opsi "Marry" bisa ditambahkan di sini jika ada state "engaged"
-
+        // Kondisi untuk Marry
+        if (npc.isMarriageCandidate && npc.engaged && !npc.marriedToPlayer && !gp.player.isMarried()) {
+            options.add("Marry");
+        }
         options.add("Leave");
+
+        if (options.size() > 4){
+            frameHeight = gp.tileSize * (options.size() + 2);
+            drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+        }
 
         for (int i = 0; i < options.size(); i++) {
             if (i == npcMenuCommandNum) {

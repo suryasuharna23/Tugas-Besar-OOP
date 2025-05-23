@@ -9,8 +9,9 @@ public class NPC extends Entity{
     public int maxHeartPoints = 150;
     public int currentHeartPoints = 0;
     public boolean isMarriageCandidate = false;
-    public boolean isMarriedToPlayer = false;
     public boolean hasReceivedGiftToday = false;
+    public boolean engaged = false;
+    public boolean marriedToPlayer = false;
     public int actionLockCounter = 0;
     public int actionLockInterval = 120;
 
@@ -21,6 +22,8 @@ public class NPC extends Entity{
     public String proposalRejectedDialogue_NotCandidate = "I'm flattered, but that's not what I'm looking for.";
     public String alreadyMarriedDialogue = "We're already together, my love!";
     public String alreadyGiftedDialogue = "You've already given me something today, thank you!";
+    public String notEngagedDialogue = "Kamu saja belum melamar akU!";
+    public String marriageDialogue = "Ini hari terbahagia dalam hidupku. Aku akan menemanimu seumur hidupku. (Ceritanya nikah)";
 
     public NPC(GamePanel gp){
         super(gp);
@@ -79,7 +82,7 @@ public class NPC extends Entity{
         facePlayer();
         if (!isMarriageCandidate) {
             gp.ui.currentDialogue = proposalRejectedDialogue_NotCandidate;
-        } else if (isMarriedToPlayer || gp.player.isMarried()) { // Cek juga apakah pemain sudah menikah
+        } else if (engaged || gp.player.isMarried()) { // Cek juga apakah pemain sudah menikah
             gp.ui.currentDialogue = alreadyMarriedDialogue;
         } else if (currentHeartPoints < 80) { // Misal butuh 80 poin hati (setara 8 hati jika 1 hati = 10 poin)
             gp.ui.currentDialogue = proposalRejectedDialogue_LowHearts + " (Current HP: " + currentHeartPoints + ")";
@@ -87,27 +90,44 @@ public class NPC extends Entity{
             // Cek apakah pemain punya item lamaran (misal: "Mermaid Pendant")
             boolean hasProposalItem = false;
             for (Entity item : gp.player.inventory) {
-                if (item.name.equals("Mermaid Pendant")) { // Nama item lamaran
+                if (item.name.equals("Potion")) { // Nama item lamaran
                     hasProposalItem = true;
                     gp.player.inventory.remove(item); // Konsumsi item lamaran
                     break;
                 }
             }
-
             if (hasProposalItem) {
                 gp.ui.currentDialogue = proposalAcceptedDialogue;
                 // Di sini bisa set flag misal: isEngaged = true;
-                // Pernikahan bisa jadi event terpisah. Untuk sekarang, kita anggap langsung menikah.
-                this.isMarriedToPlayer = true;
-                gp.player.setMarried(true); // Set status pemain juga menikah
+                this.engaged = true;
                 // Tambahkan dialog atau event setelah menikah jika perlu
             } else {
                 gp.ui.currentDialogue = "You need a special item to propose...";
             }
+
         }
         gp.gameState = gp.dialogueState;
     }
 
+    public void getMarried() {
+        facePlayer();
+        if (!engaged) {
+            gp.ui.currentDialogue = notEngagedDialogue;
+        } else if (marriedToPlayer || gp.player.isMarried()) {
+            gp.ui.currentDialogue = alreadyMarriedDialogue; // Seharusnya tidak terjadi jika engaged = true dan isMarriedToPlayer = false
+        } else {
+            // Proses pernikahan
+            gp.ui.currentDialogue = marriageDialogue;
+            this.marriedToPlayer = true;
+            this.engaged = false; // Setelah menikah, tidak lagi engaged
+            gp.player.setMarried(true);
+            // Di sini Anda bisa menambahkan event setelah menikah, misal:
+            // - Memindahkan NPC ke rumah pemain (jika ada sistemnya)
+            // - Mengubah dialog harian NPC
+            // - Trigger sebuah cutscene pernikahan (jika ada)
+        }
+        gp.gameState = gp.dialogueState;
+    }
 
     public void facePlayer() {
         switch (gp.player.direction) {

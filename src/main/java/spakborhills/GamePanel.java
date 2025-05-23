@@ -37,7 +37,6 @@ public class GamePanel extends  JPanel implements Runnable {
     public CollisionChecker collisionChecker = new CollisionChecker(this);
     public UI ui;
     Thread gameThread;
-
     private Time time;
     private Weather weather;
     public GameClock gameClock;
@@ -172,7 +171,6 @@ public class GamePanel extends  JPanel implements Runnable {
                     gameState = playState; // Pindah ke play state
 
                     // Mulai/Lanjutkan musik dan GameClock
-                    playMusic(0); // Nomor trek musik untuk playState
                     if(gameClock != null) {
                         // gameClock.start() HANYA dipanggil sekali saat game pertama kali setup.
                         // Jika gameClock sudah pernah start dan sekarang di-pause, gunakan resumeTime.

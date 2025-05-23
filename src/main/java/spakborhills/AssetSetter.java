@@ -13,7 +13,7 @@ public class AssetSetter {
         Entity door1 = new OBJ_Door(gp); // Buat instance dan simpan di variabel lokal
         door1.worldX = gp.tileSize * 25;    // Atur koordinat X
         door1.worldY = gp.tileSize * 15;    // Atur koordinat Y
-        gp.entities.add(door1);                  // Tambahkan objek yang sudah dikonfigurasi ke daftar gp.obj
+        gp.entities.add(door1);             // Tambahkan objek yang sudah dikonfigurasi ke daftar gp.obj
 
         // Contoh menempatkan sebuah kunci
         Entity key1 = new OBJ_Key(gp);
@@ -26,9 +26,7 @@ public class AssetSetter {
         chest1.worldX = gp.tileSize * 22;
         chest1.worldY = gp.tileSize * 30;
         gp.entities.add(chest1);
-
     }
-
     public void setNPC(){
         // Buat instance NPC dan LANGSUNG atur propertinya sebelum menambahkannya ke daftar
         NPC abigail = new NPC_ABIGAIL(gp);
