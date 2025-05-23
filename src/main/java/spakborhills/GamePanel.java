@@ -1,6 +1,7 @@
 package spakborhills;
 
 import spakborhills.entity.Entity;
+import spakborhills.entity.NPC;
 import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
 import spakborhills.enums.EntityType;
@@ -41,9 +42,10 @@ public class GamePanel extends  JPanel implements Runnable {
     private Weather weather;
     public GameClock gameClock;
 
-    //Entity & OBJECT
+    //Entity, NPC & OBJECT
     public Player player = new Player(this, keyH);
     public ArrayList<Entity> entities = new ArrayList<>();
+    public ArrayList<NPC> npcs = new ArrayList<>();
     public Entity currentInteractingNPC = null;
 
     //GAME STATE
@@ -54,6 +56,8 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int dialogueState = 3;
     public final int inventoryState = 4;
     public final int farmNameInputState = 5;
+    public final int interactionMenuState = 6;
+    public final int giftSelectionState = 7;
 
     public GamePanel(){
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -135,10 +139,8 @@ public class GamePanel extends  JPanel implements Runnable {
         if (gameState == playState){
             player.update(); // Update player
             //NPC
-            for(Entity character: entities){ // Pastikan entities adalah daftar NPC, bukan semua entitas termasuk objek
-                if (character.type == EntityType.NPC) { // Hanya update NPC
-                    character.update();
-                }
+            for(NPC character: npcs){ // Pastikan entities adalah daftar NPC, bukan semua entitas termasuk objek
+                character.update();
             }
             if (gameClock != null && gameClock.isPaused()) { // Jika game masuk playState dan clock masih pause
                 gameClock.resumeTime();
@@ -190,6 +192,17 @@ public class GamePanel extends  JPanel implements Runnable {
                     ui.showMessage("Farm name cannot be empty!");
                 }
                 keyH.enterPressed = false; // Reset flag enter setelah diproses di sini
+            }
+        }
+        else if (gameState == interactionMenuState) {
+            // Biasanya hanya menunggu input, game logic utama di-pause
+            if (this.gameClock != null && !this.gameClock.isPaused()) {
+                this.gameClock.pauseTime();
+            }
+        } else if (gameState == giftSelectionState) {
+            // Mirip inventoryState, waktu di-pause
+            if (this.gameClock != null && !this.gameClock.isPaused()) {
+                this.gameClock.pauseTime();
             }
         }
     }
@@ -247,8 +260,8 @@ public class GamePanel extends  JPanel implements Runnable {
                 }
             });
             // Entities
-            for(Entity character: entities){
-                character.draw(g2);
+            for(Entity entity: entities){
+                entity.draw(g2);
             }
             //Player
             player.draw(g2);

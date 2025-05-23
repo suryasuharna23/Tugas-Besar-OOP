@@ -9,7 +9,6 @@
     import java.io.IOException;
     import java.util.ArrayList;
     import java.util.Objects;
-    import java.util.Random;
 
     public abstract class Entity {
         public GamePanel gp;
@@ -25,11 +24,10 @@
         public Rectangle solidArea = new Rectangle(0,0,48,48);
         public int solidAreaDefaultX, solidAreaDefaultY;
         public boolean collisionON = false;
-        public int actionLockCounter = 0;
-        public int actionLockInterval = 120; // 2 x 60 detik (fps)
         public ArrayList<String> dialogues = new ArrayList<>();
         public int dialogueIndex = 0;
         public EntityType type;
+
 
         public Entity(GamePanel gp){
             this.gp = gp;
@@ -44,36 +42,9 @@
             }
             return image;
         }
-        public void speak(){
-            if (type == EntityType.NPC){
-                gp.ui.currentDialogue = dialogues.get(dialogueIndex);
-                dialogueIndex++;
 
-                if (dialogueIndex == dialogues.size()){
-                    dialogueIndex = 0;
-                }
-                switch (gp.player.direction){
-                    case "up":
-                        direction = "down";
-                        break;
-                    case "down":
-                        direction = "up";
-                        break;
-                    case "left":
-                        direction = "right";
-                        break;
-                    case "right":
-                        direction = "left";
-                        break;
-                }
-            }
-            else{
-                System.err.println("Peringatan: speak() dipanggil pada entitas non-NPC: " + this.name + " Tipe: " + this.type);
-            }
-        }
 
         public void update(){
-            setAction();
             collisionON = false;
             checkCollisionAndMove();
             updateSprite();
@@ -83,7 +54,6 @@
             System.out.println("Mencoba menggunakan item: " + this.name + " (aksi default tidak melakukan apa-apa)");
             return false;
         }
-
 
         private void checkCollisionAndMove(){
             //CHECK TILE COLLISION
@@ -117,42 +87,6 @@
             }
         }
 
-        public void setAction(){
-            if (type == EntityType.NPC) { // Hanya berlaku untuk NPC atau tipe lain yang memerlukan AI gerakan
-                actionLockCounter++;
-
-                if (actionLockCounter >= actionLockInterval) { // Gunakan >= untuk memastikan eksekusi
-                    Random random = new Random();
-                    int i = random.nextInt(125) + 1; // Range 1-125 untuk lebih banyak opsi
-
-                    // Kembalikan kecepatan ke default jika sebelumnya diam
-                    // (asumsi speed bisa diset 0 saat diam)
-                    // if (this.speed == 0 && defaultSpeed > 0) {
-                    //     this.speed = defaultSpeed;
-                    // }
-
-                    if (i <= 20) { // ~16% kemungkinan untuk diam
-                        // Untuk diam, kita bisa tidak mengubah arah dan mungkin mengatur speed = 0
-                        // Jika speed diatur ke 0, pastikan ada cara untuk mengembalikannya.
-                        // Untuk saat ini, kita biarkan NPC tidak mengubah arah, yang berarti dia akan terus
-                        // bergerak ke arah terakhir jika speed > 0, atau berhenti jika speed dihandle saat diam.
-                        // Opsi lain: set speed = 0 dan kembalikan di awal blok if ini.
-                        // Atau, tidak melakukan apa-apa pada direction, yang berarti dia akan melanjutkan arah sebelumnya
-                        // atau berhenti jika speed = 0.
-                        // Paling sederhana: jangan ubah arah, jika NPC menabrak, dia akan berhenti.
-                    } else if (i <= 45) { // ~20% (25/125)
-                        direction = "up";
-                    } else if (i <= 70) { // ~20%
-                        direction = "down";
-                    } else if (i <= 95) { // ~20%
-                        direction = "left";
-                    } else { // ~24% (30/125)
-                        direction = "right";
-                    }
-                    actionLockCounter = 0; // Reset counter
-                }
-            }
-        }
 
 
         public void draw(Graphics2D g2){

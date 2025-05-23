@@ -3,7 +3,7 @@ package spakborhills.entity;
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
 
-public class NPC_MAYOR_TADI extends Entity{
+public class NPC_MAYOR_TADI extends NPC{
     public NPC_MAYOR_TADI(GamePanel gp){
         super(gp);
         direction = "down";
@@ -28,6 +28,4 @@ public class NPC_MAYOR_TADI extends Entity{
     public void setDialogue(){
         dialogues.add("Ya ndak tau kok tanya saya.");
     }
-    @Override
-    public void speak(){super.speak();}
 }

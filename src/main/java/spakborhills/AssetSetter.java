@@ -31,30 +31,40 @@ public class AssetSetter {
 
     public void setNPC(){
         // Buat instance NPC dan LANGSUNG atur propertinya sebelum menambahkannya ke daftar
-        Entity abigail = new NPC_ABIGAIL(gp);
+        NPC abigail = new NPC_ABIGAIL(gp);
         abigail.worldX = gp.tileSize * 21;   // Atur X untuk npcGirl
         abigail.worldY = gp.tileSize * 21;   // Atur Y untuk npcGirl
+        gp.npcs.add(abigail);
         gp.entities.add(abigail);
 
-        gp.entities.add(abigail);
-        Entity caroline = new NPC_CAROLINE(gp);
+        NPC caroline = new NPC_CAROLINE(gp);
         caroline.worldX = gp.tileSize * 21;
         caroline.worldY = gp.tileSize * 21;
+        gp.npcs.add(caroline);
         gp.entities.add(caroline);
 
-        Entity dasco = new NPC_DASCO(gp);
+        NPC dasco = new NPC_DASCO(gp);
         dasco.worldX = gp.tileSize * 21;
         dasco.worldY = gp.tileSize * 21;
+        gp.npcs.add(dasco);
         gp.entities.add(dasco);
 
-        Entity emily = new NPC_EMILY(gp);
+        NPC emily = new NPC_EMILY(gp);
         emily.worldX = gp.tileSize * 21;
         emily.worldY = gp.tileSize * 21;
+        gp.npcs.add(emily);
         gp.entities.add(emily);
 
-        Entity mayorTadi = new NPC_MAYOR_TADI(gp);
+        NPC mayorTadi = new NPC_MAYOR_TADI(gp);
         mayorTadi.worldX = gp.tileSize * 21;
         mayorTadi.worldY = gp.tileSize * 21;
+        gp.npcs.add(mayorTadi);
         gp.entities.add(mayorTadi);
+
+        NPC perry = new NPC_PERRY(gp);
+        perry.worldX = gp.tileSize * 21;
+        perry.worldY = gp.tileSize * 21;
+        gp.npcs.add(perry);
+        gp.entities.add(perry);
     }
 }

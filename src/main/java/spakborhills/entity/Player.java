@@ -23,6 +23,7 @@ public class Player extends  Entity{
     private String farmName;
     public int maxEnergy;
     public int currentEnergy;
+    private boolean married = false;
     public ArrayList<Entity> inventory = new ArrayList<>();
     public int currentEquippedItemIndex = -1;
 
@@ -101,6 +102,13 @@ public class Player extends  Entity{
             currentEnergy = maxEnergy;
         }
     }
+    public boolean isMarried() {
+        return married;
+    }
+
+    public void setMarried(boolean married) {
+        this.married = married;
+    }
 
     private void updateDirection(){
         if (keyH.upPressed){
@@ -136,61 +144,42 @@ public class Player extends  Entity{
         }
     }
 
+    // In Player.java, method checkCollisionAndMove()
     private void checkCollisionAndMove() {
         collisionON = false;
-        gp.collisionChecker.checkTile(this); // Periksa kolisi dengan tile
+        gp.collisionChecker.checkTile(this);
 
-        // Dapatkan indeks entitas (NPC atau Objek) yang disentuh atau dihadapi pemain
-        // Metode checkEntity akan memeriksa semua entitas dalam gp.entities
+        // Check collision with general entities (which should include NPCs and objects)
         int entityIndex = gp.collisionChecker.checkEntity(this, gp.entities);
 
-        // Hanya proses interaksi JIKA tombol Enter ditekan
         if (gp.keyH.enterPressed) {
-            if (entityIndex != 999) { // Jika ada entitas yang terdeteksi
-                Entity interactedEntity = gp.entities.get(entityIndex); // Dapatkan entitas tersebut
+            if (entityIndex != 999) {
+                Entity interactedEntity = gp.entities.get(entityIndex); // Get from the list used for collision
 
-                // PERIKSA TIPE ENTITAS SEBELUM BERINTERAKSI
-                if (interactedEntity.type == EntityType.NPC) {
-                    // Jika itu NPC, masuk ke mode dialog dan panggil metode speak() dari NPC tersebut
+                if (interactedEntity instanceof NPC) { // Check if it's an NPC
+                    NPC npc = (NPC) interactedEntity; // Cast to NPC
                     gp.gameState = gp.dialogueState;
-                    gp.currentInteractingNPC = interactedEntity;
-                    interactedEntity.speak(); // Ini akan menjalankan metode speak() milik NPC
+                    gp.currentInteractingNPC = npc; // Store the actual NPC object
+                    npc.openInteractionMenu();
                 } else if (interactedEntity.type == EntityType.INTERACTIVE_OBJECT) {
-                    // Jika itu objek interaktif (pintu, peti, dll.)
-                    // Di sini Anda akan menambahkan logika spesifik untuk objek tersebut
-                    // Contoh:
+                    // Handle interactive objects (doors, chests) as before
                     if (interactedEntity.name.equals("Door")) {
-                        // Logika untuk membuka pintu
-                        // Misalnya, periksa apakah pemain punya kunci
-                        // if (playerHasKey("Key")) { // Anda perlu implementasi playerHasKey
-                        //    gp.ui.showMessage("Kamu membuka pintu!");
-                        //    gp.entities.remove(entityIndex); // Hapus pintu jika terbuka permanen
-                        // } else {
-                        //    gp.ui.showMessage("Pintu ini terkunci.");
-                        // }
-                        gp.ui.showMessage("Kamu berinteraksi dengan " + interactedEntity.name); // Pesan sementara
+                        gp.ui.showMessage("Kamu berinteraksi dengan " + interactedEntity.name);
                     } else if (interactedEntity.name.equals("Chest")) {
-                        // Logika untuk membuka peti
                         gp.ui.showMessage("Kamu membuka " + interactedEntity.name);
-                        // gp.entities.remove(entityIndex); // Mungkin peti bisa dibuka sekali saja
-                        // Tambahkan item ke inventory pemain
                     } else {
                         gp.ui.showMessage("Kamu melihat " + interactedEntity.name);
                     }
                 } else if (interactedEntity.type == EntityType.PICKUP_ITEM) {
-                    // Jika itu item yang bisa diambil (kunci, sepatu bot)
-                    // Logika untuk mengambil item
+                    // Handle pickup items as before
                     gp.ui.showMessage("Kamu mengambil " + interactedEntity.name + "!");
-                    // Contoh: gp.player.addItemToInventory(interactedEntity); // Anda perlu implementasi inventory
-                    gp.entities.remove(entityIndex); // Hapus item dari peta setelah diambil
+                    addItemToInventory(interactedEntity); // Make sure this method exists or is pickUpObject
+                    gp.entities.remove(entityIndex); // Remove item from the map
                 }
-                // Anda bisa menambahkan lebih banyak else if untuk tipe entitas lain jika ada
-
             }
-            gp.keyH.enterPressed = false; // Penting: Reset status tombol Enter setelah diproses
+            gp.keyH.enterPressed = false;
         }
 
-        // Logika pergerakan pemain hanya jika tidak ada kolisi
         if (!collisionON) {
             switch (direction) {
                 case "up": worldY -= speed; break;
@@ -199,17 +188,16 @@ public class Player extends  Entity{
                 case "right": worldX += speed; break;
             }
         }
-
     }
 
     public void interactNPC(int i){
         if (i != 999){
             if(gp.keyH.enterPressed){
                 gp.gameState = gp.dialogueState;
-                Entity npc = gp.entities.get(i);
+                NPC npc = gp.npcs.get(i);
                 if (npc.type == EntityType.NPC){
                     gp.currentInteractingNPC = npc;
-                    npc.speak();
+                    npc.openInteractionMenu();
                 }
             }
         }

@@ -3,7 +3,7 @@ package spakborhills.entity;
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
 
-public class NPC_DASCO extends Entity{
+public class NPC_DASCO extends NPC{
     public NPC_DASCO(GamePanel gp){
         super(gp);
         direction = "down";
@@ -29,6 +29,4 @@ public class NPC_DASCO extends Entity{
     public void setDialogue(){
         dialogues.add("HOHOOO");
     }
-    @Override
-    public void speak(){super.speak();}
 }

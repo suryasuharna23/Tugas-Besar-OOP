@@ -3,7 +3,10 @@ package spakborhills;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
+
 import spakborhills.entity.Entity; // Pastikan import ini ada jika Entity direferensikan
+import spakborhills.entity.NPC;
 
 public class KeyHandler implements KeyListener {
     public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, inventoryPressed;
@@ -46,6 +49,9 @@ public class KeyHandler implements KeyListener {
         // FARM NAME INPUT STATE
         else if (gp.gameState == gp.farmNameInputState) {
             handleFarmNameInput(code, e.getKeyChar());
+        }
+        else if (gp.gameState == gp.interactionMenuState){
+            handleNPCInteractionMenuInput(code);
         }
         // PLAY STATE
         else if (gp.gameState == gp.playState){
@@ -91,25 +97,70 @@ public class KeyHandler implements KeyListener {
             }
         }
         // INVENTORY STATE
-        else if (gp.gameState == gp.inventoryState) {
-            if (code == KeyEvent.VK_I) {
-                gp.gameState = gp.playState;
-                if(gp.gameClock != null) gp.gameClock.resumeTime();
-            } else if (!gp.player.inventory.isEmpty()) {
-                if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
-                    gp.ui.inventoryCommandNum--;
-                    if (gp.ui.inventoryCommandNum < 0) {
-                        gp.ui.inventoryCommandNum = gp.player.inventory.size() - 1;
-                    }
-                } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
-                    gp.ui.inventoryCommandNum++;
-                    if (gp.ui.inventoryCommandNum >= gp.player.inventory.size()) {
-                        gp.ui.inventoryCommandNum = 0;
-                    }
-                } else if (code == KeyEvent.VK_ENTER) {
-                    gp.player.selectItemAndUse();
-                }
+        else if (gp.gameState == gp.inventoryState || gp.gameState == gp.giftSelectionState) {
+            handleInventoryInput(code, gp.gameState == gp.giftSelectionState);
+        }
+    }
+
+    private void handleNPCInteractionMenuInput(int code) {
+        if (gp.currentInteractingNPC == null) return;
+        NPC npc = (NPC) gp.currentInteractingNPC;
+
+        // Buat daftar opsi yang dinamis sesuai kondisi NPC
+        ArrayList<String> options = new ArrayList<>();
+        options.add("Talk");
+        options.add("Give Gift");
+        if (npc.isMarriageCandidate && !npc.isMarriedToPlayer && !gp.player.isMarried()) {
+            if (npc.currentHeartPoints >= 80) { // Threshold yang sama seperti di UI
+                options.add("Propose");
             }
+        }
+        options.add("Leave");
+        int maxCommands = options.size();
+
+        if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+            gp.ui.npcMenuCommandNum--;
+            if (gp.ui.npcMenuCommandNum < 0) {
+                gp.ui.npcMenuCommandNum = maxCommands - 1;
+            }
+//            gp.playSE(0); // Contoh suara navigasi
+        }
+        if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+            gp.ui.npcMenuCommandNum++;
+            if (gp.ui.npcMenuCommandNum >= maxCommands) {
+                gp.ui.npcMenuCommandNum = 0;
+            }
+//            gp.playSE(0);
+        }
+        if (code == KeyEvent.VK_ENTER) {
+            enterPressed = false; // Konsumsi Enter
+            String selectedOption = options.get(gp.ui.npcMenuCommandNum);
+
+            switch (selectedOption) {
+                case "Talk":
+                    npc.talk();
+                    break;
+                case "Give Gift":
+                    gp.ui.isSelectingGift = true;
+                    gp.gameState = gp.giftSelectionState; // Pindah ke state pemilihan hadiah
+                    // Navigasi inventory (inventoryCommandNum) akan direset atau dihandle di state inventory
+                    gp.ui.inventoryCommandNum = 0; // Reset pilihan item di inventory
+                    gp.ui.inventorySlotCol = 0;
+                    gp.ui.inventorySlotRow = 0;
+                    break;
+                case "Propose":
+                    npc.getProposedTo();
+                    break;
+                case "Leave":
+                    gp.gameState = gp.playState;
+                    if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
+                    break;
+            }
+//            gp.playSE(1); // Contoh suara konfirmasi
+        }
+        if (code == KeyEvent.VK_ESCAPE) { // Kembali ke play state
+            gp.gameState = gp.playState;
+            if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
         }
     }
 
@@ -136,6 +187,70 @@ public class KeyHandler implements KeyListener {
         if (code == KeyEvent.VK_ENTER){
             if(gp.gameState == gp.playState || gp.gameState == gp.dialogueState) { // Hanya reset untuk state ini di sini
                 enterPressed = false;
+            }
+        }
+    }
+
+
+    private void handleInventoryInput(int code, boolean isGifting) {
+        // Navigasi inventory (disesuaikan dengan layout inventory Anda)
+        // Contoh sederhana untuk daftar linear:
+        int maxInventoryItems = gp.player.inventory.size();
+        if (maxInventoryItems == 0 && code == KeyEvent.VK_ENTER && isGifting) { // Jika inventory kosong saat mau memberi hadiah
+            NPC currentNPC = (NPC) gp.currentInteractingNPC;
+            if(currentNPC != null) {
+                gp.ui.currentDialogue = "You have nothing to give!";
+                gp.gameState = gp.dialogueState;
+                gp.ui.isSelectingGift = false; // Reset flag
+            }
+            return;
+        } else if (maxInventoryItems == 0) { // Jika inventory kosong (umum)
+            if (code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_E) { // 'E' untuk keluar inventory
+                gp.gameState = gp.playState;
+                if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
+                gp.ui.isSelectingGift = false;
+            }
+            return;
+        }
+
+
+        if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+            gp.ui.inventoryCommandNum--;
+            if (gp.ui.inventoryCommandNum < 0) gp.ui.inventoryCommandNum = maxInventoryItems - 1;
+//            gp.playSE(0);
+        }
+        if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+            gp.ui.inventoryCommandNum++;
+            if (gp.ui.inventoryCommandNum >= maxInventoryItems) gp.ui.inventoryCommandNum = 0;
+//            gp.playSE(0);
+        }
+        // Anda bisa menambahkan navigasi Kiri/Kanan jika inventory berbentuk grid
+
+        if (code == KeyEvent.VK_ENTER) {
+            enterPressed = false; // Konsumsi Enter
+            if (isGifting) {
+                NPC currentNPC = (NPC) gp.currentInteractingNPC;
+                if (currentNPC != null && gp.ui.inventoryCommandNum < maxInventoryItems) {
+                    Entity selectedItem = gp.player.inventory.get(gp.ui.inventoryCommandNum);
+                    currentNPC.receiveGift(selectedItem, gp.player); // Kirim juga instance Player
+                    // State akan diubah ke dialogueState oleh receiveGift()
+                }
+                gp.ui.isSelectingGift = false; // Selesai memilih hadiah
+            } else {
+                // Logika penggunaan item dari inventory biasa (jika ada)
+                gp.player.selectItemAndUse();
+                gp.ui.showMessage("Selected: " + gp.player.inventory.get(gp.ui.inventoryCommandNum).name);
+            }
+//            gp.playSE(1);
+        }
+
+        if (code == KeyEvent.VK_ESCAPE || (code == KeyEvent.VK_E && !isGifting) ) { // 'E' untuk keluar inventory umum
+            if (isGifting) {
+                gp.gameState = gp.interactionMenuState; // Kembali ke menu NPC
+                gp.ui.isSelectingGift = false;
+            } else {
+                gp.gameState = gp.playState;
+                if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
             }
         }
     }

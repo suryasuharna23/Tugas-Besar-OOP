@@ -1,12 +1,14 @@
 package spakborhills;
 
 import spakborhills.entity.Entity;
+import spakborhills.entity.NPC;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 public class UI {
     GamePanel gp;
@@ -20,7 +22,9 @@ public class UI {
     double playTime;
     public String currentDialogue = "";
     public int commandNumber = 0;
+    boolean isSelectingGift = false;
 
+    public int npcMenuCommandNum = 0;
     public int inventoryCommandNum = 0;
     public int inventorySlotCol = 0;
     public int inventorySlotRow = 0;
@@ -99,10 +103,12 @@ public class UI {
             drawDialogueScreen();
         }
         // INVENTORY STATE
-        else if (gp.gameState == gp.inventoryState){
+        else if (gp.gameState == gp.inventoryState || gp.gameState == gp.giftSelectionState){
             drawInventoryScreen();
         }
-
+        else if (gp.gameState == gp.interactionMenuState) {
+            drawNPCInteractionMenu();
+        }
     }
 
     public void drawTitleScreen(){
@@ -300,13 +306,13 @@ public class UI {
                     }
                 }
             } else { // Proses kata biasa tanpa newline manual
-                String testLine = currentLine.toString() + (currentLine.length() > 0 ? " " : "") + word;
+                String testLine = currentLine.toString() + (!currentLine.isEmpty() ? " " : "") + word;
                 if (fm.stringWidth(testLine) <= maxTextWidth) {
-                    if (currentLine.length() > 0) currentLine.append(" ");
+                    if (!currentLine.isEmpty()) currentLine.append(" ");
                     currentLine.append(word);
                 } else {
                     // Gambar baris saat ini
-                    if (currentLine.length() > 0) {
+                    if (!currentLine.isEmpty()) {
                         g2.drawString(currentLine.toString(), dialogueContentX, currentY);
                     }
                     currentY += lineHeight; // Pindah ke baris berikutnya
@@ -324,7 +330,7 @@ public class UI {
             // Hentikan jika teks melebihi tinggi kotak dialog
             if (currentY > y + height - textPadding - fm.getDescent()) {
                 // Bisa tambahkan indikator "..." jika teks terpotong
-                if (currentLine.length() > 0) { // Gambar sisa terakhir yang mungkin masih muat sebagian
+                if (!currentLine.isEmpty()) { // Gambar sisa terakhir yang mungkin masih muat sebagian
                     g2.drawString(currentLine.toString().trim() + "...", dialogueContentX, currentY);
                 } else if (words[words.length-1] != word) { // Jika bukan kata terakhir yang menyebabkan overflow
                     String lastDrawnLine = g2.getFontMetrics().toString(); // Ini tidak benar, perlu cara lain ambil line terakhir
@@ -512,6 +518,45 @@ public class UI {
             g2.drawString("Select Item...", slotStartX, itemInfoY);
         }
     }
+
+    public void drawNPCInteractionMenu() {
+        if (gp.currentInteractingNPC == null) return;
+        NPC npc = (NPC) gp.currentInteractingNPC;
+
+        // Gambar window untuk menu
+        int frameX = gp.tileSize * 2;
+        int frameY = gp.screenHeight / 2 - gp.tileSize * 2;
+        int frameWidth = gp.tileSize * 5; // Lebih lebar untuk opsi
+        int frameHeight = gp.tileSize * 5;
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight); // g2 sudah di-set di draw()
+
+        g2.setColor(Color.white);
+        g2.setFont(g2.getFont().deriveFont(20F));
+
+        int textX = frameX + gp.tileSize / 2;
+        int textY = frameY + gp.tileSize;
+
+        ArrayList<String> options = new ArrayList<>();
+        options.add("Talk");
+        options.add("Give Gift");
+
+        if (npc.isMarriageCandidate && !npc.isMarriedToPlayer && !gp.player.isMarried()) {
+            if (npc.currentHeartPoints >= 80) { // Asumsi 8 hati = 80 poin
+                options.add("Propose");
+            }
+        }
+        // Opsi "Marry" bisa ditambahkan di sini jika ada state "engaged"
+
+        options.add("Leave");
+
+        for (int i = 0; i < options.size(); i++) {
+            if (i == npcMenuCommandNum) {
+                g2.drawString(">", textX - gp.tileSize / 4, textY + i * gp.tileSize);
+            }
+            g2.drawString(options.get(i), textX, textY + i * gp.tileSize);
+        }
+    }
+
     private void drawTimeHUD(Graphics2D g2) {
         if (gp.gameState != gp.playState) return;
         String text = "Time: " + gameClock.getFormattedTime()

@@ -3,7 +3,7 @@ package spakborhills.entity;
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
 
-public class NPC_CAROLINE extends Entity{
+public class NPC_CAROLINE extends NPC{
     public NPC_CAROLINE(GamePanel gp){
         super(gp);
         direction = "down";
@@ -28,7 +28,5 @@ public class NPC_CAROLINE extends Entity{
     public void setDialogue(){
         dialogues.add("Nama saya Caroline, salam kenal!");
     }
-    @Override
-    public void speak(){super.speak();}
 }
 
