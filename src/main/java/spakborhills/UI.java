@@ -29,6 +29,12 @@ public class UI {
     public int inventorySlotCol = 0;
     public int inventorySlotRow = 0;
 
+    // PLAYER NAME INPUT
+    public String playerNameInput = ""; // Menyimpan teks input nama pemain
+    private String playerNamePromptMessage = "Enter Your Name:";
+    private String playerNameSubMessage = "(Press ENTER to confirm, BACKSPACE to delete)";
+    public int playerNameMaxLength = 15; // Batas maksimal karakter nama pemain
+
     // FARM NAME
     public String farmNameInput = ""; // Menyimpan teks input nama farm
     private String farmNamePromptMessage = "Enter Your Farm's Name:";
@@ -84,6 +90,10 @@ public class UI {
         // Menggunakan struktur if-else if
         if (gp.gameState == gp.titleState){
             drawTitleScreen();
+        }
+        // PLAYER NAME INPUT STATE
+        else if (gp.gameState == gp.playerNameInputState) {
+            drawPlayerNameInputScreen();
         }
         // FARM NAME INPUT STATE
         else if (gp.gameState == gp.farmNameInputState) {
@@ -145,8 +155,8 @@ public class UI {
         if (commandNumber == 0){
             g2.drawString(">", x-gp.tileSize, y);
             if (gp.keyH.enterPressed){
-                gp.gameState = gp.farmNameInputState;
-                farmNameInput = "";
+                gp.gameState = gp.playerNameInputState;
+                playerNameInput = "";
                 gp.keyH.enterPressed = false;
                 if (gp.gameClock != null && !gp.gameClock.isPaused()){
                     gp.gameClock.pauseTime();
@@ -183,6 +193,41 @@ public class UI {
         int x = getXForCenteredText(text);
         int y = gp.screenHeight / 2;
         g2.drawString(text, x, y);
+    }
+
+    public void drawPlayerNameInputScreen() {
+        // Latar belakang (bisa sama dengan title screen atau warna solid)
+        g2.setColor(new Color(0, 0, 0, 200)); // Warna hitam semi-transparan
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 30F)); // Gunakan font Anda
+        g2.setColor(Color.white);
+
+        // Pesan Prompt
+        int x = getXForCenteredText(playerNamePromptMessage);
+        int y = gp.screenHeight / 2 - gp.tileSize * 2;
+        g2.drawString(playerNamePromptMessage, x, y);
+
+        // Kotak Input Teks (atau hanya teks yang diketik)
+        String displayText = playerNameInput;
+        // Tambahkan kursor berkedip sederhana
+        if (System.currentTimeMillis() % 1000 < 500) { // Setiap 0.5 detik
+            displayText += "_";
+        } else {
+            displayText += " "; // Beri spasi agar lebar konsisten saat tidak ada kursor
+        }
+
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F)); // Gunakan font Anda
+        int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
+        x = gp.screenWidth / 2 - textWidth / 2;
+        y += gp.tileSize * 2;
+        g2.drawString(displayText, x, y);
+
+        // Pesan Sub/Instruksi
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 16F)); // Gunakan font Anda
+        x = getXForCenteredText(playerNameSubMessage);
+        y += gp.tileSize * 1.5;
+        g2.drawString(playerNameSubMessage, x, y);
     }
 
     public void drawFarmNameInputScreen() {

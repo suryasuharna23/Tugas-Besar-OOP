@@ -46,6 +46,10 @@ public class KeyHandler implements KeyListener {
                 }
             }
         }
+        // PLAYER NAME INPUT STATE
+        else if (gp.gameState == gp.playerNameInputState){
+            handlePlayerNameInput(code, e.getKeyChar());
+        }
         // FARM NAME INPUT STATE
         else if (gp.gameState == gp.farmNameInputState) {
             handleFarmNameInput(code, e.getKeyChar());
@@ -101,6 +105,39 @@ public class KeyHandler implements KeyListener {
             handleInventoryInput(code, gp.gameState == gp.giftSelectionState);
         }
     }
+
+    private void handlePlayerNameInput(int keyCode, char keyChar) {
+        if (keyCode == KeyEvent.VK_ENTER) {
+            if (!gp.ui.playerNameInput.trim().isEmpty()) {
+                // Simpan nama pemain ke objek Player
+                gp.player.name = gp.ui.playerNameInput.trim(); // atau gp.player.setPlayerName(...)
+                System.out.println("Player Name Set: " + gp.player.name); // Untuk Debug
+
+                // Pindah ke state input nama farm
+                gp.gameState = gp.farmNameInputState;
+                gp.ui.farmNameInput = ""; // Reset input nama farm
+                // enterPressed tidak perlu di-set true di sini karena transisi state langsung
+            } else {
+                gp.ui.showMessage("Player name cannot be empty!"); // Tampilkan pesan jika kosong
+            }
+        } else if (keyCode == KeyEvent.VK_BACK_SPACE) {
+            if (gp.ui.playerNameInput.length() > 0) {
+                gp.ui.playerNameInput = gp.ui.playerNameInput.substring(0, gp.ui.playerNameInput.length() - 1);
+            }
+        } else {
+            if (gp.ui.playerNameInput.length() < gp.ui.playerNameMaxLength) { // Gunakan playerNameMaxLength
+                // Cek karakter yang valid (mirip dengan farmNameInput)
+                if (Character.isLetterOrDigit(keyChar) || Character.isWhitespace(keyChar)) {
+                    if(keyChar != KeyEvent.CHAR_UNDEFINED && keyCode != KeyEvent.VK_ENTER && keyCode != KeyEvent.VK_BACK_SPACE &&
+                            keyCode != KeyEvent.VK_SHIFT && keyCode != KeyEvent.VK_CONTROL && keyCode != KeyEvent.VK_ALT &&
+                            keyCode != KeyEvent.VK_CAPS_LOCK && keyCode != KeyEvent.VK_TAB) {
+                        gp.ui.playerNameInput += keyChar;
+                    }
+                }
+            }
+        }
+    }
+
 
     private void handleNPCInteractionMenuInput(int code) {
         if (gp.currentInteractingNPC == null) return;

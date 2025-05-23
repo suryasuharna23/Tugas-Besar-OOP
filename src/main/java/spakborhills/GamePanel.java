@@ -57,6 +57,8 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int farmNameInputState = 5;
     public final int interactionMenuState = 6;
     public final int giftSelectionState = 7;
+    public final int playerNameInputState = 8;
+
 
     public GamePanel(){
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -128,6 +130,8 @@ public class GamePanel extends  JPanel implements Runnable {
 
             if (timer >= 1000000000){
                 System.out.println("FPS: " + drawCount);
+                System.out.println("Player Name: " + player.name);
+                System.out.println("Farm Name: " + player.getFarmName());
                 drawCount = 0;
                 timer = 0;
             }
@@ -144,7 +148,13 @@ public class GamePanel extends  JPanel implements Runnable {
             if (gameClock != null && gameClock.isPaused()) { // Jika game masuk playState dan clock masih pause
                 gameClock.resumeTime();
             }
-        } else if (gameState == pauseState){
+        }
+        else if(gameState == playerNameInputState){
+            if (this.gameClock != null && !this.gameClock.isPaused()) {
+                this.gameClock.pauseTime(); // Pastikan waktu dijeda
+            }
+        }
+        else if (gameState == pauseState){
             // nothing, waktu sudah di-pause oleh KeyHandler
         } else if (gameState == dialogueState) {
             // Waktu mungkin di-pause saat dialog dimulai (misalnya di Player.interactNPC)

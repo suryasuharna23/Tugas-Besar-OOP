@@ -26,7 +26,7 @@ public class Player extends  Entity{
     private boolean married = false;
     public ArrayList<Entity> inventory = new ArrayList<>();
     public int currentEquippedItemIndex = -1;
-
+    public NPC partner;
 
     public Player(GamePanel gp, KeyHandler keyH){
         super(gp);
