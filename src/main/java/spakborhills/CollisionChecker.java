@@ -1,7 +1,6 @@
 package spakborhills;
 
 import spakborhills.entity.Entity;
-
 import java.util.ArrayList;
 
 public class CollisionChecker {
@@ -19,6 +18,7 @@ public class CollisionChecker {
         int entityBottomWorldY = entity.worldY + entity.solidArea.y + entity.solidArea.height;
 
         // Tentukan kolom/baris entitas saat ini berdasarkan area solidnya.
+        // Note: These are current column/row, used for some direction checks.
         int entityLeftCol = entityLeftWorldX / gp.tileSize;
         int entityRightCol = entityRightWorldX / gp.tileSize;
         int entityTopRow = entityTopWorldY / gp.tileSize;
@@ -26,43 +26,89 @@ public class CollisionChecker {
 
         int tileNum1, tileNum2;
 
+        // Helper lambda to check tile validity and collision property
+        java.util.function.IntPredicate isSolidTile = (tileNum) -> {
+            // Check if tileNum is within the bounds of the tile definition array
+            if (tileNum >= 0 && tileNum < gp.tileManager.tile.length) {
+                // Check if the specific tile object exists
+                if (gp.tileManager.tile[tileNum] != null) {
+                    return gp.tileManager.tile[tileNum].collision; // Return its collision state
+                } else {
+                    return true; // Treat a null tile object (undefined tile type) as collision
+                }
+            }
+            // Treat invalid tile numbers (e.g., -1 from map data, or out of tile array bounds) as collision
+            return true;
+        };
+
         switch (entity.direction) {
             case "up":
-                // Prediksi posisi Y teratas entitas setelah bergerak
                 int nextEntityTopY = entityTopWorldY - entity.speed;
-                // Tentukan baris tile yang akan disentuh oleh bagian atas area solid entitas
-                int nextTopRow = nextEntityTopY / gp.tileSize;
-                // Ambil nomor tile di pojok kiri atas dan kanan atas dari prediksi area solid
+                int nextTopRow = nextEntityTopY / gp.tileSize; // Predicted row after moving
+
+                // Check if the predicted move is outside map boundaries for mapTileNum access
+                if (entityLeftCol < 0 || entityLeftCol >= gp.maxWorldCol ||
+                        entityRightCol < 0 || entityRightCol >= gp.maxWorldCol ||
+                        nextTopRow < 0 || nextTopRow >= gp.maxWorldRow) {
+                    entity.collisionON = true;
+                    break;
+                }
+
                 tileNum1 = gp.tileManager.mapTileNum[entityLeftCol][nextTopRow];
                 tileNum2 = gp.tileManager.mapTileNum[entityRightCol][nextTopRow];
-                if (gp.tileManager.tile[tileNum1].collision || gp.tileManager.tile[tileNum2].collision) {
+
+                if (isSolidTile.test(tileNum1) || isSolidTile.test(tileNum2)) {
                     entity.collisionON = true;
                 }
                 break;
             case "down":
                 int nextEntityBottomY = entityBottomWorldY + entity.speed;
                 int nextBottomRow = nextEntityBottomY / gp.tileSize;
+
+                if (entityLeftCol < 0 || entityLeftCol >= gp.maxWorldCol ||
+                        entityRightCol < 0 || entityRightCol >= gp.maxWorldCol ||
+                        nextBottomRow < 0 || nextBottomRow >= gp.maxWorldRow) {
+                    entity.collisionON = true;
+                    break;
+                }
+
                 tileNum1 = gp.tileManager.mapTileNum[entityLeftCol][nextBottomRow];
                 tileNum2 = gp.tileManager.mapTileNum[entityRightCol][nextBottomRow];
-                if (gp.tileManager.tile[tileNum1].collision || gp.tileManager.tile[tileNum2].collision) {
+                if (isSolidTile.test(tileNum1) || isSolidTile.test(tileNum2)) {
                     entity.collisionON = true;
                 }
                 break;
             case "left":
                 int nextEntityLeftX = entityLeftWorldX - entity.speed;
                 int nextLeftCol = nextEntityLeftX / gp.tileSize;
+
+                if (nextLeftCol < 0 || nextLeftCol >= gp.maxWorldCol ||
+                        entityTopRow < 0 || entityTopRow >= gp.maxWorldRow ||
+                        entityBottomRow < 0 || entityBottomRow >= gp.maxWorldRow) {
+                    entity.collisionON = true;
+                    break;
+                }
+
                 tileNum1 = gp.tileManager.mapTileNum[nextLeftCol][entityTopRow];
                 tileNum2 = gp.tileManager.mapTileNum[nextLeftCol][entityBottomRow];
-                if (gp.tileManager.tile[tileNum1].collision || gp.tileManager.tile[tileNum2].collision) {
+                if (isSolidTile.test(tileNum1) || isSolidTile.test(tileNum2)) {
                     entity.collisionON = true;
                 }
                 break;
             case "right":
                 int nextEntityRightX = entityRightWorldX + entity.speed;
                 int nextRightCol = nextEntityRightX / gp.tileSize;
+
+                if (nextRightCol < 0 || nextRightCol >= gp.maxWorldCol ||
+                        entityTopRow < 0 || entityTopRow >= gp.maxWorldRow ||
+                        entityBottomRow < 0 || entityBottomRow >= gp.maxWorldRow) {
+                    entity.collisionON = true;
+                    break;
+                }
+
                 tileNum1 = gp.tileManager.mapTileNum[nextRightCol][entityTopRow];
                 tileNum2 = gp.tileManager.mapTileNum[nextRightCol][entityBottomRow];
-                if (gp.tileManager.tile[tileNum1].collision || gp.tileManager.tile[tileNum2].collision) {
+                if (isSolidTile.test(tileNum1) || isSolidTile.test(tileNum2)) {
                     entity.collisionON = true;
                 }
                 break;
@@ -172,7 +218,10 @@ public class CollisionChecker {
             }
 
             if (entity.solidArea.intersects(targetNPC.solidArea)) {
-                entity.collisionON = true; // Entitas utama tidak bisa bergerak
+                // If the target is collidable, set collisionON for the checking entity
+                if (targetNPC.collision) { // Assuming NPC (Entity) also has a 'collision' property
+                    entity.collisionON = true;
+                }
                 index = i; // Kembalikan indeks NPC yang ditabrak (berguna untuk interaksi)
             }
 
@@ -219,6 +268,7 @@ public class CollisionChecker {
         }
 
         if (npcEntity.solidArea.intersects(gp.player.solidArea)) {
+            // Player is always collidable from an NPC's perspective
             npcEntity.collisionON = true; // NPC tidak bisa bergerak jika akan menabrak pemain
         }
 
