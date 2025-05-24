@@ -2,10 +2,13 @@ package spakborhills.entity;
 
 import spakborhills.GamePanel;
 import spakborhills.KeyHandler;
+import spakborhills.action.Command;
+import spakborhills.action.EatCommand;
 import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
+import spakborhills.interfaces.Edible;
 import spakborhills.object.*;
 
 import java.awt.*;
@@ -223,6 +226,7 @@ public class Player extends  Entity{
             Arrays.asList(Location.MOUNTAIN_LAKE),
             FishType.LEGENDARY
         ));
+        inventory.add(new OBJ_Food(gp, ItemType.FOOD, "Fish n' Chips", true, 150, 135, 50));
     }
 
 
@@ -340,6 +344,42 @@ public class Player extends  Entity{
                 gp.gameState = gp.playState;
             }
         }
+
+        if (gp.gameState == gp.playState) {
+
+            // Handle aksi makan dengan tombol 'E'
+            if (this.keyH != null && this.keyH.eatPressed) {
+                System.out.println("DEBUG: Player.update (playState) - eatPressed is true.");
+                Entity equippedItem = getEquippedItem(); // Mendapatkan item yang di-equip
+                if (equippedItem != null) {
+                    System.out.println("DEBUG: Player.update - Equipped item: " + equippedItem.name + " | Class: " + equippedItem.getClass().getSimpleName());
+                    if (equippedItem instanceof Edible) { // Pengecekan Edible interface yang benar
+                        System.out.println("DEBUG: Player.update - Equipped item IS Edible. Creating EatCommand.");
+                        Command eatAction = new EatCommand(this, (Edible) equippedItem);
+                        eatAction.execute(gp); // gp mungkin tidak diperlukan jika EatCommand tidak menggunakannya
+                    } else {
+                        if (gp.ui != null) gp.ui.showMessage(equippedItem.name + " is not edible.");
+                        System.out.println("DEBUG: Player.update - Equipped item " + equippedItem.name + " is NOT Edible.");
+                    }
+                } else {
+                    if (gp.ui != null) gp.ui.showMessage("Nothing held to eat.");
+                    System.out.println("DEBUG: Player.update - No item equipped to eat.");
+                }
+                this.keyH.eatPressed = false; // Reset flag setelah diproses
+            }
+
+            // Handle interaksi umum dengan 'Enter' (diproses di dalam checkCollisionAndMove jika tidak bergerak)
+            // atau jika pemain menekan Enter tanpa bergerak:
+            if (this.keyH != null && this.keyH.enterPressed && !(keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed)) {
+                checkCollisionAndMove(); // Panggil untuk interaksi saat diam
+                // enterPressed akan direset di dalam checkCollisionAndMove
+            }
+
+        } else if (gp.gameState == gp.dialogueState || gp.gameState == gp.inventoryState) {
+            // Animasi idle saat di state ini
+            spriteNum = 1;
+            spriteCounter = 0;
+        }
     }
 
     // In Player.java, method checkCollisionAndMove()
@@ -451,6 +491,33 @@ public class Player extends  Entity{
         }
     }
 
+    public void consumeItemFromInventory(Entity itemToConsume) {
+        Entity equippedItemBeforeConsumption = getEquippedItem();
+        boolean wasEquippedAndIsTheSameItem = (equippedItemBeforeConsumption == itemToConsume);
+
+        boolean removed = this.inventory.remove(itemToConsume); // remove(Object)
+
+        if (removed) {
+            System.out.println("DEBUG: Consumed and removed from inventory: " + itemToConsume.name);
+            if (wasEquippedAndIsTheSameItem) {
+                this.currentEquippedItemIndex = -1; // Reset slot equip jika item yang dipegang habis
+                System.out.println("DEBUG: Equipped item slot cleared because consumed item was equipped.");
+            }
+            // Sesuaikan inventoryCommandNum jika perlu (setelah item dihapus)
+            if (gp.ui.inventoryCommandNum >= inventory.size() && !inventory.isEmpty()) {
+                gp.ui.inventoryCommandNum = inventory.size() - 1;
+            } else if (inventory.isEmpty()) {
+                gp.ui.inventoryCommandNum = 0; // Atau -1, tergantung bagaimana UI Anda handle inventory kosong
+            }
+        } else {
+            System.out.println("WARNING: Attempted to consume " + itemToConsume.name + " but it was not found/removed from inventory list.");
+            // Jika item yang di-equip tidak bisa dihapus dari inventory (seharusnya tidak terjadi),
+            // tapi tetap di-flag untuk dikonsumsi, tetap bersihkan pegangannya.
+            if (wasEquippedAndIsTheSameItem) {
+                this.currentEquippedItemIndex = -1;
+            }
+        }
+    }
     public void pickUpObject(int i) { // i adalah indeks di gp.entities
         if (i != 999) {
             Entity object = gp.entities.get(i);
@@ -521,6 +588,22 @@ public class Player extends  Entity{
         tryDecreaseEnergy(5);
         gp.gameClock.getTime().advanceTime(5);
         }
+
+    public void equipItem(int inventoryIndex) {
+        if (inventoryIndex >= 0 && inventoryIndex < inventory.size()) {
+            this.currentEquippedItemIndex = inventoryIndex;
+            Entity equipped = getEquippedItem();
+            if (equipped != null) {
+                // Memanggil use() pada item yang di-equip.
+                // Untuk OBJ_Food, ini akan menampilkan "Press 'E' to eat."
+                // Untuk item lain, bisa jadi aksi equip atau pesan berbeda.
+                equipped.use(this);
+            }
+        } else {
+            this.currentEquippedItemIndex = -1; // Indeks tidak valid, tidak ada item yang di-equip
+            // gp.ui.showMessage("No item selected to equip."); // Opsional
+        }
+    }
 }
 
 //

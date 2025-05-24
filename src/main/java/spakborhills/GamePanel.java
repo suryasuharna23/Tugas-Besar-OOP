@@ -59,6 +59,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int giftSelectionState = 7;
     public final int playerNameInputState = 8;
     public final int sleepTransitionState = 9; // <-- State baru untuk transisi tidur
+    public final int eatState = 10;
 
     // Variabel untuk mengelola transisi tidur dan event harian
     private boolean hasForcedSleepAt2AMToday = false;
@@ -79,6 +80,7 @@ public class GamePanel extends  JPanel implements Runnable {
         assetSetter.setNPC();
         assetSetter.setObject();
         gameState = titleState;
+        playMusic(0);
     }
 
     public void startGameThread(){
@@ -380,6 +382,7 @@ public class GamePanel extends  JPanel implements Runnable {
 
         System.out.println("Game has been reset for a new game.");
     }
+
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
