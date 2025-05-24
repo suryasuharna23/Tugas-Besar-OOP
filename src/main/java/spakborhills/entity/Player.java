@@ -11,6 +11,10 @@ import spakborhills.object.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
+
+import spakborhills.enums.Location;
+import spakborhills.enums.FishType;
 
 
 public class Player extends  Entity{
@@ -81,6 +85,144 @@ public class Player extends  Entity{
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Melon", false,80, 40, 1,4,Season.FALL, Weather.RAINY));
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Hot Pepper", false, 40, 20, 1,1,Season.FALL, Weather.RAINY));
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
+        // COMMON FISH
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Bullhead", true, 50, 35,
+            Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.MOUNTAIN_LAKE),
+            FishType.COMMON
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Carp", true, 45, 30,
+            Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.MOUNTAIN_LAKE, Location.POND),
+            FishType.COMMON
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Chub", true, 40, 25,
+            Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.FOREST_RIVER, Location.MOUNTAIN_LAKE),
+            FishType.COMMON
+        ));
+
+        // REGULAR FISH
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Largemouth Bass", true, 65, 40,
+            Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.MOUNTAIN_LAKE),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Rainbow Trout", true, 120, 60,
+            Arrays.asList(Season.SUMMER),
+            Arrays.asList(Weather.SUNNY),
+            Arrays.asList(Location.FOREST_RIVER, Location.MOUNTAIN_LAKE),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Sturgeon", true, 200, 150,
+            Arrays.asList(Season.SUMMER, Season.WINTER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.MOUNTAIN_LAKE),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Midnight Carp", true, 180, 120,
+            Arrays.asList(Season.WINTER, Season.FALL),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.MOUNTAIN_LAKE, Location.POND),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Flounder", true, 100, 80,
+            Arrays.asList(Season.SPRING, Season.SUMMER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.OCEAN),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Halibut", true, 90, 65,
+            Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.OCEAN),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Octopus", true, 350, 215,
+            Arrays.asList(Season.SUMMER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.OCEAN),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Pufferfish", true, 200, 125,
+            Arrays.asList(Season.SUMMER),
+            Arrays.asList(Weather.SUNNY),
+            Arrays.asList(Location.OCEAN),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Sardine", true, 60, 40,
+            Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.OCEAN),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Super Cucumber", true, 250, 175,
+            Arrays.asList(Season.SUMMER, Season.FALL, Season.WINTER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.OCEAN),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Catfish", true, 150, 100,
+            Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL),
+            Arrays.asList(Weather.RAINY),
+            Arrays.asList(Location.FOREST_RIVER, Location.POND),
+            FishType.REGULAR
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Salmon", true, 120, 80,
+            Arrays.asList(Season.FALL),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.FOREST_RIVER),
+            FishType.REGULAR
+        ));
+
+        // LEGENDARY FISH
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Angler", true, 1000, 800,
+            Arrays.asList(Season.FALL),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.POND),
+            FishType.LEGENDARY
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Crimsonfish", true, 1200, 950,
+            Arrays.asList(Season.SUMMER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.OCEAN),
+            FishType.LEGENDARY
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Glacierfish", true, 1200, 950,
+            Arrays.asList(Season.WINTER),
+            Arrays.asList(Weather.SUNNY, Weather.RAINY),
+            Arrays.asList(Location.FOREST_RIVER),
+            FishType.LEGENDARY
+        ));
+        inventory.add(new OBJ_Fish(
+            gp, ItemType.FISH, "Legend", true, 1500, 1200,
+            Arrays.asList(Season.SPRING),
+            Arrays.asList(Weather.RAINY),
+            Arrays.asList(Location.MOUNTAIN_LAKE),
+            FishType.LEGENDARY
+        ));
     }
 
 
