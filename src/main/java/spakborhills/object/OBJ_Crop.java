@@ -1,6 +1,8 @@
 package spakborhills.object;
 
 import spakborhills.GamePanel;
+import spakborhills.entity.Entity;
+import spakborhills.entity.Player;
 import spakborhills.enums.ItemType;
 
 public class OBJ_Crop extends OBJ_Item {
@@ -59,6 +61,49 @@ public class OBJ_Crop extends OBJ_Item {
             this.sellPrice = 10;
             this.harvestAmount = 20;
         }
+
+        switch (name) {
+            case "Parsnip":
+                down1 = setup("/objects/parsnip");
+                break;
+            case "Pumpkin":
+                down1 = setup("/objects/pumpkin");
+                break;
+            case "Cranberry":
+                down1 = setup("/objects/cranberry");
+                break;
+            case "Melon":
+                down1 = setup("/objects/melon");
+                break;
+            case "Hot Pepper":
+                down1 = setup("/objects/hot_pepper");
+                break;
+            case "Cauliflower":
+                down1 = setup("/objects/cauliflower");
+                break;
+            case "Tomato":
+                down1 = setup("/objects/tomato");
+                break;
+            case "Potato":
+                down1 = setup("/objects/potato");
+                break;
+            case "Blueberry":
+                down1 = setup("/objects/blueberry");
+                break;
+            case "Wheat":
+                down1 = setup("/objects/wheat");
+                break;
+            case "Grape":
+                down1 = setup("/objects/grape");
+                break;
+        }
+    }
+
+    public void update() {}
+
+    public boolean use(Entity user) {
+    //isi pake harvest
+        return false;
     }
 
     public int getHarvestAmount() { return harvestAmount; }
