@@ -7,9 +7,11 @@ import java.util.ArrayList;
 
 import spakborhills.entity.Entity; // Pastikan import ini ada jika Entity direferensikan
 import spakborhills.entity.NPC;
+import spakborhills.interfaces.Edible;
+import spakborhills.object.OBJ_Item;
 
 public class KeyHandler implements KeyListener {
-    public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, inventoryPressed;
+    public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, inventoryPressed, eatPressed;
     GamePanel gp;
     // GameClock gameClock; // Tidak perlu instance terpisah, akses via gp.gameClock
 
@@ -72,11 +74,19 @@ public class KeyHandler implements KeyListener {
                 if(gp.gameClock != null) gp.gameClock.pauseTime(); // Panggil metode GameClock yang benar
             } else if (code == KeyEvent.VK_ENTER){
                 enterPressed = true;
+            } else if (code == KeyEvent.VK_E) {
+                eatPressed = true; // Flag ini akan ditangani di Player.update()
             } else if (code == KeyEvent.VK_I){
-                gp.gameState = gp.inventoryState;
-                if(gp.gameClock != null) gp.gameClock.pauseTime(); // Pause waktu
+                if (gp.player != null) { // Selalu baik untuk null check
+                    gp.gameState = gp.inventoryState;
+                    System.out.println("DEBUG: KeyHandler - GameState changed to inventoryState via 'I'.");
+                }
+                } else if (code == KeyEvent.VK_E) { // Tombol 'E' untuk makan item yang di-equip
+                    gp.gameState = gp.eatState;
+                    eatPressed = true;
+                }
             }
-        }
+
         // PAUSE STATE
         else if (gp.gameState == gp.pauseState){
             if (code == KeyEvent.VK_P){
@@ -103,6 +113,8 @@ public class KeyHandler implements KeyListener {
         // INVENTORY STATE
         else if (gp.gameState == gp.inventoryState || gp.gameState == gp.giftSelectionState) {
             handleInventoryInput(code, gp.gameState == gp.giftSelectionState);
+
+
         }
     }
 
@@ -198,6 +210,30 @@ public class KeyHandler implements KeyListener {
             gp.gameState = gp.playState;
             if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
         }
+
+        if (code == KeyEvent.VK_E) { // Tombol untuk makan
+            if (gp.player.inventory.isEmpty()) return;
+
+            int itemIndex = gp.ui.inventoryCommandNum;
+            if (itemIndex >= 0 && itemIndex < gp.player.inventory.size()) {
+                Entity selectedItem = gp.player.inventory.get(itemIndex);
+                if (selectedItem instanceof Edible edibleItem) { // Cek apakah item bisa dimakan
+                    // Tidak perlu lagi memanggil use() yang hanya menampilkan pesan.
+                    // Langsung panggil method makan.
+                    edibleItem.eat(gp.player);
+
+                    // Setelah makan, mungkin ingin menutup inventory atau tetap terbuka
+                    // gp.gameState = gp.playState;
+                    // if (gp.gameClock != null && gp.gameClock.isPaused()) {
+                    //     gp.gameClock.resumeTime();
+                    // }
+                    // Atau biarkan UI yang mengatur state selanjutnya jika perlu
+                } else {
+                    gp.ui.showMessage(selectedItem.name + " cannot be eaten.");
+                }
+            }
+            enterPressed = false; // Konsumsi 'E' jika dianggap sebagai "aksi"
+        }
     }
 
     @Override
@@ -224,70 +260,61 @@ public class KeyHandler implements KeyListener {
             if(gp.gameState == gp.playState || gp.gameState == gp.dialogueState) { // Hanya reset untuk state ini di sini
                 enterPressed = false;
             }
+            else if (gp.gameState == gp.eatState) {
+                eatPressed = false;
+            }
         }
+
+
     }
 
 
     private void handleInventoryInput(int code, boolean isGifting) {
-        // Navigasi inventory (disesuaikan dengan layout inventory Anda)
-        // Contoh sederhana untuk daftar linear:
         int maxInventoryItems = gp.player.inventory.size();
-        if (maxInventoryItems == 0 && code == KeyEvent.VK_ENTER && isGifting) { // Jika inventory kosong saat mau memberi hadiah
-            NPC currentNPC = (NPC) gp.currentInteractingNPC;
-            if(currentNPC != null) {
-                gp.ui.currentDialogue = "You have nothing to give!";
-                gp.gameState = gp.dialogueState;
-                gp.ui.isSelectingGift = false; // Reset flag
-            }
-            return;
-        } else if (maxInventoryItems == 0) { // Jika inventory kosong (umum)
-            if (code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_E) { // 'E' untuk keluar inventory
+        if (maxInventoryItems == 0) { // Handle inventory kosong
+            if (code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_I) {
                 gp.gameState = gp.playState;
                 if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
                 gp.ui.isSelectingGift = false;
             }
             return;
         }
-
 
         if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
             gp.ui.inventoryCommandNum--;
             if (gp.ui.inventoryCommandNum < 0) gp.ui.inventoryCommandNum = maxInventoryItems - 1;
-//            gp.playSE(0);
-        }
-        if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+            gp.ui.itemSelectedByEnter = null; // Reset item yang dipilih Enter saat navigasi
+        } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
             gp.ui.inventoryCommandNum++;
             if (gp.ui.inventoryCommandNum >= maxInventoryItems) gp.ui.inventoryCommandNum = 0;
-//            gp.playSE(0);
+            gp.ui.itemSelectedByEnter = null; // Reset item yang dipilih Enter saat navigasi
         }
-        // Anda bisa menambahkan navigasi Kiri/Kanan jika inventory berbentuk grid
 
         if (code == KeyEvent.VK_ENTER) {
-            enterPressed = false; // Konsumsi Enter
+            enterPressed = false;
             if (isGifting) {
                 NPC currentNPC = (NPC) gp.currentInteractingNPC;
                 if (currentNPC != null && gp.ui.inventoryCommandNum < maxInventoryItems) {
                     Entity selectedItem = gp.player.inventory.get(gp.ui.inventoryCommandNum);
-                    currentNPC.receiveGift(selectedItem, gp.player); // Kirim juga instance Player
-                    // State akan diubah ke dialogueState oleh receiveGift()
+                    currentNPC.receiveGift(selectedItem, gp.player);
                 }
-                gp.ui.isSelectingGift = false; // Selesai memilih hadiah
-            } else {
-                // Logika penggunaan item dari inventory biasa (jika ada)
-                gp.player.selectItemAndUse();
-                gp.ui.showMessage("Selected: " + gp.player.inventory.get(gp.ui.inventoryCommandNum).name);
+                gp.ui.isSelectingGift = false;
+            } else { // Bukan gifting, ini adalah aksi equip/select item
+                if (!gp.player.inventory.isEmpty() && gp.ui.inventoryCommandNum >= 0 && gp.ui.inventoryCommandNum < gp.player.inventory.size()) {
+                    gp.player.equipItem(gp.ui.inventoryCommandNum); // Panggil metode equipItem baru di Player
+                }
             }
-//            gp.playSE(1);
         }
 
-        if (code == KeyEvent.VK_ESCAPE || (code == KeyEvent.VK_E && !isGifting) ) { // 'E' untuk keluar inventory umum
+        if (code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_I || (code == KeyEvent.VK_E && !isGifting) ) {
             if (isGifting) {
-                gp.gameState = gp.interactionMenuState; // Kembali ke menu NPC
-                gp.ui.isSelectingGift = false;
+                gp.gameState = gp.interactionMenuState;
             } else {
                 gp.gameState = gp.playState;
-                if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
             }
+            if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
+            gp.ui.isSelectingGift = false;
+            gp.ui.itemSelectedByEnter = null;
         }
     }
 

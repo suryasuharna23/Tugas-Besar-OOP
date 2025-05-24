@@ -23,11 +23,15 @@ public class UI {
     public String currentDialogue = "";
     public int commandNumber = 0;
     boolean isSelectingGift = false;
+    public Entity itemSelectedByEnter = null;
 
     public int npcMenuCommandNum = 0;
     public int inventoryCommandNum = 0;
     public int inventorySlotCol = 0;
     public int inventorySlotRow = 0;
+
+    public Entity focusedItem = null;
+    public int inventorySubstate = 0;
 
     // PLAYER NAME INPUT
     public String playerNameInput = ""; // Menyimpan teks input nama pemain
@@ -532,6 +536,9 @@ public class UI {
 
         int currentItemIndex = 0;
 
+
+
+
         for (Entity item : gp.player.inventory) {
             if (currentSlotY + slotSize > frameY + frameHeight - gp.tileSize / 2) {
                 g2.setColor(Color.white);
@@ -701,5 +708,23 @@ public class UI {
 
         g2.setColor(Color.white);
         g2.drawString(text, x, y);
+    }
+
+    // Di UI.java
+    public void startSelfDialogue(String text) {
+        this.currentDialogue = text;
+        gp.currentInteractingNPC = null; // SANGAT PENTING
+        gp.gameState = gp.dialogueState;
+        System.out.println("DEBUG: UI.startSelfDialogue - Text: " + text + ", GameState set to: " + gp.gameState); // DEBUG
+        if (gp.gameClock != null && gp.gameClock.getTime() != null) { // Cek null getTime()
+            if (!gp.gameClock.isPaused()) { // Hanya pause jika belum di-pause
+                gp.gameClock.pauseTime();
+                System.out.println("DEBUG: UI.startSelfDialogue - GameClock paused.");
+            } else {
+                System.out.println("DEBUG: UI.startSelfDialogue - GameClock was already paused.");
+            }
+        } else {
+            System.out.println("DEBUG: UI.startSelfDialogue - GameClock or Time is null, cannot pause.");
+        }
     }
 }
