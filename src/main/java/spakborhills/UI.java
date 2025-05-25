@@ -1,7 +1,10 @@
 package spakborhills;
 
+import spakborhills.cooking.Recipe;
+import spakborhills.cooking.RecipeManager;
 import spakborhills.entity.Entity;
 import spakborhills.entity.NPC;
+import spakborhills.object.OBJ_Item;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -9,6 +12,9 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class UI {
     public int mapSelectionState = 0;
@@ -160,6 +166,17 @@ public class UI {
             drawNPCInteractionMenu();
         }
         // Pastikan semua state lain sudah tertangani atau tidak memerlukan penggambaran khusus
+        // SELL STATE
+        else if (gp.gameState == gp.sellState){
+            drawSellScreen();
+            drawTimedMessage(g2);
+        }
+
+        // COOKING STATE
+        else if (gp.gameState == gp.cookingState){
+            drawCookingScreen();
+            drawTimedMessage(g2);
+        }
     }
 
     public void drawSharedBackground(Graphics2D g2) {
@@ -673,6 +690,13 @@ public class UI {
         return frameX + (frameWidth / 2) - (length / 2);
     }
 
+    public int getXForCenteredTextInFrame(String text, int frameX, int frameWidth){
+        if (g2 == null || text == null) return frameX; // Basic safety check
+        FontMetrics fm = g2.getFontMetrics();
+        int length = fm.stringWidth(text);
+        return frameX + (frameWidth - length) / 2;
+    }
+
     public void drawInventoryScreen() {
         int frameX = gp.tileSize * 2;
         int frameY = gp.tileSize;
@@ -780,7 +804,7 @@ public class UI {
         int textX = frameX + gp.tileSize / 2;
         int textY = frameY + gp.tileSize;
 
-        ArrayList<String> options = new ArrayList<>();
+        List<String> options = new ArrayList<>();
         options.add("Chat");
         options.add("Give Gift");
 
@@ -798,6 +822,317 @@ public class UI {
                 g2.drawString(">", textX - gp.tileSize / 4, textY + i * gp.tileSize);
             }
             g2.drawString(options.get(i), textX, textY + i * gp.tileSize);
+        }
+    }
+
+    public void drawSellScreen() {
+        // Background window
+        int frameX = gp.tileSize * 2;
+        int frameY = gp.tileSize;
+        int frameWidth = gp.screenWidth - (gp.tileSize * 4);
+        int frameHeight = gp.tileSize * 9; // Adjusted for more info
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+
+        // Title
+        g2.setColor(Color.white);
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 28F));
+        String text = "Shipping Bin";
+        // Use getXForCenteredTextInFrame if title should be centered within the subWindow's frameWidth
+        int titleX = getXForCenteredText(text);
+        // Or use getXForCenteredText(text) if it should be centered on the whole screen (then adjust for frameX)
+        // For subwindow title, getXForCenteredTextInFrame is better:
+        // int titleX = frameX + (frameWidth - (int)g2.getFontMetrics().getStringBounds(text, g2).getWidth()) / 2;
+        int titleY = frameY + gp.tileSize - 10;
+        g2.drawString(text, titleX, titleY);
+
+        // Items in Bin Counter
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 18F));
+        String binStatus = "In Bin: " + gp.player.itemsInShippingBinToday.size() + "/16";
+        int binStatusX = frameX + gp.tileSize / 2;
+        int binStatusY = titleY + gp.tileSize / 2 + 10; // Below title
+        g2.drawString(binStatus, binStatusX, binStatusY);
+
+        // Player Gold Display (optional, but good context)
+        String playerGoldText = "Gold: " + gp.player.gold;
+        int goldTextWidth = g2.getFontMetrics().stringWidth(playerGoldText);
+        int goldTextX = frameX + frameWidth - goldTextWidth - (gp.tileSize /2);
+        g2.drawString(playerGoldText, goldTextX, binStatusY);
+
+
+        // Inventory Slots to pick from
+        final int slotPadding = gp.tileSize / 2;
+        final int slotStartX = frameX + slotPadding;
+        final int slotStartY = binStatusY + gp.tileSize / 2 + 10; // Below bin status
+        final int slotSize = gp.tileSize;
+        final int slotGap = 8;
+        final int slotTotalWidth = slotSize + slotGap;
+
+        // Calculate how many slots fit per row based on frameWidth and paddings
+        int availableWidthForSlots = frameWidth - (2 * slotPadding);
+        final int slotsPerRow = Math.max(1, availableWidthForSlots / slotTotalWidth);
+        final int maxRowsToDisplay = 4; // Or calculate based on frameHeight
+
+        int itemsDisplayedCount = 0; // To track actual items shown from inventory
+
+        for (int i = 0; i < gp.player.inventory.size(); i++) {
+            if (itemsDisplayedCount >= slotsPerRow * maxRowsToDisplay) {
+                // Optionally draw "..." if more items exist but not shown
+                // g2.setColor(Color.GRAY);
+                // g2.drawString("...", someX, someY);
+                break;
+            }
+
+            Entity itemEntity = gp.player.inventory.get(i);
+            // We only want to display items that are instances of OBJ_Item for selling
+            if (!(itemEntity instanceof OBJ_Item)) {
+                continue; // Skip non-OBJ_Item entities
+            }
+            OBJ_Item item = (OBJ_Item) itemEntity;
+
+            int col = itemsDisplayedCount % slotsPerRow;
+            int row = itemsDisplayedCount / slotsPerRow;
+            int currentSlotX = slotStartX + (col * slotTotalWidth);
+            int currentSlotY = slotStartY + (row * slotTotalWidth); // Assuming square grid, use slotTotalWidth for Y spacing too
+
+            // Draw background slot
+            if (item.getSellPrice() > 0) {
+                g2.setColor(new Color(255, 255, 255, 60)); // Slightly more visible for sellable
+            } else {
+                g2.setColor(new Color(100, 100, 100, 60)); // Darker for non-sellable
+            }
+            g2.fillRoundRect(currentSlotX, currentSlotY, slotSize, slotSize, 10, 10);
+
+            // Draw item image
+            BufferedImage itemImageToDraw = item.down1 != null ? item.down1 : item.image;
+            if (itemImageToDraw != null) {
+                g2.drawImage(itemImageToDraw, currentSlotX, currentSlotY, slotSize, slotSize, null);
+            }
+
+            // Highlight item yang dipilih (gp.ui.commandNumber is the actual index in gp.player.inventory)
+            if (i == gp.ui.commandNumber) {
+                g2.setColor(Color.YELLOW);
+                g2.setStroke(new BasicStroke(3));
+                g2.drawRoundRect(currentSlotX - 2, currentSlotY - 2, slotSize + 4, slotSize + 4, 12, 12);
+                g2.setStroke(new BasicStroke(1)); // Reset stroke
+
+                // Display name and sell price of the selected item below the grid
+                g2.setFont(pressStart.deriveFont(Font.PLAIN, 18F));
+                g2.setColor(Color.white); // Reset color for text
+                String itemName = item.name;
+                String itemSellPriceText = (item.getSellPrice() > 0) ? item.getSellPrice() + "G" : "Cannot be sold";
+
+                int infoAreaY = frameY + frameHeight - gp.tileSize * 2 + 20; // Position for info text
+                g2.drawString("Item: " + itemName, slotStartX, infoAreaY);
+                g2.drawString("Price: " + itemSellPriceText, slotStartX, infoAreaY + 22); // Line spacing
+            }
+            itemsDisplayedCount++;
+        }
+
+        if (gp.player.inventory.isEmpty() || itemsDisplayedCount == 0) { // Check if inventory is empty OR no sellable items were displayed
+            g2.setFont(pressStart.deriveFont(Font.PLAIN, 20F));
+            g2.setColor(Color.WHITE);
+            String emptyMsg = gp.player.inventory.isEmpty() ? "Inventory is empty." : "No items to sell.";
+            int msgX = getXForCenteredText(emptyMsg);
+            int msgY = slotStartY + (maxRowsToDisplay * slotTotalWidth) / 2 - g2.getFontMetrics().getHeight() / 2; // Centered in slot area
+            g2.drawString(emptyMsg, msgX, msgY);
+        }
+
+
+        // Instructions
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 10F));
+        g2.setColor(Color.white);
+        String instructions = "[Arrows] Navigate | [Enter] Add to Bin | [Esc] Finish";
+        int instructionY = frameY + frameHeight - gp.tileSize / 2 - 5;
+        int instructionX = getXForCenteredText(instructions);
+        g2.drawString(instructions, instructionX, instructionY);
+
+        // Display messages from gp.ui.showMessage() if messageOn is true
+        // This is handled by the main draw() method, so no need to add it here unless
+        // you want sellState-specific message display.
+    }
+
+    private void drawTimedMessage(Graphics2D g2) {
+        if (messageOn && this.message != null && !this.message.isEmpty()) {
+            // Pengaturan Font dan Warna Pesan
+            Font messageFont = silkScreen.deriveFont(Font.PLAIN, 16F); // Ukuran font bisa disesuaikan
+            g2.setFont(messageFont);
+            g2.setColor(Color.YELLOW);
+            FontMetrics fm = g2.getFontMetrics(messageFont);
+
+            // Tentukan area untuk pesan
+            int messageAreaX = gp.tileSize / 2;
+            int messageAreaY = gp.tileSize * 2 + 10;
+            int messageAreaWidth = gp.screenWidth - (gp.tileSize); // Lebar maksimum pesan
+            int lineHeight = fm.getHeight() + 2;
+
+            // Bagi pesan menjadi beberapa baris
+            List<String> lines = new ArrayList<>();
+            String[] words = this.message.split(" "); // Gunakan this.message
+            StringBuilder currentLine = new StringBuilder();
+
+            for (String word : words) {
+                if (word.equals("\\n")) {
+                    lines.add(currentLine.toString());
+                    currentLine = new StringBuilder();
+                    continue;
+                }
+                String testLine = currentLine.length() > 0 ? currentLine.toString() + " " + word : word;
+                if (fm.stringWidth(testLine) <= messageAreaWidth) {
+                    if (currentLine.length() > 0) {
+                        currentLine.append(" ");
+                    }
+                    currentLine.append(word);
+                } else {
+                    lines.add(currentLine.toString());
+                    currentLine = new StringBuilder(word);
+                    if (fm.stringWidth(currentLine.toString()) > messageAreaWidth && currentLine.length() > 0) {
+                        // Jika satu kata terlalu panjang, gambar apa adanya (mungkin perlu penanganan lebih lanjut)
+                        lines.add(currentLine.toString());
+                        currentLine = new StringBuilder();
+                    }
+                }
+            }
+            if (currentLine.length() > 0) {
+                lines.add(currentLine.toString());
+            }
+
+            // Gambar setiap baris pesan
+            int currentMessageY = messageAreaY;
+            for (String line : lines) {
+                int lineX = messageAreaX;
+                g2.drawString(line, lineX, currentMessageY);
+                currentMessageY += lineHeight;
+            }
+
+            messageCounter++;
+            if (messageCounter > 120) { // Tampilkan pesan selama 2 detik (60fps * 2)
+                messageCounter = 0;
+                messageOn = false;
+                this.message = ""; // Reset pesan di UI
+            }
+        }
+    }
+
+    public void drawCookingScreen() {
+        // 1. Gambar window latar belakang
+        int frameX = gp.tileSize * 2;
+        int frameY = gp.tileSize;
+        int frameWidth = gp.screenWidth - (gp.tileSize * 4);
+        int frameHeight = gp.screenHeight - (gp.tileSize * 2);
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+
+        g2.setColor(Color.white);
+        Font baseFont = pressStart != null ? pressStart : new Font("Arial", Font.PLAIN, 20);
+
+        // 2. Judul
+        String title;
+        if (cookingSubState == 1 && gp.selectedRecipeForCooking != null) {
+            title = "Confirm: Cook " + gp.selectedRecipeForCooking.outputFoodName + "?";
+        } else {
+            title = "Kitchen - Select Recipe";
+        }
+        g2.setFont(baseFont.deriveFont(Font.BOLD, 22F));
+        int titleX = getXForCenteredTextInFrame(title, frameX, frameWidth);
+        g2.drawString(title, titleX, frameY + gp.tileSize);
+
+        // 3. Filter resep yang sudah di-unlock
+        List<Recipe> displayableRecipes = new ArrayList<>();
+        if (gp.player != null && gp.player.recipeUnlockStatus != null) {
+            List<Recipe> allRecipes = RecipeManager.getAllRecipes();
+            if (allRecipes != null) {
+                // Gunakan .collect(Collectors.toList()) untuk kompatibilitas Java yang lebih luas
+                displayableRecipes = allRecipes.stream()
+                        .filter(r -> Boolean.TRUE.equals(gp.player.recipeUnlockStatus.get(r.recipeId)))
+                        .collect(Collectors.toList()); // Diubah dari .toList()
+            }
+        }
+
+        // 4. Tampilan jika tidak ada resep
+        if (cookingSubState == 0 && displayableRecipes.isEmpty()) {
+            g2.setFont(baseFont.deriveFont(Font.PLAIN, 18F));
+            String noRecipeMsg = "You haven't learned any recipes yet.";
+            g2.drawString(noRecipeMsg, getXForCenteredTextInFrame(noRecipeMsg, frameX, frameWidth), frameY + gp.tileSize * 3);
+            g2.drawString("[Esc] Exit Kitchen", frameX + gp.tileSize, frameY + frameHeight - gp.tileSize + 10);
+            return;
+        }
+
+        // 5. Pengaturan untuk daftar resep dan detail
+        int listStartX = frameX + gp.tileSize / 2;
+        int listStartY = frameY + gp.tileSize * 2 - 10;
+        int recipeLineHeight = 30;
+        int detailLineHeight = 22; // Sedikit lebih besar untuk font 12F/14F
+
+        // Alokasi lebar: Misal daftar resep 45% dari frame, sisanya untuk detail & padding
+        int recipeListColumnWidth = (int) (frameWidth * 0.45); // Lebar area untuk daftar nama resep
+
+        // PENYESUAIAN detailStartX:
+        // Mulai detail setelah recipeListColumnWidth + padding yang lebih besar
+        int gapBetweenColumns = gp.tileSize; // Jarak antara kolom list dan kolom detail
+        int detailStartX = listStartX + recipeListColumnWidth + gapBetweenColumns;
+
+        if (cookingSubState == 0) { // Tampilan pemilihan resep
+            g2.setFont(baseFont.deriveFont(Font.PLAIN, 18F));
+            for (int i = 0; i < displayableRecipes.size(); i++) {
+                Recipe recipe = displayableRecipes.get(i);
+                String recipeName = recipe.outputFoodName;
+                int currentY = listStartY + (i * recipeLineHeight);
+
+                if (i == cookingCommandNum) {
+                    g2.setColor(Color.yellow);
+                    // Gambar nama resep hanya selebar recipeListColumnWidth
+                    // Jika nama resep terlalu panjang, perlu dipotong atau di-wrap (tidak diimplementasikan di sini)
+                    g2.drawString("> " + recipeName, listStartX, currentY);
+
+                    // Tampilkan detail resep yang dipilih di sebelah kanan
+                    g2.setColor(Color.lightGray);
+                    // PENYESUAIAN FONT DETAIL: Ubah dari 10F ke 12F atau 14F
+                    g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
+                    int detailCurrentY = listStartY;
+                    g2.drawString("Ingredients for:", detailStartX, detailCurrentY);
+                    detailCurrentY += detailLineHeight;
+                    g2.drawString(recipe.outputFoodName, detailStartX, detailCurrentY); // Nama resep di detail
+                    detailCurrentY += detailLineHeight;
+
+                    for (Map.Entry<String, Integer> entry : recipe.ingredients.entrySet()) {
+                        String ingredientText = "- " + entry.getKey() + ": " + entry.getValue();
+                        g2.drawString(ingredientText, detailStartX + 10, detailCurrentY);
+                        detailCurrentY += detailLineHeight;
+                    }
+                    g2.drawString("Fuel: Firewood or Coal", detailStartX + 10, detailCurrentY);
+                    detailCurrentY += detailLineHeight;
+                    if (recipe.unlockConditionDescription != null && !recipe.unlockConditionDescription.equals("Default/Bawaan")) {
+                        g2.drawString("Unlocks: " + recipe.unlockConditionDescription, detailStartX + 10, detailCurrentY);
+                    }
+
+                    g2.setColor(Color.white);
+                    g2.setFont(baseFont.deriveFont(Font.PLAIN, 18F)); // Reset font ke font daftar
+                } else {
+                    g2.drawString("  " + recipeName, listStartX, currentY);
+                }
+            }
+            // Instruksi
+            g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
+            g2.drawString("[Up/Down] Select | [Enter] View/Confirm | [Esc] Exit",
+                    listStartX, frameY + frameHeight - gp.tileSize + 10);
+
+        } else if (cookingSubState == 1 && gp.selectedRecipeForCooking != null) { // Tampilan konfirmasi
+            Recipe selected = gp.selectedRecipeForCooking;
+            g2.setFont(baseFont.deriveFont(Font.PLAIN, 18F));
+            int confirmTextY = frameY + gp.tileSize * 3;
+            String confirmMsg1 = "Cook: " + selected.outputFoodName + "?";
+            String confirmMsg2 = "Energy Cost: 10";
+            String confirmMsg3 = "Time to Cook: 1 game hour";
+
+            g2.drawString(confirmMsg1, getXForCenteredTextInFrame(confirmMsg1, frameX, frameWidth), confirmTextY);
+            confirmTextY += recipeLineHeight; // Gunakan recipeLineHeight untuk spasi yang konsisten
+            g2.drawString(confirmMsg2, getXForCenteredTextInFrame(confirmMsg2, frameX, frameWidth), confirmTextY);
+            confirmTextY += recipeLineHeight;
+            g2.drawString(confirmMsg3, getXForCenteredTextInFrame(confirmMsg3, frameX, frameWidth), confirmTextY);
+
+            g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
+            g2.drawString("Press [Enter] to Cook, or [Esc] to Cancel.",
+                    getXForCenteredTextInFrame("Press [Enter] to Cook, or [Esc] to Cancel.", frameX, frameWidth),
+                    frameY + frameHeight - gp.tileSize + 10);
         }
     }
 

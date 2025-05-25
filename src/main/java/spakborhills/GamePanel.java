@@ -6,6 +6,7 @@ import spakborhills.entity.NPC;
 import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
 import spakborhills.enums.EntityType;
+import spakborhills.object.OBJ_Item;
 
 import javax.swing.JPanel;
 import java.awt.*;
@@ -223,6 +224,16 @@ public class GamePanel extends  JPanel implements Runnable {
 
                 performDailyResets(); // Lakukan reset harian untuk NPC, dll.
 
+                // Augment the existing sleep dialogue (from player.sleep()) with shipping earnings
+                // ui.currentDialogue is already set by player.sleep()
+                if (player.goldFromShipping > 0) {
+                    // Ensure ui.currentDialogue is not null and append to it
+                    if (ui.currentDialogue == null) ui.currentDialogue = ""; // Safety check
+                    if (!ui.currentDialogue.isEmpty()) ui.currentDialogue += "\n"; // Add newline if there's prior text
+                    ui.currentDialogue += "You earned " + player.goldFromShipping + "G from shipping.";
+                    // player.goldFromShipping is NOT reset here; it's reset in processShippingBin or after message display
+                }
+
                 isProcessingNewDayDataInTransition = true; // Tandai data sudah diproses
                 System.out.println("[GamePanel] New day data processed. Day: " + currentTime.getDay() +
                         ", Time: " + currentTime.getFormattedTime() +
@@ -367,6 +378,31 @@ public class GamePanel extends  JPanel implements Runnable {
     }
 
 
+    public void processShippingBin() {
+        if (player.itemsInShippingBinToday.isEmpty()) {
+            player.goldFromShipping = 0; // Ensure it's reset even if nothing shipped
+            return;
+        }
+
+        int totalEarnings = 0;
+        for (Entity itemEntity : player.itemsInShippingBinToday) {
+            if (itemEntity instanceof OBJ_Item) { // Ensure it's an OBJ_Item
+                OBJ_Item item = (OBJ_Item) itemEntity;
+                totalEarnings += item.getSellPrice();
+            }
+        }
+
+        if (totalEarnings > 0) {
+            player.gold += totalEarnings;
+            player.goldFromShipping = totalEarnings; // Store for UI message after waking up
+            System.out.println("[GamePanel] Player earned " + totalEarnings + "G from shipped items. Total gold: " + player.gold);
+        } else {
+            player.goldFromShipping = 0; // No earnings
+        }
+        player.itemsInShippingBinToday.clear(); // Clear the bin
+        player.hasUsedShippingBinToday = false; // Reset flag for the new day
+        System.out.println("[GamePanel] Shipping bin processed and reset for the new day.");
+    }
     /**
      * Melakukan reset harian untuk berbagai entitas dan sistem dalam game.
      * Dipanggil saat transisi ke hari baru (misalnya, setelah pemain tidur).
