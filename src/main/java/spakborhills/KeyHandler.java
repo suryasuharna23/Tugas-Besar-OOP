@@ -35,35 +35,121 @@ public class KeyHandler implements KeyListener {
     public void keyPressed(KeyEvent e){
         int code = e.getKeyCode();
 
-        // Menggunakan struktur if-else if untuk memastikan hanya satu blok state yang aktif
-        if (gp.gameState == gp.titleState){
-            if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP){
-                gp.ui.commandNumber--;
-                if( gp.ui.commandNumber < 0){
-                    gp.ui.commandNumber = 2; // Asumsi 3 menu: 0, 1, 2
-                }
-            } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN){
-                gp.ui.commandNumber++;
-                if( gp.ui.commandNumber > 2){ // Asumsi 3 menu: 0, 1, 2
-                    gp.ui.commandNumber = 0;
-                }
-            } else if (code == KeyEvent.VK_ENTER){
-                enterPressed = true; // SET FLAG INI. UI.drawTitleScreen() akan memprosesnya.
+        if (gp.gameState == gp.titleState) {
 
-                // Logika khusus untuk QUIT bisa tetap di sini jika diinginkan,
-                // atau biarkan UI yang menanganinya juga.
-                if (gp.ui.commandNumber == 2){ // Jika "QUIT" dipilih
-                    System.exit(0);
+            if (gp.ui.mapSelectionState == 0) {
+                if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+                    gp.ui.commandNumber--;
+                    if (gp.ui.commandNumber < 0) {
+                        gp.ui.commandNumber = 2; // Asumsi 3 menu: 0, 1, 2
+                    }
+                } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+                    gp.ui.commandNumber++;
+                    if (gp.ui.commandNumber > 2) { // Asumsi 3 menu: 0, 1, 2
+                        gp.ui.commandNumber = 0;
+
+                    }
+                } else if (code == KeyEvent.VK_ENTER) {
+                    enterPressed = true;
+                    //gp.gameState = gp.playerNameInputState;
+                    //gp.ui.mapSelectionState = 1;
+                    //gp.playMusic(0);
+
+                    if (gp.ui.commandNumber == 2) {
+                        System.exit(0);
+                    }
+                }
+            }
+
+            else if (gp.ui.mapSelectionState == 1) {
+                if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+                    gp.ui.commandNumber--;
+                    if (gp.ui.commandNumber < 0) {
+                        gp.ui.commandNumber = 9; // Asumsi 3 menu: 0, 1, 2
+                    }
+                } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+                    gp.ui.commandNumber++;
+                    if (gp.ui.commandNumber > 9) { // Asumsi 3 menu: 0, 1, 2
+                        gp.ui.commandNumber = 0;
+
+                    }
+                } else if (code == KeyEvent.VK_ENTER) {
+                    enterPressed = true;
+//                    gp.ui.mapSelectionState = 1;
+//                    gp.playMusic(0);
+                    //gp.playMusic(0);
+
+                    if (gp.ui.commandNumber == 0) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Abigail's House");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+
+                    }
+                    else if (gp.ui.commandNumber == 1) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Caroline's House");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+                    }
+
+                    else if (gp.ui.commandNumber == 2) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Dasco's House");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+                    }
+
+                    else if (gp.ui.commandNumber == 3) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Mayor Tadi's House");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+                    }
+
+                    else if (gp.ui.commandNumber == 4) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Perry's House");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+                    }
+
+                    else if (gp.ui.commandNumber == 5) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Store");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+                    }
+
+                    else if (gp.ui.commandNumber == 6) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Farm");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+                    }
+
+                    else if (gp.ui.commandNumber == 7) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Forest River");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+                    }
+
+                    else if (gp.ui.commandNumber == 8) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Mountain Lake");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+                    }
+
+                    else if (gp.ui.commandNumber == 9) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Ocean");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+                    }
                 }
             }
         }
         // PLAYER NAME INPUT STATE
         else if (gp.gameState == gp.playerNameInputState){
             handlePlayerNameInput(code, e.getKeyChar());
+
         }
         // FARM NAME INPUT STATE
         else if (gp.gameState == gp.farmNameInputState) {
             handleFarmNameInput(code, e.getKeyChar());
+
         }
         else if (gp.gameState == gp.interactionMenuState){
             handleNPCInteractionMenuInput(code);
@@ -553,7 +639,7 @@ public class KeyHandler implements KeyListener {
         // UI.drawTitleScreen akan mereset enterPressed untuk titleState.
         // GamePanel.update akan mereset enterPressed untuk farmNameInputState.
         if (code == KeyEvent.VK_ENTER){
-            if(gp.gameState == gp.playState || gp.gameState == gp.dialogueState) { // Hanya reset untuk state ini di sini
+            if(gp.gameState == gp.playState || gp.gameState == gp.dialogueState || gp.gameState == gp.playerNameInputState || gp.gameState == gp.farmNameInputState) { // Hanya reset untuk state ini di sini
                 enterPressed = false;
             }
             else if (gp.gameState == gp.eatState) {
@@ -618,6 +704,9 @@ public class KeyHandler implements KeyListener {
         if (keyCode == KeyEvent.VK_ENTER) {
             if (!gp.ui.farmNameInput.trim().isEmpty()) {
                 enterPressed = true; // Flag ini akan dibaca oleh GamePanel.update()
+                gp.gameState = gp.titleState;
+                gp.ui.mapSelectionState = 1;
+                gp.ui.commandNumber = 0;
             } else {
                 gp.ui.showMessage("Farm name cannot be empty!");
             }
@@ -628,6 +717,7 @@ public class KeyHandler implements KeyListener {
         } else {
             if (gp.ui.farmNameInput.length() < gp.ui.farmNameMaxLength) { // farmNameMaxLength dari UI
                 if (Character.isLetterOrDigit(keyChar) || Character.isWhitespace(keyChar)) {
+
                     // Hindari menambahkan karakter kontrol atau tombol aksi seperti Enter/Backspace sebagai karakter input
                     if(keyChar != KeyEvent.CHAR_UNDEFINED && keyCode != KeyEvent.VK_ENTER && keyCode != KeyEvent.VK_BACK_SPACE &&
                             keyCode != KeyEvent.VK_SHIFT && keyCode != KeyEvent.VK_CONTROL && keyCode != KeyEvent.VK_ALT &&
@@ -636,6 +726,8 @@ public class KeyHandler implements KeyListener {
                     }
                 }
             }
+
         }
+
     }
 }

@@ -106,7 +106,10 @@ public class Player extends Entity{
         currentEnergy = MAX_POSSIBLE_ENERGY;
         this.isCurrentlySleeping = false;
         gold = 500;
+
+        inventory.clear();
         initializeRecipeStatus();
+
         inventory.add(new OBJ_Door(gp));
         inventory.add(new OBJ_Potion(gp));
         inventory.add(new OBJ_ProposalRing(gp));
@@ -116,6 +119,7 @@ public class Player extends Entity{
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Hot Pepper", false, 40, 20, 1,1,Season.FALL, Weather.RAINY));
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
         // COMMON FISH
+
         inventory.add(new OBJ_Fish(
             gp, ItemType.FISH, "Bullhead", true, 50, 35,
             Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
