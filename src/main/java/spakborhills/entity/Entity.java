@@ -43,6 +43,7 @@
             return image;
         }
 
+        public void interact(){};
 
         public void update(){
             collisionON = false;

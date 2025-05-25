@@ -4,10 +4,19 @@ package spakborhills;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import spakborhills.cooking.ActiveCookingProcess;
+import spakborhills.cooking.Recipe;
+import spakborhills.cooking.RecipeManager;
 import spakborhills.entity.Entity; // Pastikan import ini ada jika Entity direferensikan
 import spakborhills.entity.NPC;
+import spakborhills.entity.Player;
 import spakborhills.interfaces.Edible;
+import spakborhills.object.OBJ_Fish;
 import spakborhills.object.OBJ_Item;
 
 public class KeyHandler implements KeyListener {
@@ -74,7 +83,23 @@ public class KeyHandler implements KeyListener {
                 if(gp.gameClock != null) gp.gameClock.pauseTime(); // Panggil metode GameClock yang benar
             } else if (code == KeyEvent.VK_ENTER){
                 enterPressed = true;
-            } else if (code == KeyEvent.VK_E) {
+            }
+            if (code == KeyEvent.VK_C) { // 'C' untuk Cooking
+                // Idealnya, cek apakah pemain ada di rumah
+                // if (playerIsInHouse()) { // Anda perlu implementasi playerIsInHouse()
+                gp.selectedRecipeForCooking = null; // Reset pilihan resep
+                gp.gameState = gp.cookingState;
+                gp.ui.cookingCommandNum = 0; // Reset navigasi UI masak
+                gp.ui.cookingSubState = 0;   // 0: pilih resep, 1: konfirmasi
+                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
+                    gp.gameClock.pauseTime();
+                }
+                gp.ui.showMessage("Welcome to the kitchen! Select a recipe.");
+                // } else {
+                // gp.ui.showMessage("You can only cook inside your house.");
+                // }
+            }
+            else if (code == KeyEvent.VK_E) {
                 eatPressed = true; // Flag ini akan ditangani di Player.update()
             } else if (code == KeyEvent.VK_I){
                 if (gp.player != null) { // Selalu baik untuk null check
@@ -113,9 +138,280 @@ public class KeyHandler implements KeyListener {
         // INVENTORY STATE
         else if (gp.gameState == gp.inventoryState || gp.gameState == gp.giftSelectionState) {
             handleInventoryInput(code, gp.gameState == gp.giftSelectionState);
-
-
         }
+        // SELL STATE
+        else if (gp.gameState == gp.sellState) {
+            if (code == KeyEvent.VK_ESCAPE) {
+                gp.player.hasUsedShippingBinToday = true; // Mark bin as used for the day
+                gp.gameState = gp.playState;
+                if (gp.gameClock != null && gp.gameClock.isPaused()) { // Resume game clock
+                    gp.gameClock.resumeTime();
+                }
+                if (!gp.player.itemsInShippingBinToday.isEmpty()) {
+                    gp.ui.showMessage("Items in bin will be sold overnight.");
+                } else {
+                    gp.ui.showMessage("Shipping bin closed.");
+                }
+                // gp.playSE(cancelSound); // Suara jika ada
+            } else if (code == KeyEvent.VK_ENTER) { // Aksi "Pindahkan ke Bin"
+                if (!gp.player.inventory.isEmpty() && gp.ui.commandNumber < gp.player.inventory.size() && gp.ui.commandNumber >=0) {
+                    if (gp.player.itemsInShippingBinToday.size() < 16) { // Check max 16 items in bin
+                        Entity itemEntityToShip = gp.player.inventory.get(gp.ui.commandNumber);
+
+                        // Ensure it's an OBJ_Item and has a sell price
+                        if (itemEntityToShip instanceof OBJ_Item) {
+                            OBJ_Item itemToShip = (OBJ_Item) itemEntityToShip;
+                            if (itemToShip.getSellPrice() > 0) {
+                                gp.player.itemsInShippingBinToday.add(itemToShip);
+                                gp.player.inventory.remove(gp.ui.commandNumber); // Remove from player's inventory
+
+                                gp.ui.showMessage(itemToShip.name + " moved to bin. (" + gp.player.itemsInShippingBinToday.size() + "/16)");
+                                // gp.playSE(someSound); // Suara pindah item
+
+                                // Adjust commandNum if item removed
+                                if (gp.ui.commandNumber >= gp.player.inventory.size() && !gp.player.inventory.isEmpty()) {
+                                    gp.ui.commandNumber = gp.player.inventory.size() - 1;
+                                } else if (gp.player.inventory.isEmpty()) {
+                                    gp.ui.commandNumber = 0;
+                                    gp.ui.showMessage("Inventory empty. Press Esc to close bin.");
+                                }
+                            } else {
+                                gp.ui.showMessage(itemToShip.name + " cannot be sold.");
+                                // gp.playSE(errorSound);
+                            }
+                        } else {
+                            // This case should ideally not happen if inventory only contains sellable OBJ_Items or similar
+                            gp.ui.showMessage(itemEntityToShip.name + " is not a sellable item type.");
+                            // gp.playSE(errorSound);
+                        }
+                    } else {
+                        gp.ui.showMessage("Shipping bin is full (16 items max).");
+                        // gp.playSE(errorSound);
+                    }
+                } else if (gp.player.inventory.isEmpty()){
+                    gp.ui.showMessage("Inventory is empty. Nothing to ship.");
+                }
+            }
+            // Navigation controls for sell screen
+            sellScreenControls(code);
+        }
+        // COOKING STATE
+        else if (gp.gameState == gp.cookingState) {
+            handleCookingInput(code);
+        }
+    }
+
+    private void handleCookingInput(int code) {
+        List<Recipe> availableRecipes = RecipeManager.getAllRecipes().stream()
+                .filter(r -> Boolean.TRUE.equals(gp.player.recipeUnlockStatus.get(r.recipeId)))
+                .toList();
+
+        if (availableRecipes.isEmpty() && gp.ui.cookingSubState == 0) {
+            gp.ui.showMessage("You don't know any recipes yet!");
+            if (code == KeyEvent.VK_ESCAPE) {
+                gp.gameState = gp.playState;
+                if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
+            }
+            return;
+        }
+
+        if (gp.ui.cookingSubState == 0) { // 0: Pemilihan Resep
+            if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
+                gp.ui.cookingCommandNum--;
+                if (gp.ui.cookingCommandNum < 0) gp.ui.cookingCommandNum = availableRecipes.size() - 1;
+            } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
+                gp.ui.cookingCommandNum++;
+                if (gp.ui.cookingCommandNum >= availableRecipes.size()) gp.ui.cookingCommandNum = 0;
+            } else if (code == KeyEvent.VK_ENTER) {
+                if (!availableRecipes.isEmpty() && gp.ui.cookingCommandNum < availableRecipes.size()) {
+                    gp.selectedRecipeForCooking = availableRecipes.get(gp.ui.cookingCommandNum);
+                    if (canPlayerCookRecipe(gp.selectedRecipeForCooking, gp.player)) {
+                        gp.ui.cookingSubState = 1; // Pindah ke konfirmasi
+                        gp.ui.showMessage("Cook " + gp.selectedRecipeForCooking.outputFoodName + "? (Cost: 10 Energy, 1hr)");
+                    } else {
+                        gp.ui.showMessage("You lack ingredients or fuel for " + gp.selectedRecipeForCooking.outputFoodName + ".");
+                        gp.selectedRecipeForCooking = null; // Kosongkan pilihan jika tidak bisa masak
+                    }
+                }
+            } else if (code == KeyEvent.VK_ESCAPE) {
+                gp.gameState = gp.playState;
+                if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
+                gp.selectedRecipeForCooking = null;
+            }
+        } else if (gp.ui.cookingSubState == 1) { // 1: Konfirmasi Memasak
+            if (code == KeyEvent.VK_ENTER) {
+                if (gp.selectedRecipeForCooking != null) {
+                    initiateCookingProcess(gp.selectedRecipeForCooking, gp.player);
+                    // Pesan sukses sudah diatur di initiateCookingProcess atau akan dari proses selesai
+                }
+                gp.gameState = gp.playState; // Kembali ke play state
+                if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
+                gp.selectedRecipeForCooking = null;
+                gp.ui.cookingSubState = 0;
+            } else if (code == KeyEvent.VK_ESCAPE) {
+                gp.ui.cookingSubState = 0; // Kembali ke pemilihan resep
+                gp.selectedRecipeForCooking = null;
+                gp.ui.showMessage("Recipe selection cancelled.");
+            }
+        }
+    }
+
+    private boolean canPlayerCookRecipe(Recipe recipe, Player player) {
+        // Cek Energi Awal (walaupun akan dicek lagi saat memulai)
+        if (player.currentEnergy < 10 && (player.currentEnergy > Player.MIN_ENERGY_THRESHOLD) ) { // Minimal punya 10 energi untuk mencoba
+            // Jika energi sudah <= MIN_ENERGY_THRESHOLD, tryDecreaseEnergy akan handle
+            // Tapi jika energi positif tapi <10, mungkin ingin cegah di sini.
+            // Sesuai spec, player.tryDecreaseEnergy akan menangani ini. Jadi cek ini opsional.
+        }
+
+        // Cek Bahan
+        for (Map.Entry<String, Integer> ingredientEntry : recipe.ingredients.entrySet()) {
+            String itemName = ingredientEntry.getKey();
+            int requiredQty = ingredientEntry.getValue();
+            int playerHasQty = 0;
+
+            if (RecipeManager.ANY_FISH.equals(itemName)) {
+                for (Entity item : player.inventory) {
+                    if (item instanceof OBJ_Fish) {
+                        playerHasQty++;
+                    }
+                }
+            } else {
+                for (Entity item : player.inventory) {
+                    // Perlu cara yang lebih baik untuk mencocokkan nama bahan dengan nama item di inventaris
+                    // Misal, OBJ_Crop "Wheat crop" vs bahan "Wheat"
+                    // Untuk sekarang, kita asumsikan nama dasar item (tanpa " crop" atau " seeds")
+                    if (item.name.toLowerCase().contains(itemName.toLowerCase())) {
+                        playerHasQty++; // Asumsi 1 item = 1 qty, belum ada stack
+                    }
+                }
+            }
+            if (playerHasQty < requiredQty) return false; // Bahan tidak cukup
+        }
+
+        // Cek Bahan Bakar [cite: 188]
+        boolean hasFirewood = player.inventory.stream().anyMatch(item -> item.name.startsWith("Firewood"));
+        boolean hasCoal = player.inventory.stream().anyMatch(item -> item.name.startsWith("Coal"));
+        if (!hasFirewood && !hasCoal) return false; // Tidak ada bahan bakar
+
+        return true;
+    }
+
+    private void initiateCookingProcess(Recipe recipe, Player player) {
+        if (!player.tryDecreaseEnergy(10)) { // Mengurangi 10 energi [cite: 216]
+            gp.ui.showMessage("Not enough energy to cook!");
+            return;
+        }
+
+        // Konsumsi Bahan
+        for (Map.Entry<String, Integer> ingredientEntry : recipe.ingredients.entrySet()) {
+            String itemName = ingredientEntry.getKey();
+            int requiredQty = ingredientEntry.getValue();
+            int consumedQty = 0;
+            Iterator<Entity> invIterator = player.inventory.iterator();
+            while (invIterator.hasNext() && consumedQty < requiredQty) {
+                Entity item = invIterator.next();
+                boolean match = false;
+                if (RecipeManager.ANY_FISH.equals(itemName) && item instanceof OBJ_Fish) {
+                    match = true;
+                } else if (item.name.toLowerCase().contains(itemName.toLowerCase())) {
+                    match = true;
+                }
+                if (match) {
+                    invIterator.remove();
+                    consumedQty++;
+                }
+            }
+        }
+
+        // Konsumsi Bahan Bakar (prioritaskan Coal jika ada, karena lebih efisien)
+        // Spek: "1 kayu bisa masak 1 makanan. Coal: Arang, 1 arang bisa masak 2 makanan." [cite: 188]
+        // Untuk sistem pasif ini, lebih mudah jika 1 aksi masak = 1 fuel.
+        // Jika Coal digunakan, ia "membayar" 2 "poin masak", resep butuh 1 "poin masak".
+        // Ini rumit dilacak jika pasif.
+        // Alternatif: 1 Coal bisa dipakai untuk 2x masak. Atau 1 Coal = 1 Firewood dalam konsumsi per resep.
+        // Mari kita asumsikan 1 aksi masak (1 resep) mengkonsumsi 1 unit bahan bakar.
+        boolean fuelConsumed = false;
+        Iterator<Entity> fuelIterator = player.inventory.iterator();
+        Entity fuelToConsume = null;
+        while(fuelIterator.hasNext()){
+            Entity item = fuelIterator.next();
+            if(item.name.startsWith("Coal")){ // Coba Coal dulu
+                fuelToConsume = item;
+                break;
+            }
+        }
+        if(fuelToConsume == null){ // Jika tidak ada Coal, cari Firewood
+            fuelIterator = player.inventory.iterator(); // Reset iterator
+            while(fuelIterator.hasNext()){
+                Entity item = fuelIterator.next();
+                if(item.name.startsWith("Firewood")){
+                    fuelToConsume = item;
+                    break;
+                }
+            }
+        }
+        if(fuelToConsume != null){
+            player.inventory.remove(fuelToConsume);
+            fuelConsumed = true;
+        }
+
+
+        if (!fuelConsumed) { // Seharusnya tidak terjadi jika canPlayerCookRecipe benar
+            gp.ui.showMessage("Error: No fuel found to consume!");
+            player.increaseEnergy(10); // Kembalikan energi jika gagal konsumsi fuel
+            return;
+        }
+
+        // Tambahkan ke antrian proses memasak
+        spakborhills.Time startTime = gp.gameClock.getTime();
+        int finishHour = startTime.getHour() + 1; // Durasi 1 jam [cite: 215]
+        int finishMinute = startTime.getMinute();
+        int finishDay = startTime.getDay();
+        if (finishHour >= 24) {
+            finishHour -= 24;
+            finishDay += 1;
+        }
+        player.activeCookingProcesses.add(new ActiveCookingProcess(recipe.outputFoodName, recipe.outputFoodQuantity, finishDay, finishHour, finishMinute));
+        gp.ui.showMessage(recipe.outputFoodName + " is cooking! Ready in 1 hour.");
+    }
+    private void sellScreenControls(int code) {
+        if (gp.player.inventory.isEmpty()) {
+            gp.ui.commandNumber = 0;
+            return;
+        }
+        int currentInventorySize = gp.player.inventory.size();
+        int slotsPerRow = 6; // Sesuai drawSellScreen
+        int currentSlot = gp.ui.commandNumber;
+
+        if (code == KeyEvent.VK_RIGHT || code == KeyEvent.VK_D) {
+            currentSlot++;
+            if (currentSlot >= currentInventorySize) currentSlot = 0; // Wrap
+        } else if (code == KeyEvent.VK_LEFT || code == KeyEvent.VK_A) {
+            currentSlot--;
+            if (currentSlot < 0) currentSlot = currentInventorySize - 1; // Wrap
+        } else if (code == KeyEvent.VK_DOWN || code == KeyEvent.VK_S) {
+            currentSlot += slotsPerRow;
+            if (currentSlot >= currentInventorySize) { // Jika melebihi, coba ke item terakhir atau wrap ke atas
+                currentSlot = currentSlot % slotsPerRow; // Ke kolom yang sama di baris pertama
+                if (currentSlot >= currentInventorySize) currentSlot = currentInventorySize -1; // Jika masih diluar
+            }
+        } else if (code == KeyEvent.VK_UP || code == KeyEvent.VK_W) {
+            currentSlot -= slotsPerRow;
+            if (currentSlot < 0) { // Jika melebihi ke atas, coba ke item terakhir atau wrap ke bawah
+                int lastRowPotentialStart = ( (currentInventorySize-1) / slotsPerRow) * slotsPerRow;
+                currentSlot = lastRowPotentialStart + (currentSlot % slotsPerRow + slotsPerRow)%slotsPerRow;
+                if (currentSlot >= currentInventorySize) currentSlot = currentInventorySize -1;
+                if (currentSlot < 0) currentSlot = 0; // Fallback
+            }
+        }
+
+        if(currentSlot < 0) currentSlot = 0;
+        if(currentSlot >= currentInventorySize && currentInventorySize > 0) currentSlot = currentInventorySize -1;
+        else if (currentInventorySize == 0) currentSlot = 0;
+
+        gp.ui.commandNumber = currentSlot;
+        // gp.playSE(cursorSound);
     }
 
     private void handlePlayerNameInput(int keyCode, char keyChar) {

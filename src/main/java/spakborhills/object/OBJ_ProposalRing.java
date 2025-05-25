@@ -9,6 +9,6 @@ public class OBJ_ProposalRing extends Entity {
         super(gp);
         type = EntityType.INTERACTIVE_OBJECT;
         name = "Proposal Ring";
-        down1 = setup("/objects/Key");
+        down1 = setup("/objects/proposal_ring");
     }
 }

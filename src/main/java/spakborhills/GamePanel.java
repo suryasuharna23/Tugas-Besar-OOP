@@ -1,10 +1,12 @@
 package spakborhills;
 
+import spakborhills.cooking.Recipe;
 import spakborhills.entity.Entity;
 import spakborhills.entity.NPC;
 import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
 import spakborhills.enums.EntityType;
+import spakborhills.object.OBJ_Item;
 
 import javax.swing.JPanel;
 import java.awt.*;
@@ -58,15 +60,19 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int interactionMenuState = 6;
     public final int giftSelectionState = 7;
     public final int playerNameInputState = 8;
-    public final int sleepTransitionState = 9; // <-- State baru untuk transisi tidur
+    public final int sleepTransitionState = 9;
     public final int eatState = 10;
+    public final int sellState = 11;
+    public final int cookingState = 12;
 
-    // Variabel untuk mengelola transisi tidur dan event harian
+    // SLEEPING
     private boolean hasForcedSleepAt2AMToday = false;
     private boolean isProcessingNewDayDataInTransition = false;
     private long sleepTransitionStartTime = 0;
     private final long SLEEP_TRANSITION_MESSAGE_DURATION = 3500;
 
+    // COOKING
+    public Recipe selectedRecipeForCooking = null;
 
     public GamePanel(){
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -197,12 +203,11 @@ public class GamePanel extends  JPanel implements Runnable {
                 }
             }
         } else if (gameState == sleepTransitionState) {
-            // Sedang dalam transisi tidur ke hari baru
             if (!isProcessingNewDayDataInTransition) {
                 System.out.println("[GamePanel] sleepTransitionState: Processing new day data...");
 
                 Time currentTime = gameClock.getTime();
-                currentTime.forceStartNewDay(); // Ini akan ++day dan set waktu ke 06:00
+                currentTime.forceStartNewDay(); // This will ++day and set waktu ke 06:00
 
                 gameClock.updateSeasonBasedOnDay(currentTime.getDay()); // Update musim
                 // Update cuaca untuk hari baru
@@ -211,7 +216,17 @@ public class GamePanel extends  JPanel implements Runnable {
                 }
                 gameClock.getWeather().generateNewWeather();
 
-                performDailyResets(); // Lakukan reset harian untuk NPC, dll.
+                performDailyResets(); // This now calls processShippingBin() which sets player.goldFromShipping
+
+                // Augment the existing sleep dialogue (from player.sleep()) with shipping earnings
+                // ui.currentDialogue is already set by player.sleep()
+                if (player.goldFromShipping > 0) {
+                    // Ensure ui.currentDialogue is not null and append to it
+                    if (ui.currentDialogue == null) ui.currentDialogue = ""; // Safety check
+                    if (!ui.currentDialogue.isEmpty()) ui.currentDialogue += "\n"; // Add newline if there's prior text
+                    ui.currentDialogue += "You earned " + player.goldFromShipping + "G from shipping.";
+                    // player.goldFromShipping is NOT reset here; it's reset in processShippingBin or after message display
+                }
 
                 isProcessingNewDayDataInTransition = true; // Tandai data sudah diproses
                 System.out.println("[GamePanel] New day data processed. Day: " + currentTime.getDay() +
@@ -224,14 +239,20 @@ public class GamePanel extends  JPanel implements Runnable {
             // Tunggu beberapa saat untuk menampilkan pesan tidur
             if (System.currentTimeMillis() - sleepTransitionStartTime >= SLEEP_TRANSITION_MESSAGE_DURATION) {
                 System.out.println("[GamePanel] Sleep transition message duration ended. Returning to playState.");
+
+                // goldFromShipping was used to build the dialogue. It can be reset now or in processShippingBin.
+                // Since processShippingBin is called daily, it's better if it sets goldFromShipping to 0 after using it for dialogue.
+                // For now, let's assume it's reset after being displayed or used.
+                // If not, reset it here:
+                player.goldFromShipping = 0;
+
+
                 player.setCurrentlySleeping(false); // Pemain tidak lagi dalam proses tidur
                 hasForcedSleepAt2AMToday = false;   // Reset flag untuk malam berikutnya
                 isProcessingNewDayDataInTransition = false; // Reset flag untuk tidur berikutnya
                 ui.currentDialogue = ""; // Hapus pesan tidur dari UI
 
                 gameState = playState;
-                // GameClock akan di-resume oleh logika playState di atas pada frame berikutnya,
-                // atau bisa juga di-resume di sini secara eksplisit:
                 if (gameClock != null && gameClock.isPaused()) {
                     gameClock.resumeTime();
                 }
@@ -244,7 +265,7 @@ public class GamePanel extends  JPanel implements Runnable {
                 gameClock.pauseTime();
             }
         } else if (gameState == dialogueState || gameState == inventoryState ||
-                gameState == interactionMenuState || gameState == giftSelectionState) {
+                gameState == interactionMenuState || gameState == giftSelectionState || gameState == sellState) {
             if (gameClock != null && !gameClock.isPaused()) {
                 gameClock.pauseTime();
             }
@@ -252,7 +273,6 @@ public class GamePanel extends  JPanel implements Runnable {
             if (this.gameClock != null && !this.gameClock.isPaused()) {
                 this.gameClock.pauseTime();
             }
-            // Logika spesifik untuk farmNameInputState (dari kode Anda)
             if (gameState == farmNameInputState && keyH.enterPressed) {
                 String finalFarmName = ui.farmNameInput.trim();
                 if (!finalFarmName.isEmpty()) {
@@ -311,6 +331,31 @@ public class GamePanel extends  JPanel implements Runnable {
         // karena sleepTransitionState yang akan menanganinya.
     }
 
+    public void processShippingBin() {
+        if (player.itemsInShippingBinToday.isEmpty()) {
+            player.goldFromShipping = 0; // Ensure it's reset even if nothing shipped
+            return;
+        }
+
+        int totalEarnings = 0;
+        for (Entity itemEntity : player.itemsInShippingBinToday) {
+            if (itemEntity instanceof OBJ_Item) { // Ensure it's an OBJ_Item
+                OBJ_Item item = (OBJ_Item) itemEntity;
+                totalEarnings += item.getSellPrice();
+            }
+        }
+
+        if (totalEarnings > 0) {
+            player.gold += totalEarnings;
+            player.goldFromShipping = totalEarnings; // Store for UI message after waking up
+            System.out.println("[GamePanel] Player earned " + totalEarnings + "G from shipped items. Total gold: " + player.gold);
+        } else {
+            player.goldFromShipping = 0; // No earnings
+        }
+        player.itemsInShippingBinToday.clear(); // Clear the bin
+        player.hasUsedShippingBinToday = false; // Reset flag for the new day
+        System.out.println("[GamePanel] Shipping bin processed and reset for the new day.");
+    }
 
     /**
      * Melakukan reset harian untuk berbagai entitas dan sistem dalam game.
@@ -323,28 +368,20 @@ public class GamePanel extends  JPanel implements Runnable {
         }
         System.out.println("[GamePanel] Performing daily resets for Day " + gameClock.getTime().getDay() + "...");
 
-        // 1. Reset status NPC (misalnya, status penerimaan hadiah)
+        // PROCESS SHIPPING BIN (calculates gold, clears bin, resets daily flag)
+        processShippingBin(); // <<< ADD THIS CALL HERE
+
+        // 1. Reset status NPC
         for (NPC npc : npcs) {
             if (npc != null) {
                 npc.hasReceivedGiftToday = false;
-                // Anda bisa menambahkan reset lain untuk NPC di sini jika perlu
-                // npc.dialogueIndex = 0; // Jika dialog harian kembali ke awal
+                // npc.dialogueIndex = 0;
             }
         }
         System.out.println("[GamePanel] NPC daily states reset.");
 
-        // 2. Reset status pemain jika ada batasan harian
-        // Contoh: player.resetDailyActionCount();
+        // ... (other daily resets like farm plots, shop inventories etc.) ...
 
-        // 3. Update status ladang (jika ada tanaman yang tumbuh, dll.)
-        // Contoh: tileManager.updateFarmPlotsForNewDay();
-        //         System.out.println("[GamePanel] Farm plots updated for new day.");
-
-        // 4. Reset toko jika inventory berubah harian
-        // Contoh: assetSetter.refreshShopInventories();
-        //         System.out.println("[GamePanel] Shop inventories refreshed.");
-
-        // Logika reset harian lainnya bisa ditambahkan di sini.
         System.out.println("[GamePanel] Daily resets completed.");
     }
 

@@ -10,16 +10,16 @@ public class AssetSetter {
         this.gp = gp;
     }
     public void setObject(){
-        Entity door1 = new OBJ_Door(gp); // Buat instance dan simpan di variabel lokal
-        door1.worldX = gp.tileSize * 25;    // Atur koordinat X
-        door1.worldY = gp.tileSize * 15;    // Atur koordinat Y
-        gp.entities.add(door1);             // Tambahkan objek yang sudah dikonfigurasi ke daftar gp.obj
-
         // Contoh menempatkan sebuah kunci
         Entity key1 = new OBJ_Key(gp);
         key1.worldX = gp.tileSize * 23;
         key1.worldY = gp.tileSize * 40;
         gp.entities.add(key1);
+
+        Entity shippingBin = new OBJ_ShippingBin(gp);
+        shippingBin.worldX = gp.tileSize * 25;
+        shippingBin.worldY = gp.tileSize * 15;
+        gp.entities.add(shippingBin);
 
         // Contoh menempatkan peti
         Entity chest1 = new OBJ_Chest(gp);
