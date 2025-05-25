@@ -276,123 +276,106 @@ public class UI {
             y = gp.tileSize * 4; // Atur posisi Y awal untuk opsi peta
 
             // Abigail's House
-            text = "Abigail's House";
-            int x1 = gp.tileSize * 2; // Sesuaikan x agar lebih ke tengah atau sesuai desain
-            // Menggambar teks dalam dua baris jika perlu atau sesuaikan x dan y
-            String[] abigailText = {"Abigail's", "House"};
-            int tempY = y;
-            g2.drawString(abigailText[0], x1, tempY);
-            tempY += gp.tileSize/2; // Jarak antar baris
-            g2.drawString(abigailText[1], x1, tempY);
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 12F));
+
+            text = "Abigail's";
+            int x1 = gp.tileSize*3/2;
+            y += gp.tileSize * 3;
+            g2.drawString(text, x1, y);
+            y += gp.tileSize/4;
+            text = "House";
+            g2.drawString(text, x1, y);
+            y -= gp.tileSize/4;
             if (commandNumber == 0){
-                g2.drawString(">", x1 - gp.tileSize/2, y + gp.tileSize/4); // Sesuaikan posisi kursor
+                g2.drawString(">", x1-gp.tileSize/4, y+gp.tileSize/8);
             }
 
-            // Caroline's House
-            text = "Caroline's House";
-            int x2 = x1 + gp.tileSize*4; // Beri jarak lebih antar opsi
-            String[] carolineText = {"Caroline's", "House"};
-            tempY = y;
-            g2.drawString(carolineText[0], x2, tempY);
-            tempY += gp.tileSize/2;
-            g2.drawString(carolineText[1], x2, tempY);
+            text = "Caroline's";
+            int x2 = x1 + gp.tileSize*3;
+            g2.drawString(text, x2, y);
+            text = "House";
+            y += gp.tileSize/4;
+            g2.drawString(text, x2, y);
+            y -= gp.tileSize/4;
             if (commandNumber == 1){
-                g2.drawString(">", x2 - gp.tileSize/2, y + gp.tileSize/4);
+                g2.drawString(">", x2-gp.tileSize/4, y+gp.tileSize/8);
             }
 
-            // Dasco's House
-            text = "Dasco's House";
-            int x3 = x2 + gp.tileSize*4;
-            String[] dascoText = {"Dasco's", "House"};
-            tempY = y;
-            g2.drawString(dascoText[0], x3, tempY);
-            tempY += gp.tileSize/2;
-            g2.drawString(dascoText[1], x3, tempY);
+            text = "Dasco's";
+            int x3 = x2 + gp.tileSize*3;
+            g2.drawString(text, x3, y);
+            text = "House";
+            y += gp.tileSize/4;
+            g2.drawString(text, x3, y);
+            y -= gp.tileSize/4;
             if (commandNumber == 2){
-                g2.drawString(">", x3 - gp.tileSize/2, y + gp.tileSize/4);
+                g2.drawString(">", x3-gp.tileSize/4, y+gp.tileSize/8);
             }
 
-            // Baris kedua untuk opsi peta
-            y += gp.tileSize * 2; // Pindah ke baris berikutnya untuk opsi peta
-
-            // Mayor Tadi's House
-            text = "Mayor Tadi's House";
-            x1 = gp.tileSize * 2; // Mulai dari x1 lagi untuk baris baru
-            String[] mayorText = {"Mayor Tadi's", "House"};
-            tempY = y;
-            g2.drawString(mayorText[0], x1, tempY);
-            tempY += gp.tileSize/2;
-            g2.drawString(mayorText[1], x1, tempY);
+            text = "MayorTadi's";
+            int x4 = x3 + gp.tileSize*3;
+            g2.drawString(text, x4, y);
+            text = "House";
+            y += gp.tileSize/4;
+            g2.drawString(text, x4, y);
+            y -= gp.tileSize/4;
             if (commandNumber == 3){
-                g2.drawString(">", x1 - gp.tileSize/2, y + gp.tileSize/4);
+                g2.drawString(">", x4-gp.tileSize/4, y+gp.tileSize/8);
             }
 
-            // Perry's House
-            text = "Perry's House";
-            x2 = x1 + gp.tileSize*4;
-            String[] perryText = {"Perry's", "House"};
-            tempY = y;
-            g2.drawString(perryText[0], x2, tempY);
-            tempY += gp.tileSize/2;
-            g2.drawString(perryText[1], x2, tempY);
+            text = "Perry's";
+            int x5 = x4 + gp.tileSize*3;
+            g2.drawString(text, x5, y);
+            text = "House";
+            y += gp.tileSize/4;
+            g2.drawString(text, x5, y);
+            y -= gp.tileSize/4;
             if (commandNumber == 4){
-                g2.drawString(">", x2 - gp.tileSize/2, y + gp.tileSize/4);
+                g2.drawString(">", x5-gp.tileSize/4, y+gp.tileSize/8);
             }
 
-            // Store
             text = "Store";
-            x3 = x2 + gp.tileSize*4;
-            g2.drawString(text, x3, y + gp.tileSize/4); // Tengahkan jika satu baris
+            x = x1;
+            y += gp.tileSize * 3;
+            g2.drawString(text, x, y);
             if (commandNumber == 5){
-                g2.drawString(">", x3 - gp.tileSize/2, y + gp.tileSize/4);
+                g2.drawString(">", x-gp.tileSize/4, y);
             }
 
-            // Baris ketiga untuk opsi peta
-            y += gp.tileSize * 2;
-
-            // Farm
             text = "Farm";
-            x1 = gp.tileSize * 2;
-            g2.drawString(text, x1, y + gp.tileSize/4);
+            x = x2;
+            g2.drawString(text, x, y);
             if (commandNumber == 6){
-                g2.drawString(">", x1 - gp.tileSize/2, y + gp.tileSize/4);
+                g2.drawString(">", x-gp.tileSize/4, y);
             }
 
-            // Forest River
-            text = "Forest River";
-            x2 = x1 + gp.tileSize*4;
-            String[] forestText = {"Forest", "River"};
-            tempY = y;
-            g2.drawString(forestText[0], x2, tempY);
-            tempY += gp.tileSize/2;
-            g2.drawString(forestText[1], x2, tempY);
+            text = "Forest";
+            x = x3;
+            g2.drawString(text, x, y);
+            text = "River";
+            y += gp.tileSize/4;
+            g2.drawString(text, x, y);
+            y -= gp.tileSize/4;
             if (commandNumber == 7){
-                g2.drawString(">", x2 - gp.tileSize/2, y + gp.tileSize/4);
+                g2.drawString(">", x-gp.tileSize/4, y);
             }
 
-            // Mountain Lake
-            text = "Mountain Lake";
-            x3 = x2 + gp.tileSize*4;
-            String[] mountainText = {"Mountain", "Lake"};
-            tempY = y;
-            g2.drawString(mountainText[0], x3, tempY);
-            tempY += gp.tileSize/2;
-            g2.drawString(mountainText[1], x3, tempY);
+            text = "Mountain";
+            x = x4;
+            g2.drawString(text, x, y);
+            text = "Lake";
+            y += gp.tileSize/4;
+            g2.drawString(text, x, y);
+            y -= gp.tileSize/4;
             if (commandNumber == 8){
-                g2.drawString(">", x3 - gp.tileSize/2, y + gp.tileSize/4);
+                g2.drawString(">", x-gp.tileSize/4, y);
             }
 
-            // Baris keempat untuk opsi peta (jika perlu, atau atur posisi Ocean)
-            y += gp.tileSize * 2;
-            x1 = gp.tileSize * 2; // Atau tengahkan jika hanya satu item
-
-            // Ocean
             text = "Ocean";
-            // Misalnya, kita taruh di tengah baris terakhir
-            int xOcean = getXForCenteredText(text);
-            g2.drawString(text, xOcean, y + gp.tileSize/4);
+            x = x5;
+            g2.drawString(text, x, y);
             if (commandNumber == 9){
-                g2.drawString(">", xOcean - gp.tileSize, y + gp.tileSize/4); // Sesuaikan posisi kursor
+                g2.drawString(">", x-gp.tileSize/4, y);
             }
         }
 
