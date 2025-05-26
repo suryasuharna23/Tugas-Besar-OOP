@@ -1,5 +1,6 @@
 package spakborhills.entity;
 
+import spakborhills.GameClock;
 import spakborhills.GamePanel;
 import spakborhills.KeyHandler;
 import spakborhills.action.Command;
@@ -12,8 +13,10 @@ import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
+import spakborhills.enums.Location;
 import spakborhills.interfaces.Edible;
 import spakborhills.object.*;
+import spakborhills.Tile.*;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -21,6 +24,10 @@ import java.util.*;
 
 import spakborhills.enums.Location;
 import spakborhills.enums.FishType;
+import spakborhills.object.OBJ_Fish;
+import spakborhills.enums.ItemType;
+import java.util.List;
+import java.util.Random;
 
 
 public class Player extends Entity{
@@ -66,6 +73,19 @@ public class Player extends Entity{
     public static final int LOW_ENERGY_PENALTY_THRESHOLD_PERCENT = 10;
     public static final int ENERGY_REFILL_AT_ZERO = 10;
     private boolean isCurrentlySleeping = false;
+
+    // LOCATION
+    private Location currentLocation;
+    public Location getCurrentLocation() {
+        return currentLocation;
+    }
+    public void setCurrentLocation(Location currentLocation) {
+        this.currentLocation = currentLocation;
+    }
+
+    // Memancing
+    boolean isFishing = false;
+
 
 
     public Player(GamePanel gp, KeyHandler keyH){
@@ -125,144 +145,6 @@ public class Player extends Entity{
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Melon", false,80, 40, 1,4,Season.FALL, Weather.RAINY));
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Hot Pepper", false, 40, 20, 1,1,Season.FALL, Weather.RAINY));
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
-        // COMMON FISH
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Bullhead", true, 50, 35,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.MOUNTAIN_LAKE),
-                FishType.COMMON
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Carp", true, 45, 30,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.MOUNTAIN_LAKE, Location.POND),
-                FishType.COMMON
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Chub", true, 40, 25,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.FOREST_RIVER, Location.MOUNTAIN_LAKE),
-                FishType.COMMON
-        ));
-
-        // REGULAR FISH
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Largemouth Bass", true, 65, 40,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.MOUNTAIN_LAKE),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Rainbow Trout", true, 120, 60,
-                Arrays.asList(Season.SUMMER),
-                Arrays.asList(Weather.SUNNY),
-                Arrays.asList(Location.FOREST_RIVER, Location.MOUNTAIN_LAKE),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Sturgeon", true, 200, 150,
-                Arrays.asList(Season.SUMMER, Season.WINTER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.MOUNTAIN_LAKE),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Midnight Carp", true, 180, 120,
-                Arrays.asList(Season.WINTER, Season.FALL),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.MOUNTAIN_LAKE, Location.POND),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Flounder", true, 100, 80,
-                Arrays.asList(Season.SPRING, Season.SUMMER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Halibut", true, 90, 65,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Octopus", true, 350, 215,
-                Arrays.asList(Season.SUMMER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Pufferfish", true, 200, 125,
-                Arrays.asList(Season.SUMMER),
-                Arrays.asList(Weather.SUNNY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Sardine", true, 60, 40,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Super Cucumber", true, 250, 175,
-                Arrays.asList(Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Catfish", true, 150, 100,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL),
-                Arrays.asList(Weather.RAINY),
-                Arrays.asList(Location.FOREST_RIVER, Location.POND),
-                FishType.REGULAR
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Salmon", true, 120, 80,
-                Arrays.asList(Season.FALL),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.FOREST_RIVER),
-                FishType.REGULAR
-        ));
-
-        // LEGENDARY FISH
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Angler", true, 1000, 800,
-                Arrays.asList(Season.FALL),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.POND),
-                FishType.LEGENDARY
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Crimsonfish", true, 1200, 950,
-                Arrays.asList(Season.SUMMER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.OCEAN),
-                FishType.LEGENDARY
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Glacierfish", true, 1200, 950,
-                Arrays.asList(Season.WINTER),
-                Arrays.asList(Weather.SUNNY, Weather.RAINY),
-                Arrays.asList(Location.FOREST_RIVER),
-                FishType.LEGENDARY
-        ));
-        inventory.add(new OBJ_Fish(
-                gp, ItemType.FISH, "Legend", true, 1500, 1200,
-                Arrays.asList(Season.SPRING),
-                Arrays.asList(Weather.RAINY),
-                Arrays.asList(Location.MOUNTAIN_LAKE),
-                FishType.LEGENDARY
-        ));
         inventory.add(new OBJ_Food(gp, ItemType.FOOD, "Fish n' Chips", true, 150, 135, 50));
     }
     private void initializeRecipeStatus() {
@@ -751,13 +633,154 @@ public class Player extends Entity{
             // gp.ui.showMessage("No item selected to equip."); // Opsional
         }
     }
-}
 
-//
-//    public void fishing(Fish fish) {
-//
-//    }
-//
-//    public void eating(Items item) {
-//
-//    }
+    // Method untuk memulai memancing dengan pengecekan constraint ikan
+    public void startFishing() {
+        String currentLocation = getLocation();
+        Season currentSeason = gp.gameClock.getCurrentSeason();
+        Weather currentWeather = gp.gameClock.getCurrentWeather();
+        this.currentSeason = currentSeason;
+        this.currentWeather = currentWeather;
+        this.currentHour = gp.gameClock.getTime().getHour();
+
+        System.out.println("DEBUG: Current Location: " + currentLocation);
+        System.out.println("DEBUG: Current Season: " + currentSeason);
+        System.out.println("DEBUG: Current Weather: " + currentWeather);
+        System.out.println("DEBUG: Current Hour: " + currentHour);
+
+        if (isFishing) {
+            System.out.println("DEBUG: Already fishing, cannot start new fishing process");
+            gp.ui.showMessage("Sedang memancing, tunggu proses selesai.");
+            return;
+        }
+
+        boolean valid = (currentLocation.equals("Pond")
+                || currentLocation.equals("Mountain Lake")
+                || currentLocation.equals("Forest River")
+                || currentLocation.equals("Ocean"));
+
+        System.out.println("DEBUG: Location validity check: " + valid);
+
+        if (!valid) {
+            System.out.println("DEBUG: Invalid fishing location detected");
+            gp.ui.showMessage("Kamu tidak berada di lokasi memancing yang valid!");
+            return;
+        }
+
+        gp.gameClock.pauseTime();
+        currentEnergy -= 5;
+        if (currentEnergy < 0) currentEnergy = 0;
+        isFishing = true;
+        gp.ui.showMessage("Mulai memancing...");
+
+        List<OBJ_Fish> availableFish = new ArrayList<>();
+        for (Entity entity : gp.entities) {
+            if (entity instanceof OBJ_Fish fish) {
+                if (fish.isAvailable(currentSeason, currentWeather, currentHour, spakborhills.enums.Location.valueOf(currentLocation))) {
+                    availableFish.add(fish);
+                }
+            }
+        }
+
+        if (availableFish.isEmpty()) {
+            System.out.println("DEBUG: No fish available with current conditions");
+            gp.ui.showMessage("Tidak ada ikan yang tersedia.");
+            isFishing = false;
+            gp.gameClock.resumeTime();
+            return;
+        }
+        System.out.println("DEBUG: Number of available fish: " + availableFish.size());
+
+        // Ambil satu ikan random yg available
+        Random rand = new Random();
+        OBJ_Fish targetFish = availableFish.get(rand.nextInt(availableFish.size()));
+
+        int guessRange, maxTry;
+        switch (targetFish.getFishType()) {
+            case REGULAR -> { guessRange = 100; maxTry = 10; }
+            case LEGENDARY -> { guessRange = 500; maxTry = 7; }
+            default -> { guessRange = 10; maxTry = 10; }
+        }
+
+        int answerNumber = rand.nextInt(guessRange) + 1;
+        System.out.println(answerNumber);
+
+        boolean success = false;
+        String infoMsg = "Tebak angka untuk menangkap " + targetFish.getFishName() +
+                " (1-" + guessRange + "). Kamu punya " + maxTry + " percobaan.";
+
+        for (int attempt = 1; attempt <= maxTry; attempt++) {
+            String input = javax.swing.JOptionPane.showInputDialog(
+                    null,
+                    infoMsg + "\nPercobaan " + attempt + "/" + maxTry + "\nMasukkan angka:",
+                    "Mini Game Memancing",
+                    javax.swing.JOptionPane.QUESTION_MESSAGE
+            );
+
+            // Jika user cancel, keluar dari minigame fishing
+            if (input == null) { // tekan Cancel atau close
+                gp.ui.showMessage("Batal menebak, gagal menangkap ikan.");
+                break;
+            }
+
+            int guessedNumber;
+            try {
+                guessedNumber = Integer.parseInt(input.trim());
+            } catch (Exception e) {
+                gp.ui.showMessage("Input tidak valid! Masukkan angka.");
+                attempt--; // tidak dihitung sebagai attempt
+                continue;
+            }
+
+            if (guessedNumber == answerNumber) {
+                success = true;
+                break;
+            } else if (guessedNumber < answerNumber) {
+                infoMsg = "Terlalu kecil!\n";
+            } else {
+                infoMsg = "Terlalu besar!\n";
+            }
+            infoMsg += "Tebak angka untuk menangkap " + targetFish.getFishName() +
+                    " (1-" + guessRange + "). Kamu punya " + (maxTry - attempt) + " percobaan lagi.";
+        }
+
+        if (success) {
+            addToInventory(targetFish);
+            gp.entities.remove(targetFish);
+            gp.ui.showMessage("Berhasil menangkap " + targetFish.getFishName() + "!");
+        } else if (!success) {
+            gp.ui.showMessage("Gagal menangkap " + targetFish.getFishName() + "!");
+        }
+
+        gp.gameClock.getTime().advanceTime(15);
+        isFishing = false;
+        gp.gameClock.resumeTime();
+    }
+
+    // Utility: perhitungan harga ikan
+    private int calculateFishPrice(OBJ_Fish fish) {
+        int nSeason = fish.getSeasons().size();
+        int hourSpan = fish.getTotalAvailableHour(); // Misal method harus ada
+        int nWeather = fish.getWeathers().size();
+        int nLocation = fish.getLocations().size();
+        int C = switch (fish.getFishType()) {
+            case REGULAR -> 5;
+            case LEGENDARY -> 25;
+            default -> 10;
+        };
+        return 4 * nSeason * hourSpan * 2 * nWeather * 4 * nLocation * C / 32;
+    }
+
+    // Contoh tampilan menambah ke inventory (pastikan method ini ada)
+    public void addToInventory(Entity item) {
+        this.inventory.add(item); // Pastikan inventory bertipe List<Entity>
+    }
+}
+// Misal, player adalah objek Player yang sudah ada
+// Letakkan kode berikut di dalam method (misal, main atau setupGame)
+/*
+player.setCurrentLocation(Location.FOREST_RIVER);
+
+// Debug output untuk memastikan
+System.out.println("DEBUG: Player berada di lokasi: " + player.getCurrentLocation().name());
+*/

@@ -37,7 +37,9 @@ public class KeyHandler implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e){
         int code = e.getKeyCode();
-
+        if (code == KeyEvent.VK_K) {
+            gp.player.startFishing();
+        }
         if (gp.gameState == gp.titleState) {
 
             if (gp.ui.mapSelectionState == 0) {
@@ -223,6 +225,11 @@ public class KeyHandler implements KeyListener {
                     gp.gameState = gp.eatState;
                     eatPressed = true;
                 }
+            if (e.getKeyCode() == java.awt.event.KeyEvent.VK_F) {
+                if (gp.player != null) {
+                    gp.player.startFishing();
+                }
+            }
             }
             else if (code == KeyEvent.VK_M){
                 gp.ui.mapSelectionState = 1;

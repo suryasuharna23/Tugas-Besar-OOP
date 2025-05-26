@@ -21,10 +21,14 @@ public class OBJ_Fish extends OBJ_Item {
     private int buyFishPrice;
     private int sellFishPrice;
 
+    // Tambahan: Constraint jam ikan tersedia (0-23, range jam 24 jam)
+    private int startHour;
+    private int endHour;
+
     public OBJ_Fish(GamePanel gp, ItemType itemType, String name, boolean isEdible,
                     int buyPrice, int sellPrice,
                     List<Season> seasons, List<Weather> weathers, List<Location> locations,
-                    FishType fishType) {
+                    FishType fishType, int startHour, int endHour) { // Tambahkan startHour, endHour
 
         super(gp, itemType, name, isEdible, buyPrice, sellPrice);
         this.type = EntityType.INTERACTIVE_OBJECT;
@@ -36,6 +40,8 @@ public class OBJ_Fish extends OBJ_Item {
         this.fishType = fishType;
         this.buyFishPrice = buyPrice;
         this.sellFishPrice = sellPrice;
+        this.startHour = startHour;
+        this.endHour = endHour;
 
         // Setup sprite based on fish name
         switch(name) {
@@ -67,4 +73,32 @@ public class OBJ_Fish extends OBJ_Item {
         }
     }
 
+    // Method constraint: apakah ikan tersedia sesuai param saat ini
+    public boolean isAvailable(Season season, Weather weather, int currentHour, Location location) {
+        return seasons.contains(season)
+            && weathers.contains(weather)
+            && locations.contains(location)
+            && isTimeInRange(currentHour, startHour, endHour);
+    }
+
+    private boolean isTimeInRange(int hour, int start, int end) {
+        if (start < end) {
+            return hour >= start && hour < end;
+        } else { // Range melintasi tengah malam, misal 20-02
+            return hour >= start || hour < end;
+        }
+    }
+
+    public String getFishName () { return fishName; }
+    public List<Season> getSeasons () { return seasons; }
+    public List<Weather> getWeathers () { return weathers; }
+    public List<Location> getLocations () { return locations; }
+    public FishType getFishType () { return fishType; }
+    public int getBuyFishPrice () { return buyFishPrice; }
+    public int getSellFishPrice () { return sellFishPrice; }
+    public int getStartHour() { return startHour; }
+    public int getEndHour() { return endHour; }
+    public int getTotalAvailableHour() {
+        return endHour - startHour;
+    }
 }

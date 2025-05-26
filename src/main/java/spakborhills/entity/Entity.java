@@ -1,7 +1,9 @@
 package spakborhills.entity;
 
-import spakborhills.GamePanel;
-import spakborhills.enums.EntityType;
+    import spakborhills.GamePanel;
+    import spakborhills.enums.EntityType;
+    import spakborhills.enums.Season;
+    import spakborhills.enums.Weather;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -10,23 +12,26 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public abstract class Entity {
-    public GamePanel gp;
-    public int worldX, worldY;
-    public int speed;
-    public BufferedImage image;
-    public String name;
-    public boolean collision = false;
-    public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2;
-    public String direction = "down";
-    public int spriteCounter = 0;
-    public int spriteNum = 1;
-    public Rectangle solidArea;
-    public int solidAreaDefaultX, solidAreaDefaultY;
-    public boolean collisionON = false;
-    public ArrayList<String> dialogues = new ArrayList<>();
-    public int dialogueIndex = 0;
-    public EntityType type;
+    public abstract class Entity {
+        public GamePanel gp;
+        public int worldX, worldY;
+        public int speed;
+        public BufferedImage image;
+        public String name;
+        public boolean collision = false;
+        public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2;
+        public String direction = "down";
+        public int spriteCounter = 0;
+        public int spriteNum = 1;
+        public Rectangle solidArea;
+        public int solidAreaDefaultX, solidAreaDefaultY;
+        public boolean collisionON = false;
+        public ArrayList<String> dialogues = new ArrayList<>();
+        public int dialogueIndex = 0;
+        public EntityType type;
+        protected Season currentSeason;
+        protected int currentHour;
+        protected Weather currentWeather;
 
 
     public int imageWidth;
