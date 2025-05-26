@@ -90,8 +90,6 @@ public class GamePanel extends  JPanel implements Runnable {
 
     public void setupGame(){
         initializeMapInfos();
-        assetSetter.setNPC();
-        assetSetter.setObject();
         gameState = titleState;
 //        playMusic(0);
     }
@@ -317,25 +315,27 @@ public class GamePanel extends  JPanel implements Runnable {
 
     public void loadMapbyIndex(int mapIndex) {
         if (mapIndex >= 0 && mapIndex < mapInfos.size()) {
-            //this.c = mapIndex;
             MapInfo selectedMap = mapInfos.get(mapIndex);
+            this.currentMapIndex = mapIndex; // Simpan indeks peta saat ini
 
             System.out.println("[GamePanel] Loading map: " + selectedMap.getMapLayoutPath());
-            tileManager.loadMap(selectedMap);
+            tileManager.loadMap(selectedMap); // Ini akan mengatur maxWorldCol dan maxWorldRow
 
-            entities.clear();
-            npcs.clear();
+            entities.clear(); // Hapus semua entitas (termasuk NPC dan objek lama)
+            npcs.clear();     // Hapus NPC dari daftar spesifik NPC
 
-            player.setDefaultValues();
+            player.setDefaultValues(); // Reset posisi player, dll. Sesuai kebutuhan.
+            // Anda mungkin ingin mengatur posisi default player berdasarkan peta juga.
 
-            assetSetter.setObject();
-            assetSetter.setNPC();
+            // Panggil AssetSetter dengan nama peta saat ini
+            assetSetter.setObject(selectedMap.getMapName());
+            assetSetter.setNPC(selectedMap.getMapName());
 
             System.out.println("[GamePanel] Map loaded: " + selectedMap.getMapName() + " with MaxWorldCol: " + maxWorldCol + ", MaxWorldRow: " + maxWorldRow);
             gameState = playState;
         } else {
             System.err.println("[GamePanel] Invalid map index: " + mapIndex);
-            gameState = titleState;
+            gameState = titleState; // Kembali ke title screen jika indeks peta tidak valid
         }
     }
 
@@ -402,10 +402,6 @@ public class GamePanel extends  JPanel implements Runnable {
         player.setFarmName(ui.farmNameInput.trim());
 
         entities.clear();
-
-        assetSetter.setNPC();
-
-        assetSetter.setObject();
 
         // 4. Reset Waktu Game (GameClock)
         if (gameClock != null) {
