@@ -299,27 +299,16 @@ public class GamePanel extends  JPanel implements Runnable {
             entities.clear();
             npcs.clear();
 
-            int targetX = this.tileSize * 15;
-            int targetY = this.tileSize * 15;
+            int targetX = this.tileSize * 20;
+            int targetY = this.tileSize * 29;
             String targetDir = "down";
 
             if (this.currentMapIndex == PLAYER_HOUSE_INDEX) {
-                targetX = this.tileSize * 10;
-                targetY = this.tileSize * 10;
+                targetX = this.tileSize * 20;
+                targetY = this.tileSize * 29;
                 targetDir = "down";
 
-                if (previousMapIndex == 6) {
-                    targetX = this.tileSize * 15;
-                    targetY = this.tileSize * 20;
-                }
             } else if (this.currentMapIndex == 6) {
-                if (previousMapIndex == PLAYER_HOUSE_INDEX) {
-                    targetX = this.tileSize * 25;
-                    targetY = this.tileSize * 13;
-                } else {
-                    targetX = this.tileSize * 25;
-                    targetY = this.tileSize * 48;
-                }
                 targetDir = "up";
             }
 
