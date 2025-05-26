@@ -76,17 +76,14 @@ public class Player extends Entity{
 
     // LOCATION
     private Location currentLocation;
+    private boolean playerIsActuallyFishing;
+
     public Location getCurrentLocation() {
         return currentLocation;
     }
     public void setCurrentLocation(Location currentLocation) {
         this.currentLocation = currentLocation;
     }
-
-    // Memancing
-    boolean isFishing = false;
-
-
 
     public Player(GamePanel gp, KeyHandler keyH){
         super(gp);
@@ -676,127 +673,157 @@ public class Player extends Entity{
 
     // Method untuk memulai memancing dengan pengecekan constraint ikan
     public void startFishing() {
-        String currentLocation = getLocation();
-        Season currentSeason = gp.gameClock.getCurrentSeason();
-        Weather currentWeather = gp.gameClock.getCurrentWeather();
-        this.currentSeason = currentSeason;
-        this.currentWeather = currentWeather;
-        this.currentHour = gp.gameClock.getTime().getHour();
+        // 1. Ambil kondisi game saat ini
+        Season currentSeasonForFishing = gp.gameClock.getCurrentSeason(); //
+        Weather currentWeatherForFishing = gp.gameClock.getCurrentWeather(); //
+        int currentHourForFishing = gp.gameClock.getTime().getHour(); //
+        String playerCurrentLocationString = getLocation(); // Mengambil dari this.location (String)
 
-        System.out.println("DEBUG: Current Location: " + currentLocation);
-        System.out.println("DEBUG: Current Season: " + currentSeason);
-        System.out.println("DEBUG: Current Weather: " + currentWeather);
-        System.out.println("DEBUG: Current Hour: " + currentHour);
+        // --- DEBUG OUTPUT AWAL ---
+        System.out.println("--------------------------------------------------");
+        System.out.println("[PLAYER.startFishing()] Memulai proses memancing...");
+        System.out.println("[PLAYER.startFishing()] Player.getLocation() (String): '" + playerCurrentLocationString + "'");
+        System.out.println("[PLAYER.startFishing()] Musim saat ini: " + currentSeasonForFishing);
+        System.out.println("[PLAYER.startFishing()] Cuaca saat ini: " + currentWeatherForFishing);
+        System.out.println("[PLAYER.startFishing()] Jam saat ini: " + currentHourForFishing);
+        System.out.println("--------------------------------------------------");
 
-        if (isFishing) {
-            System.out.println("DEBUG: Already fishing, cannot start new fishing process");
-            gp.ui.showMessage("Sedang memancing, tunggu proses selesai.");
+        // 2. Cek apakah pemain sudah sedang memancing
+        if (this.playerIsActuallyFishing) { //
+            System.out.println("[PLAYER.startFishing()] INFO: Pemain sudah dalam proses memancing. Permintaan baru diabaikan.");
+            gp.ui.showMessage("Sedang memancing, tunggu proses selesai."); //
             return;
         }
 
-        boolean valid = (currentLocation.equals("Pond")
-                || currentLocation.equals("Mountain Lake")
-                || currentLocation.equals("Forest River")
-                || currentLocation.equals("Ocean"));
+        // 3. Validasi lokasi memancing
+        boolean isValidFishingLocation = (playerCurrentLocationString != null &&
+                (playerCurrentLocationString.equals("Pond") //
+                        || playerCurrentLocationString.equals("Mountain Lake") //
+                        || playerCurrentLocationString.equals("Forest River") //
+                        || playerCurrentLocationString.equals("Ocean"))); //
 
-        System.out.println("DEBUG: Location validity check: " + valid);
+        System.out.println("[PLAYER.startFishing()] INFO: Validitas lokasi '" + playerCurrentLocationString + "' untuk memancing: " + isValidFishingLocation);
 
-        if (!valid) {
-            System.out.println("DEBUG: Invalid fishing location detected");
-            gp.ui.showMessage("Kamu tidak berada di lokasi memancing yang valid!");
+        if (!isValidFishingLocation) {
+            System.out.println("[PLAYER.startFishing()] ERROR: Lokasi '" + playerCurrentLocationString + "' TIDAK VALID atau null untuk memancing!");
+            gp.ui.showMessage("Kamu tidak berada di lokasi memancing yang valid!"); //
             return;
         }
 
-        gp.gameClock.pauseTime();
-        currentEnergy -= 5;
-        if (currentEnergy < 0) currentEnergy = 0;
-        isFishing = true;
-        gp.ui.showMessage("Mulai memancing...");
+        // 4. Persiapan memulai memancing: Kurangi energi SEBELUM pause game clock
+        if (!tryDecreaseEnergy(5)) { // Mencoba mengurangi 5 energi
+            System.out.println("[PLAYER.startFishing()] INFO: Energi tidak cukup atau pemain pingsan. Memancing dibatalkan.");
+            // Tidak perlu gp.gameClock.resumeTime() di sini karena clock belum di-pause
+            return; // Langsung keluar jika energi tidak cukup atau pingsan
+        }
+        gp.gameClock.pauseTime(); // Pause clock HANYA jika energi cukup dan akan memulai memancing
+        this.playerIsActuallyFishing = true; // Set status pemain sedang memancing
+        gp.ui.showMessage("Mulai memancing..."); //
 
-        List<OBJ_Fish> availableFish = new ArrayList<>();
-        for (Entity entity : gp.entities) {
-            if (entity instanceof OBJ_Fish fish) {
-                if (fish.isAvailable(currentSeason, currentWeather, currentHour, spakborhills.enums.Location.valueOf(currentLocation))) {
-                    availableFish.add(fish);
+        // 5. Mencari ikan yang tersedia
+        List<OBJ_Fish> availableFish = new ArrayList<>(); //
+        System.out.println("[PLAYER.startFishing()] INFO: Mencari ikan... Jumlah total entitas di gp.entities: " + gp.entities.size());
+
+        for (Entity entity : gp.entities) { //
+            if (entity instanceof OBJ_Fish) { //
+                OBJ_Fish fish = (OBJ_Fish) entity;
+                if (fish.isAvailable(currentSeasonForFishing, currentWeatherForFishing, currentHourForFishing, playerCurrentLocationString)) { //
+                    availableFish.add(fish); //
+                    System.out.println("    +++ [IKAN TERSEDIA]: " + fish.getFishName() //
+                            + " (Lokasi Cocok: " + fish.getLocations().contains(playerCurrentLocationString) + ")"); //
+                } else {
+                    // Optional: Debug ikan yang tidak tersedia
+                    // System.out.println("    --- [IKAN TIDAK TERSEDIA]: " + fish.getFishName()
+                    //                   + " (Lokasi Pemain: '" + playerCurrentLocationString + "', Lokasi Ikan: " + fish.getLocations()
+                    //                   + ", Musim Cocok: " + fish.getSeasons().contains(currentSeasonForFishing)
+                    //                   + ", Cuaca Cocok: " + fish.getWeathers().contains(currentWeatherForFishing)
+                    //                   + ", Waktu Cocok: " + fish.isTimeInRange(currentHourForFishing, fish.getStartHour(), fish.getEndHour())
+                    //                   + ", Lokasi Cocok: " + fish.getLocations().contains(playerCurrentLocationString) + ")");
                 }
             }
         }
+        System.out.println("--------------------------------------------------");
+        System.out.println("[PLAYER.startFishing()] INFO: Jumlah ikan yang tersedia di list 'availableFish': " + availableFish.size());
+        System.out.println("--------------------------------------------------");
 
-        if (availableFish.isEmpty()) {
-            System.out.println("DEBUG: No fish available with current conditions");
-            gp.ui.showMessage("Tidak ada ikan yang tersedia.");
-            isFishing = false;
-            gp.gameClock.resumeTime();
+        if (availableFish.isEmpty()) { //
+            System.out.println("[PLAYER.startFishing()] INFO: Tidak ada ikan yang memenuhi syarat. Proses memancing dihentikan.");
+            gp.ui.showMessage("Tidak ada ikan yang tersedia."); //
+            this.playerIsActuallyFishing = false; //
+            gp.gameClock.resumeTime(); //
             return;
         }
-        System.out.println("DEBUG: Number of available fish: " + availableFish.size());
 
-        // Ambil satu ikan random yg available
-        Random rand = new Random();
-        OBJ_Fish targetFish = availableFish.get(rand.nextInt(availableFish.size()));
+        // 6. Minigame memancing
+        Random rand = new Random(); //
+        OBJ_Fish targetFish = availableFish.get(rand.nextInt(availableFish.size())); //
+        System.out.println("[PLAYER.startFishing()] INFO: Ikan target untuk minigame: " + targetFish.getFishName());
 
-        int guessRange, maxTry;
-        switch (targetFish.getFishType()) {
-            case REGULAR -> { guessRange = 100; maxTry = 10; }
-            case LEGENDARY -> { guessRange = 500; maxTry = 7; }
-            default -> { guessRange = 10; maxTry = 10; }
+        int guessRange, maxTry; //
+        switch (targetFish.getFishType()) { //
+            case REGULAR: guessRange = 100; maxTry = 10; break; //
+            case LEGENDARY: guessRange = 500; maxTry = 7; break; //
+            default: /* COMMON */ guessRange = 10; maxTry = 10; break; //
         }
 
-        int answerNumber = rand.nextInt(guessRange) + 1;
-        System.out.println(answerNumber);
+        int answerNumber = rand.nextInt(guessRange) + 1; //
+        System.out.println("[PLAYER.startFishing()] DEBUG MINIGAME: Angka rahasia ikan adalah = " + answerNumber); // Hanya untuk debug
 
-        boolean success = false;
-        String infoMsg = "Tebak angka untuk menangkap " + targetFish.getFishName() +
-                " (1-" + guessRange + "). Kamu punya " + maxTry + " percobaan.";
+        boolean success = false; //
+        String infoMsg = "Tebak angka untuk menangkap " + targetFish.getFishName() + //
+                " (1-" + guessRange + "). Kamu punya " + maxTry + " percobaan."; //
 
-        for (int attempt = 1; attempt <= maxTry; attempt++) {
-            String input = javax.swing.JOptionPane.showInputDialog(
-                    null,
-                    infoMsg + "\nPercobaan " + attempt + "/" + maxTry + "\nMasukkan angka:",
-                    "Mini Game Memancing",
-                    javax.swing.JOptionPane.QUESTION_MESSAGE
+        for (int attempt = 1; attempt <= maxTry; attempt++) { //
+            String input = javax.swing.JOptionPane.showInputDialog( //
+                    null, // Parent component
+                    infoMsg + "\nPercobaan " + attempt + "/" + maxTry + "\nMasukkan angka:", //
+                    "Mini Game Memancing", //
+                    javax.swing.JOptionPane.QUESTION_MESSAGE //
             );
-
-            // Jika user cancel, keluar dari minigame fishing
-            if (input == null) { // tekan Cancel atau close
-                gp.ui.showMessage("Batal menebak, gagal menangkap ikan.");
-                break;
+            if (input == null) { // User menekan Cancel atau menutup dialog
+                gp.ui.showMessage("Batal menebak, gagal menangkap ikan."); //
+                System.out.println("[PLAYER.startFishing()] INFO MINIGAME: Pemain membatalkan tebakan.");
+                break; // Keluar dari loop percobaan
             }
-
-            int guessedNumber;
+            int guessedNumber; //
             try {
-                guessedNumber = Integer.parseInt(input.trim());
-            } catch (Exception e) {
-                gp.ui.showMessage("Input tidak valid! Masukkan angka.");
-                attempt--; // tidak dihitung sebagai attempt
-                continue;
+                guessedNumber = Integer.parseInt(input.trim()); //
+                if (guessedNumber < 1 || guessedNumber > guessRange) { //
+                    gp.ui.showMessage("Angka harus antara 1 dan " + guessRange + "!");
+                    attempt--; continue; // Tidak dihitung sebagai percobaan yang valid
+                }
+            } catch (NumberFormatException e) {
+                gp.ui.showMessage("Input tidak valid! Masukkan angka."); //
+                attempt--; continue; // Tidak dihitung sebagai percobaan yang valid
             }
-
-            if (guessedNumber == answerNumber) {
-                success = true;
-                break;
-            } else if (guessedNumber < answerNumber) {
-                infoMsg = "Terlalu kecil!\n";
-            } else {
-                infoMsg = "Terlalu besar!\n";
+            if (guessedNumber == answerNumber) { //
+                success = true; //
+                System.out.println("[PLAYER.startFishing()] INFO MINIGAME: Tebakan benar!");
+                break; //
+            } else if (guessedNumber < answerNumber) { //
+                infoMsg = "Terlalu kecil!\n"; //
+            } else { // guessedNumber > answerNumber
+                infoMsg = "Terlalu besar!\n"; //
             }
-            infoMsg += "Tebak angka untuk menangkap " + targetFish.getFishName() +
-                    " (1-" + guessRange + "). Kamu punya " + (maxTry - attempt) + " percobaan lagi.";
+            infoMsg += "Tebak angka untuk menangkap " + targetFish.getFishName() + //
+                    " (1-" + guessRange + "). Kamu punya " + (maxTry - attempt) + " percobaan lagi."; //
         }
 
-        if (success) {
-            addItemToInventory(targetFish);
-            gp.entities.remove(targetFish);
-            gp.ui.showMessage("Berhasil menangkap " + targetFish.getFishName() + "!");
-        } else if (!success) {
-            gp.ui.showMessage("Gagal menangkap " + targetFish.getFishName() + "!");
+        // 7. Hasil memancing
+        if (success) { //
+            addToInventory(targetFish); // Memanggil overload untuk OBJ_Fish
+            // gp.entities.remove(targetFish); // DIKOMENTARI: Hapus ikan dari daftar entitas global jika ikan itu unik dan tidak respawn.
+            // Jika ikan bisa ditangkap berulang kali, jangan dihapus.
+            System.out.println("[PLAYER.startFishing()] SUKSES: Berhasil menangkap " + targetFish.getFishName() + "!");
+        } else {
+            gp.ui.showMessage("Gagal menangkap " + targetFish.getFishName() + "!"); //
+            System.out.println("[PLAYER.startFishing()] GAGAL: Tidak berhasil menangkap " + targetFish.getFishName() + ".");
         }
 
         gp.gameClock.getTime().advanceTime(15);
         isFishing = false;
         gp.gameClock.resumeTime();
     }
-
     // Utility: perhitungan harga ikan
     private int calculateFishPrice(OBJ_Fish fish) {
         int nSeason = fish.getSeasons().size();

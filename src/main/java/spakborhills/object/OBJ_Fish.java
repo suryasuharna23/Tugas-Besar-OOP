@@ -2,21 +2,17 @@ package spakborhills.object;
 
 import java.util.List;
 import spakborhills.GamePanel;
-import spakborhills.entity.Entity;
-import spakborhills.entity.Player;
 import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
-import spakborhills.enums.Location;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.enums.FishType;
-import java.util.Arrays;
 
 public class OBJ_Fish extends OBJ_Item {
     private String fishName;
     private List<Season> seasons;
     private List<Weather> weathers;
-    private List<Location> locations;
+    private List<String> locations;
     private FishType fishType;
     private int buyFishPrice;
     private int sellFishPrice;
@@ -27,7 +23,7 @@ public class OBJ_Fish extends OBJ_Item {
 
     public OBJ_Fish(GamePanel gp, ItemType itemType, String name, boolean isEdible,
                     int buyPrice, int sellPrice,
-                    List<Season> seasons, List<Weather> weathers, List<Location> locations,
+                    List<Season> seasons, List<Weather> weathers, List<String> locations,
                     FishType fishType, int startHour, int endHour) { // Tambahkan startHour, endHour
 
         super(gp, itemType, name, isEdible, buyPrice, sellPrice, 1);
@@ -74,7 +70,7 @@ public class OBJ_Fish extends OBJ_Item {
     }
 
     // Method constraint: apakah ikan tersedia sesuai param saat ini
-    public boolean isAvailable(Season season, Weather weather, int currentHour, Location location) {
+    public boolean isAvailable(Season season, Weather weather, int currentHour, String location) {
         return seasons.contains(season)
             && weathers.contains(weather)
             && locations.contains(location)
@@ -92,7 +88,7 @@ public class OBJ_Fish extends OBJ_Item {
     public String getFishName () { return fishName; }
     public List<Season> getSeasons () { return seasons; }
     public List<Weather> getWeathers () { return weathers; }
-    public List<Location> getLocations () { return locations; }
+    public List<String> getLocations () { return locations; }
     public FishType getFishType () { return fishType; }
     public int getBuyFishPrice () { return buyFishPrice; }
     public int getSellFishPrice () { return sellFishPrice; }

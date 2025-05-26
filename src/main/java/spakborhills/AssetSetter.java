@@ -3,7 +3,6 @@ package spakborhills;
 import spakborhills.entity.*;
 import spakborhills.enums.FishType;
 import spakborhills.enums.ItemType;
-import spakborhills.enums.Location;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.object.*;
@@ -13,19 +12,12 @@ import java.util.Arrays;
 public class AssetSetter {
     GamePanel gp;
 
-    public AssetSetter(GamePanel gp){
+    public AssetSetter(GamePanel gp) {
         this.gp = gp;
     }
 
-    public void setObject(String currentMapName){ // Anda mungkin juga ingin membuat setObject bergantung pada peta
-        gp.entities.removeIf(e -> !(e instanceof Player) && !(e instanceof NPC)); // Hapus objek lama, sisakan player & NPC
-
-        // Contoh: Hanya tempatkan item-item ini jika di peta "Farm"
-        if ("Farm".equalsIgnoreCase(currentMapName)) {
-            Entity key1 = new OBJ_Key(gp);
-            key1.worldX = gp.tileSize * 23;
-            key1.worldY = gp.tileSize * 40;
-            gp.entities.add(key1);
+    public void setObject(String currentMapName) {
+        gp.entities.removeIf(e -> !(e instanceof Player) && !(e instanceof NPC)); // Hapus objek lama
 
         // Contoh menempatkan peti
             Entity chest1 = new OBJ_Chest(gp);
@@ -33,202 +25,143 @@ public class AssetSetter {
             chest1.worldY = gp.tileSize * 30;
             gp.entities.add(chest1);
 
-// COMMON FISH
-            Entity bullhead = new OBJ_Fish(gp, ItemType.FISH, "Bullhead", true, 300, 200,
+        // COMMON FISH
+        Entity bullhead = new OBJ_Fish(gp, ItemType.FISH, "Bullhead", true, 300, 200,
                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.MOUNTAIN_LAKE),
-                FishType.COMMON,
-                0, 24 // Jam Any
-            );
+                Arrays.asList("Mountain Lake"),
+                FishType.COMMON, 0, 24);
+        gp.entities.add(bullhead);
 
         Entity carp = new OBJ_Fish(gp, ItemType.FISH, "Carp", true, 300, 200,
                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.MOUNTAIN_LAKE, Location.POND),
-                FishType.COMMON,
-                0, 24
-        );
+                Arrays.asList("Mountain Lake", "Pond"),
+                FishType.COMMON, 0, 24);
+        gp.entities.add(carp);
 
         Entity chub = new OBJ_Fish(gp, ItemType.FISH, "Chub", true, 300, 200,
                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.FOREST_RIVER, Location.MOUNTAIN_LAKE),
-                FishType.COMMON,
-                0, 24
-        );
+                Arrays.asList("Forest River", "Mountain Lake"),
+                FishType.COMMON, 0, 24);
+        gp.entities.add(chub);
 
-// REGULAR FISH
+        // REGULAR FISH
         Entity largemouthBass = new OBJ_Fish(gp, ItemType.FISH, "Largemouth Bass", true, 500, 300,
                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.MOUNTAIN_LAKE),
-                FishType.REGULAR,
-                6, 18 // 06-18
-        );
+                Arrays.asList("Mountain Lake"), FishType.REGULAR, 6, 18);
+        gp.entities.add(largemouthBass);
 
         Entity rainbowTrout = new OBJ_Fish(gp, ItemType.FISH, "Rainbow Trout", true, 500, 300,
-                Arrays.asList(Season.SUMMER),
-                Arrays.asList(Weather.SUNNY),
-                Arrays.asList(Location.FOREST_RIVER, Location.MOUNTAIN_LAKE),
-                FishType.REGULAR,
-                6, 18 // 06-18
-        );
+                Arrays.asList(Season.SUMMER), Arrays.asList(Weather.SUNNY),
+                Arrays.asList("Forest River", "Mountain Lake"), FishType.REGULAR, 6, 18);
+        gp.entities.add(rainbowTrout);
 
         Entity sturgeon = new OBJ_Fish(gp, ItemType.FISH, "Sturgeon", true, 500, 300,
-                Arrays.asList(Season.SUMMER, Season.WINTER),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.MOUNTAIN_LAKE),
-                FishType.REGULAR,
-                6, 18 // 06-18
-        );
+                Arrays.asList(Season.SUMMER, Season.WINTER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Mountain Lake"), FishType.REGULAR, 6, 18);
+        gp.entities.add(sturgeon);
 
         Entity midnightCarp = new OBJ_Fish(gp, ItemType.FISH, "Midnight Carp", true, 500, 300,
-                Arrays.asList(Season.WINTER, Season.FALL),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.MOUNTAIN_LAKE, Location.POND),
-                FishType.REGULAR,
-                20, 2 // 20-02 (melewati midnight)
-        );
+                Arrays.asList(Season.WINTER, Season.FALL), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Mountain Lake", "Pond"), FishType.REGULAR, 20, 2);
+        gp.entities.add(midnightCarp);
 
         Entity flounder = new OBJ_Fish(gp, ItemType.FISH, "Flounder", true, 500, 300,
-                Arrays.asList(Season.SPRING, Season.SUMMER),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR,
-                6, 22 // 06-22
-        );
+                Arrays.asList(Season.SPRING, Season.SUMMER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Ocean"), FishType.REGULAR, 6, 22);
+        gp.entities.add(flounder);
 
-        // Halibut punya dua jam aktif: 06-11 dan 19-02, jadi tambahkan dua entri jika perlu
         Entity halibutMorning = new OBJ_Fish(gp, ItemType.FISH, "Halibut", true, 500, 300,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR,
-                6, 11 // 06-11
-        );
+                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Ocean"), FishType.REGULAR, 6, 11);
+        gp.entities.add(halibutMorning);
 
         Entity halibutNight = new OBJ_Fish(gp, ItemType.FISH, "Halibut", true, 500, 300,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR,
-                19, 2 // 19-02 (melewati midnight)
-        );
+                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Ocean"), FishType.REGULAR, 19, 2);
+        gp.entities.add(halibutNight);
 
         Entity octopus = new OBJ_Fish(gp, ItemType.FISH, "Octopus", true, 500, 300,
-                Arrays.asList(Season.SUMMER),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR,
-                6, 22 // 06-22
-        );
+                Arrays.asList(Season.SUMMER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Ocean"), FishType.REGULAR, 6, 22);
+        gp.entities.add(octopus);
 
         Entity pufferfish = new OBJ_Fish(gp, ItemType.FISH, "Pufferfish", true, 500, 300,
-                Arrays.asList(Season.SUMMER),
-                Arrays.asList(Weather.SUNNY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR,
-                0, 16 // 00-16
-        );
+                Arrays.asList(Season.SUMMER), Arrays.asList(Weather.SUNNY),
+                Arrays.asList("Ocean"), FishType.REGULAR, 0, 16);
+        gp.entities.add(pufferfish);
 
         Entity sardine = new OBJ_Fish(gp, ItemType.FISH, "Sardine", true, 500, 300,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR,
-                6, 18 // 06-18
-        );
+                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Ocean"), FishType.REGULAR, 6, 18);
+        gp.entities.add(sardine);
 
         Entity superCucumber = new OBJ_Fish(gp, ItemType.FISH, "Super Cucumber", true, 500, 300,
-                Arrays.asList(Season.SUMMER, Season.FALL, Season.WINTER),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.OCEAN),
-                FishType.REGULAR,
-                18, 2 // 18-02 (sore ke dini hari)
-        );
+                Arrays.asList(Season.SUMMER, Season.FALL, Season.WINTER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Ocean"), FishType.REGULAR, 18, 2);
+        gp.entities.add(superCucumber);
 
         Entity catfish = new OBJ_Fish(gp, ItemType.FISH, "Catfish", true, 500, 300,
-                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL),
-                Arrays.asList(Weather.RAINY),
-                Arrays.asList(Location.FOREST_RIVER, Location.POND),
-                FishType.REGULAR,
-                6, 22 // 06-22
-        );
+                Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL), Arrays.asList(Weather.RAINY),
+                Arrays.asList("Forest River", "Pond"), FishType.REGULAR, 6, 22);
+        gp.entities.add(catfish);
 
         Entity salmon = new OBJ_Fish(gp, ItemType.FISH, "Salmon", true, 500, 300,
-                Arrays.asList(Season.FALL),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.FOREST_RIVER),
-                FishType.REGULAR,
-                6, 18 // 06-18
-        );
+                Arrays.asList(Season.FALL), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Forest River"), FishType.REGULAR, 6, 18);
+        gp.entities.add(salmon);
 
         // LEGENDARY FISH
         Entity angler = new OBJ_Fish(gp, ItemType.FISH, "Angler", true, 1000, 800,
-                Arrays.asList(Season.FALL),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.POND),
-                FishType.LEGENDARY,
-                8, 20 // 08-20
-        );
+                Arrays.asList(Season.FALL), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Pond"), FishType.LEGENDARY, 8, 20);
+        gp.entities.add(angler);
 
         Entity crimsonfish = new OBJ_Fish(gp, ItemType.FISH, "Crimsonfish", true, 1000, 800,
-                Arrays.asList(Season.SUMMER),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.OCEAN),
-                FishType.LEGENDARY,
-                8, 20 // 08-20
-        );
+                Arrays.asList(Season.SUMMER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Ocean"), FishType.LEGENDARY, 8, 20);
+        gp.entities.add(crimsonfish);
 
         Entity glacierfish = new OBJ_Fish(gp, ItemType.FISH, "Glacierfish", true, 1000, 800,
-                Arrays.asList(Season.WINTER),
-                Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                Arrays.asList(Location.FOREST_RIVER),
-                FishType.LEGENDARY,
-                8, 20 // 08-20
-        );
+                Arrays.asList(Season.WINTER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
+                Arrays.asList("Forest River"), FishType.LEGENDARY, 8, 20);
+        gp.entities.add(glacierfish);
 
         Entity legend = new OBJ_Fish(gp, ItemType.FISH, "Legend", true, 1000, 800,
-                Arrays.asList(Season.SPRING),
-                Arrays.asList(Weather.RAINY),
-                Arrays.asList(Location.MOUNTAIN_LAKE),
-                FishType.LEGENDARY,
-                8, 20 // 08-20
-        );
-
-        gp.entities.add(bullhead);
-        gp.entities.add(carp);
-        gp.entities.add(chub);
-        gp.entities.add(largemouthBass);
-        gp.entities.add(rainbowTrout);
-        gp.entities.add(sturgeon);
-        gp.entities.add(midnightCarp);
-        gp.entities.add(flounder);
-        gp.entities.add(halibutMorning);
-        gp.entities.add(halibutNight);
-        gp.entities.add(octopus);
-        gp.entities.add(pufferfish);
-        gp.entities.add(sardine);
-        gp.entities.add(superCucumber);
-        gp.entities.add(catfish);
-        gp.entities.add(salmon);
-        gp.entities.add(angler);
-        gp.entities.add(crimsonfish);
-        gp.entities.add(glacierfish);
+                Arrays.asList(Season.SPRING), Arrays.asList(Weather.RAINY),
+                Arrays.asList("Mountain Lake"), FishType.LEGENDARY, 8, 20);
         gp.entities.add(legend);
-        Entity shippingBin = new OBJ_ShippingBin(gp);
-        shippingBin.worldX = gp.tileSize * 25;
-        shippingBin.worldY = gp.tileSize * 15;
-        gp.entities.add(shippingBin);
+        // --- AKHIR BAGIAN PENAMBAHAN IKAN ---
+
+        System.out.println("[AssetSetter.setObject()] INFO: Selesai menambahkan semua entitas ikan global. Jumlah entitas (termasuk ikan) sekarang: " + gp.entities.size());
+
+        // Sekarang, tambahkan objek-objek yang spesifik untuk peta tertentu
+        if ("Farm".equalsIgnoreCase(currentMapName)) {
+            Entity key1 = new OBJ_Key(gp);
+            key1.worldX = gp.tileSize * 23;
+            key1.worldY = gp.tileSize * 40;
+            gp.entities.add(key1);
+
+            Entity chestOnFarm = new OBJ_Chest(gp); // Beri nama unik jika ada chest lain
+            chestOnFarm.worldX = gp.tileSize * 22;
+            chestOnFarm.worldY = gp.tileSize * 30;
+            gp.entities.add(chestOnFarm);
+
+            Entity shippingBin = new OBJ_ShippingBin(gp);
+            shippingBin.worldX = gp.tileSize * 25;
+            shippingBin.worldY = gp.tileSize * 15;
+            gp.entities.add(shippingBin);
 
         chest1.worldX = gp.tileSize * 22;
         chest1.worldY = gp.tileSize * 30;
         gp.entities.add(chest1);
         } else if ("Player's House".equalsIgnoreCase(currentMapName)) {
-            Entity playerSingleBed = new OBJ_Bed(gp); // Beri tahu tipe ranjangnya
-            playerSingleBed.worldX = gp.tileSize * 5; // Sesuaikan X (kolom ke-8 dari kiri jika tile 0)
-            playerSingleBed.worldY = gp.tileSize * 5; // Sesuaikan Y (baris ke-4 dari atas jika tile 0)
+            Entity playerSingleBed = new OBJ_Bed(gp);
+            playerSingleBed.worldX = gp.tileSize * 5;
+            playerSingleBed.worldY = gp.tileSize * 5;
             gp.entities.add(playerSingleBed);
 
             Entity stove = new OBJ_Stove(gp);
@@ -276,6 +209,4 @@ public class AssetSetter {
             gp.entities.add(mayorTadi);
         }
     }
-
-
 }
