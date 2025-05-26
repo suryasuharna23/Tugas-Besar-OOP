@@ -29,7 +29,6 @@ public class GamePanel extends  JPanel implements Runnable {
 
     //FPS
     final int fps = 60;
-
     //SYSTEM
     public KeyHandler keyH = new KeyHandler(this);
     Sound music = new Sound();
@@ -94,7 +93,7 @@ public class GamePanel extends  JPanel implements Runnable {
         assetSetter.setNPC();
         assetSetter.setObject();
         gameState = titleState;
-        playMusic(0);
+//        playMusic(0);
     }
 
     public void startGameThread(){
@@ -268,7 +267,7 @@ public class GamePanel extends  JPanel implements Runnable {
                 gameClock.pauseTime();
             }
         } else if (gameState == dialogueState || gameState == inventoryState ||
-                gameState == interactionMenuState || gameState == giftSelectionState) {
+                gameState == interactionMenuState || gameState == giftSelectionState || gameState == sellState) {
             if (gameClock != null && !gameClock.isPaused()) {
                 gameClock.pauseTime();
             }
@@ -388,7 +387,7 @@ public class GamePanel extends  JPanel implements Runnable {
             return;
         }
         System.out.println("[GamePanel] Performing daily resets for Day " + gameClock.getTime().getDay() + "...");
-
+        processShippingBin();
         for (NPC npc : npcs) {
             if (npc != null) {
                 npc.hasReceivedGiftToday = false;

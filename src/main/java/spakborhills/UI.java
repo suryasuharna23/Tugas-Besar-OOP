@@ -126,6 +126,7 @@ public class UI {
         else if (gp.gameState == gp.playState) {
             drawTimeHUD(g2);
             drawEnergyBar(g2);
+            drawPlayerGold();
             // Jika ada pesan singkat yang ingin ditampilkan (messageOn)
             if (messageOn) {
                 g2.setFont(g2.getFont().deriveFont(20F)); // Sesuaikan ukuran font pesan
@@ -187,6 +188,23 @@ public class UI {
             g2.setColor(new Color(7, 150, 255)); // Warna biru seperti di title screen
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
         }
+    }
+
+    public void drawPlayerGold(){
+        int x = gp.tileSize / 2;
+        int y = gp.tileSize * 2;
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 15F));
+        g2.setColor(Color.white);
+        InputStream inputStream = getClass().getResourceAsStream("/objects/gold.png");
+        BufferedImage coinImage;
+        try{
+            coinImage = ImageIO.read(inputStream);
+            g2.drawImage(coinImage, x, y - gp.tileSize/2, gp.tileSize/2, gp.tileSize/2, null);
+        } catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+        x += gp.tileSize/2 + 5;
+        g2.drawString("Gold: " + gp.player.gold, x, y);
     }
 
     public void drawTitleScreen(){
