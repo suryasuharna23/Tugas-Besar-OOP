@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -125,6 +126,7 @@ public class UI {
         // PLAY STATE
         else if (gp.gameState == gp.playState) {
             drawTimeHUD(g2);
+            drawLocationHUD(g2);
             drawEnergyBar(g2);
             drawPlayerGold();
             // Jika ada pesan singkat yang ingin ditampilkan (messageOn)
@@ -1190,27 +1192,77 @@ public class UI {
 
     private void drawTimeHUD(Graphics2D g2) {
         if (gp.gameState != gp.playState) return;
-        String text = "Time: " + gameClock.getFormattedTime()
-                + " | Season: " + gameClock.getCurrentSeason().name()
-                + " | Weather: " + gameClock.getWeather().getWeatherName();
+
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 13F)); // Ukuran konsisten dengan HUD lainnya
+
+        // Pisah label dan nilai
+        String[] labels = {"Time:", "Season:", "Weather:"};
+        String[] values = {
+                gameClock.getFormattedTime(),
+                gameClock.getCurrentSeason().name(),
+                gameClock.getWeather().getWeatherName()
+        };
 
         int padding = 10;
-        int x = gp.screenWidth - g2.getFontMetrics().stringWidth(text) - padding * 33;
-        int y = gp.tileSize / 2;
+        int lineSpacing = g2.getFontMetrics().getHeight() + 4;
 
-        g2.setFont(new Font("Arial", Font.BOLD, 16));
-        g2.setColor(new Color(0, 0, 0, 170));
+        // Ukur lebar label dan value terpanjang
+        int labelWidth = Arrays.stream(labels)
+                .mapToInt(g2.getFontMetrics()::stringWidth)
+                .max()
+                .orElse(0);
+
+        int valueWidth = Arrays.stream(values)
+                .mapToInt(g2.getFontMetrics()::stringWidth)
+                .max()
+                .orElse(0);
+
+        int totalWidth = labelWidth + 12 + valueWidth; // 12 px jarak antara label dan value
+        int totalHeight = lineSpacing * labels.length;
+
+        // Posisi kanan atas layar
+        int x = gp.screenWidth - totalWidth - padding;
+        int y = padding;
+
+        // Gambar background
+        g2.setColor(new Color(0, 0, 0, 160));
         g2.fillRoundRect(
                 x - 10,
-                0,
-                g2.getFontMetrics().stringWidth(text) + padding * 2,
-                36,
-                10,
-                10
+                y - 10,
+                totalWidth + 20,
+                totalHeight + 10,
+                15,
+                15
         );
 
-        g2.setColor(Color.white);
-        g2.drawString(text, x, y);
+        // Gambar teks
+        g2.setColor(Color.WHITE);
+        for (int i = 0; i < labels.length; i++) {
+            int textY = y + lineSpacing * (i + 1) - 4;
+
+            // Label rata kiri
+            g2.drawString(labels[i], x, textY);
+
+            // Value rata kanan (digeser lebih dari label)
+            g2.drawString(values[i], x + labelWidth + 12, textY);
+        }
+    }
+
+    public void drawLocationHUD(Graphics2D g2) {
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 20F));
+        String locationText = "Location: " + gp.player.getLocation();
+
+        int textWidth = g2.getFontMetrics().stringWidth(locationText);
+        int padding = 10;
+        int x = gp.screenWidth - textWidth - padding;
+        int y = gp.screenHeight - padding;
+
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.fillRoundRect(x - 10, y - g2.getFontMetrics().getHeight(),
+                textWidth + 20, g2.getFontMetrics().getHeight() + 10, 15, 15);
+
+        g2.setColor(Color.WHITE);
+        g2.drawString(locationText, x, y);
     }
 
     // Di UI.java
