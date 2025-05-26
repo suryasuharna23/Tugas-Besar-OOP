@@ -155,6 +155,7 @@ public class Player extends Entity{
         inventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
         inventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
 
+
     }
     private void initializeRecipeStatus() {
         recipeUnlockStatus.clear();
