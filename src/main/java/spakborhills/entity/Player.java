@@ -480,6 +480,15 @@ public class Player extends Entity{
             }
         }
     }
+
+    //
+    public void setPositionForMapEntry(int worldX, int worldY, String direction) {
+        this.worldX = worldX;
+        this.worldY = worldY;
+        this.direction = direction;
+        System.out.println("[Player] Position set for map entry: X=" + this.worldX + ", Y=" + this.worldY + ", Dir=" + this.direction);
+    }
+
     // In Player.java, method checkCollisionAndMove()
     private void checkCollisionAndMove() {
         collisionON = false;
