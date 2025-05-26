@@ -66,6 +66,8 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int sellState = 11;
     public final int cookingState = 12;
 
+    public final int PLAYER_HOUSE_INDEX = 10;
+
     //COOKING
     public Recipe selectedRecipeForCooking = null;
 
@@ -278,6 +280,7 @@ public class GamePanel extends  JPanel implements Runnable {
             if (gameState == farmNameInputState && keyH.enterPressed) {
                 String finalFarmName = ui.farmNameInput.trim();
                 if (!finalFarmName.isEmpty()) {
+                    loadMapbyIndex(PLAYER_HOUSE_INDEX);
                     resetGameForNewGame(); // Ini akan mereset GameClock juga
                     player.setFarmName(finalFarmName);
                     System.out.println("Farm Name Confirmed: " + player.getFarmName());
@@ -310,7 +313,7 @@ public class GamePanel extends  JPanel implements Runnable {
         mapInfos.add(new MapInfo("Forest River", "/maps/forest_river_data.txt", "/maps/forest_river.txt"));
         mapInfos.add(new MapInfo("Mountain Lake", "/maps/mountain_lake_data.txt", "/maps/mountain_lake.txt"));
         mapInfos.add(new MapInfo("Ocean", "/maps/ocean_data.txt", "/maps/ocean.txt")); // oceantiledata.txt
-        // Tambahkan peta lainnya...
+        mapInfos.add(new MapInfo("Player's House", "/maps/player_house_data.txt", "/maps/player_house.txt"));
     }
 
     public void loadMapbyIndex(int mapIndex) {
@@ -319,75 +322,49 @@ public class GamePanel extends  JPanel implements Runnable {
             MapInfo selectedMap = mapInfos.get(mapIndex);
 
             System.out.println("[GamePanel] Loading map: " + selectedMap.getMapLayoutPath());
-            tileManager.loadMap(selectedMap); // TileManager memuat tiles dan layout peta
+            tileManager.loadMap(selectedMap);
 
-            // Reset atau bersihkan entitas lama
             entities.clear();
             npcs.clear();
 
-            // Atur ulang posisi pemain (atau ke titik masuk spesifik peta)
-            player.setDefaultValues(); // Untuk sementara, kembalikan ke posisi default global
-            // Idealnya: player.setPositionForMap(selectedMap.getEntryPoint());
+            player.setDefaultValues();
 
-            // Muat objek dan NPC untuk peta baru
-            // Untuk saat ini, AssetSetter masih menambahkan semua objek/NPC secara global.
-            // Ini perlu disesuaikan agar AssetSetter memuat entitas berdasarkan selectedMap.
-            assetSetter.setObject(); // TODO: Modifikasi AssetSetter agar map-aware
-            assetSetter.setNPC();    // TODO: Modifikasi AssetSetter agar map-aware
+            assetSetter.setObject();
+            assetSetter.setNPC();
 
             System.out.println("[GamePanel] Map loaded: " + selectedMap.getMapName() + " with MaxWorldCol: " + maxWorldCol + ", MaxWorldRow: " + maxWorldRow);
-            gameState = playState; // Pindah ke playState setelah peta dimuat
-            // playMusic(0); // Atau musik spesifik peta
+            gameState = playState;
         } else {
             System.err.println("[GamePanel] Invalid map index: " + mapIndex);
-            gameState = titleState; // Kembali ke title screen jika gagal memuat peta
+            gameState = titleState;
         }
     }
-    // Di dalam GamePanel.java, atau di kelas yang mengelola event spesifik
 
-    // Contoh penggunaannya dalam sebuah metode event di GamePanel:
-    public void handleEndOfWeddingEvent() { // Atau nama event lain
+    public void handleEndOfWeddingEvent() {
         System.out.println("[GamePanel] Wedding event concluded. Skipping time to 22:00.");
 
         if (gameClock != null && gameClock.getTime() != null && player != null) {
-            gameClock.pauseTime(); // 1. Jeda GameClock agar tidak ada update waktu lain saat kita atur manual
+            gameClock.pauseTime();
 
             Time currentTime = gameClock.getTime();
-            currentTime.setCurrentTime(22, 0); // 2. Set waktu ke 22:00 pada hari ini
+            currentTime.setCurrentTime(22, 0);
 
-            // 3. Pindahkan pemain ke rumah (jika ini bagian dari event)
-            // player.worldX = player.defaultWorldX; // Ganti dengan koordinat rumah/tempat tidur
-            // player.worldY = player.defaultWorldY;
-            // System.out.println("[GamePanel] Player moved home.");
-
-            // 4. Tampilkan pesan bahwa hari telah berakhir atau event selesai
-            ui.showMessage("The day flew by! It's now 10:00 PM."); // Pesan singkat
-            // GamePanel.update() akan mendeteksi player.isCurrentlySleeping() dan masuk ke sleepTransitionState.
-            // Di sleepTransitionState:
-            // - Waktu akan dipaksa ke hari berikutnya jam 6 pagi (via currentTime.forceStartNewDay())
-            // - Musim dan cuaca akan diupdate.
-            // - Reset harian akan dilakukan.
-            // - GameClock akan di-resume setelah transisi selesai.
+            ui.showMessage("The day flew by! It's now 10:00 PM.");
         } else {
             System.err.println("[GamePanel] Cannot skip time: GameClock, Time, or Player is null.");
-            // Jika tidak bisa skip time, mungkin langsung kembalikan ke playState
-            // gameState = playState;
-            // if (gameClock != null && gameClock.isPaused()) gameClock.resumeTime();
         }
-        // Tidak perlu resume gameClock di sini jika player.sleep() dipanggil,
-        // karena sleepTransitionState yang akan menanganinya.
     }
 
 
     public void processShippingBin() {
         if (player.itemsInShippingBinToday.isEmpty()) {
-            player.goldFromShipping = 0; // Ensure it's reset even if nothing shipped
+            player.goldFromShipping = 0;
             return;
         }
 
         int totalEarnings = 0;
         for (Entity itemEntity : player.itemsInShippingBinToday) {
-            if (itemEntity instanceof OBJ_Item) { // Ensure it's an OBJ_Item
+            if (itemEntity instanceof OBJ_Item) {
                 OBJ_Item item = (OBJ_Item) itemEntity;
                 totalEarnings += item.getSellPrice();
             }
@@ -395,19 +372,16 @@ public class GamePanel extends  JPanel implements Runnable {
 
         if (totalEarnings > 0) {
             player.gold += totalEarnings;
-            player.goldFromShipping = totalEarnings; // Store for UI message after waking up
+            player.goldFromShipping = totalEarnings;
             System.out.println("[GamePanel] Player earned " + totalEarnings + "G from shipped items. Total gold: " + player.gold);
         } else {
             player.goldFromShipping = 0; // No earnings
         }
-        player.itemsInShippingBinToday.clear(); // Clear the bin
-        player.hasUsedShippingBinToday = false; // Reset flag for the new day
+        player.itemsInShippingBinToday.clear();
+        player.hasUsedShippingBinToday = false;
         System.out.println("[GamePanel] Shipping bin processed and reset for the new day.");
     }
-    /**
-     * Melakukan reset harian untuk berbagai entitas dan sistem dalam game.
-     * Dipanggil saat transisi ke hari baru (misalnya, setelah pemain tidur).
-     */
+
     public void performDailyResets() {
         if (gameClock == null || gameClock.getTime() == null) {
             System.err.println("[GamePanel] Cannot perform daily resets: GameClock or Time is null.");
@@ -415,62 +389,34 @@ public class GamePanel extends  JPanel implements Runnable {
         }
         System.out.println("[GamePanel] Performing daily resets for Day " + gameClock.getTime().getDay() + "...");
 
-        // 1. Reset status NPC (misalnya, status penerimaan hadiah)
         for (NPC npc : npcs) {
             if (npc != null) {
                 npc.hasReceivedGiftToday = false;
-                // Anda bisa menambahkan reset lain untuk NPC di sini jika perlu
-                // npc.dialogueIndex = 0; // Jika dialog harian kembali ke awal
             }
         }
         System.out.println("[GamePanel] NPC daily states reset.");
-
-        // 2. Reset status pemain jika ada batasan harian
-        // Contoh: player.resetDailyActionCount();
-
-        // 3. Update status ladang (jika ada tanaman yang tumbuh, dll.)
-        // Contoh: tileManager.updateFarmPlotsForNewDay();
-        //         System.out.println("[GamePanel] Farm plots updated for new day.");
-
-        // 4. Reset toko jika inventory berubah harian
-        // Contoh: assetSetter.refreshShopInventories();
-        //         System.out.println("[GamePanel] Shop inventories refreshed.");
-
-        // Logika reset harian lainnya bisa ditambahkan di sini.
         System.out.println("[GamePanel] Daily resets completed.");
     }
 
     public void resetGameForNewGame() {
         // 1. Reset Player
-        player.setFarmName(ui.farmNameInput.trim()); // Set nama farm yang baru diinput setelah default// Berikan item awal
+        player.setFarmName(ui.farmNameInput.trim());
+
         entities.clear();
 
-        // 2. Reset NPC (jika perlu, misalnya posisi atau dialog awal)
-        assetSetter.setNPC(); // Atau metode reset NPC spesifik
+        assetSetter.setNPC();
 
-        // 3. Reset Objek di map (jika ada yang berubah selama game sebelumnya)
-        assetSetter.setObject(); // Atau metode reset objek spesifik
+        assetSetter.setObject();
 
         // 4. Reset Waktu Game (GameClock)
-        if (gameClock != null) { // Asumsi Anda punya objek GameClock
-            gameClock.resetTime(); // Buat metode reset di GameClock (misal, ke hari 1, musim Spring, jam 06:00)
+        if (gameClock != null) {
+            gameClock.resetTime();
         } else {
-            // Jika tidak ada GameClock, inisialisasi waktu default di sini atau di Player/GamePanel
-            // time.reset() atau sejenisnya
         }
 
-
-        // 5. Reset Kondisi Ladang (jika sudah ada sistem farming)
-        // tileM.resetFarmTiles(); // Misalnya
-
-        // 6. Reset UI elemen yang mungkin menyimpan state lama
         ui.currentDialogue = "";
-        ui.farmNameInput = ""; // Sudah di-reset saat transisi ke farmNameInputState
-        ui.commandNumber = 0; // Reset command di title screen
-
-        // 7. Hentikan musik title screen (jika ada) dan mulai musik play state
-        // stopMusic();
-        // playMusic(soundEffectMusic); // Ganti dengan indeks musik play state Anda
+        ui.farmNameInput = "";
+        ui.commandNumber = 0;
 
         System.out.println("Game has been reset for a new game.");
     }

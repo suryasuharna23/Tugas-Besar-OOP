@@ -58,9 +58,6 @@ public class KeyHandler implements KeyListener {
                     //gp.ui.mapSelectionState = 1;
                     //gp.playMusic(0);
 
-                    if (gp.ui.commandNumber == 2) {
-                        System.exit(0);
-                    }
                 }
             }
 
@@ -68,11 +65,11 @@ public class KeyHandler implements KeyListener {
                 if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                     gp.ui.commandNumber--;
                     if (gp.ui.commandNumber < 0) {
-                        gp.ui.commandNumber = 9; // Asumsi 3 menu: 0, 1, 2
+                        gp.ui.commandNumber = 10; // Asumsi 3 menu: 0, 1, 2
                     }
                 } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
                     gp.ui.commandNumber++;
-                    if (gp.ui.commandNumber > 9) { // Asumsi 3 menu: 0, 1, 2
+                    if (gp.ui.commandNumber > 10) { // Asumsi 3 menu: 0, 1, 2
                         gp.ui.commandNumber = 0;
 
                     }
@@ -141,7 +138,18 @@ public class KeyHandler implements KeyListener {
                         gp.loadMapbyIndex(gp.ui.commandNumber);
                         gp.gameState = gp.playState;
                     }
+
+                    else if (gp.ui.commandNumber == 10) {
+                        System.out.println("DEBUG: KeyHandler - Map Selected: Player's House");
+                        gp.loadMapbyIndex(gp.ui.commandNumber);
+                        gp.gameState = gp.playState;
+                    }
                 }
+
+            }
+            else if (gp.ui.mapSelectionState == 2) {
+                gp.loadMapbyIndex(10);
+                gp.gameState = gp.playState;
             }
         }
         // PLAYER NAME INPUT STATE
@@ -173,6 +181,16 @@ public class KeyHandler implements KeyListener {
             } else if (code == KeyEvent.VK_ENTER){
                 enterPressed = true;
             }
+            else if (code == KeyEvent.VK_M) {
+                gp.gameState = gp.titleState;
+                gp.ui.mapSelectionState = 1;
+                gp.ui.commandNumber = 0;
+
+                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
+                    gp.gameClock.pauseTime();
+                }
+            }
+
             if (code == KeyEvent.VK_C) { // 'C' untuk Cooking
                 // Idealnya, cek apakah pemain ada di rumah
                 // if (playerIsInHouse()) { // Anda perlu implementasi playerIsInHouse()
@@ -206,6 +224,10 @@ public class KeyHandler implements KeyListener {
                     eatPressed = true;
                 }
             }
+            else if (code == KeyEvent.VK_M){
+                gp.ui.mapSelectionState = 1;
+                gp.gameState = gp.titleState;
+        }
 
         // PAUSE STATE
         else if (gp.gameState == gp.pauseState){
@@ -713,8 +735,8 @@ public class KeyHandler implements KeyListener {
         if (keyCode == KeyEvent.VK_ENTER) {
             if (!gp.ui.farmNameInput.trim().isEmpty()) {
                 enterPressed = true; // Flag ini akan dibaca oleh GamePanel.update()
-                gp.gameState = gp.titleState;
-                gp.ui.mapSelectionState = 1;
+                //gp.gameState = gp.titleState;
+                gp.ui.mapSelectionState = 2;
                 gp.ui.commandNumber = 0;
             } else {
                 gp.ui.showMessage("Farm name cannot be empty!");

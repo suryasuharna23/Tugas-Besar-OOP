@@ -280,7 +280,7 @@ public class UI {
 
             text = "Abigail's";
             int x1 = gp.tileSize*3/2;
-            y += gp.tileSize * 3;
+            y += gp.tileSize * 2;
             g2.drawString(text, x1, y);
             y += gp.tileSize/4;
             text = "House";
@@ -336,7 +336,7 @@ public class UI {
 
             text = "Store";
             x = x1;
-            y += gp.tileSize * 3;
+            y += gp.tileSize * 2;
             g2.drawString(text, x, y);
             if (commandNumber == 5){
                 g2.drawString(">", x-gp.tileSize/4, y);
@@ -375,6 +375,14 @@ public class UI {
             x = x5;
             g2.drawString(text, x, y);
             if (commandNumber == 9){
+                g2.drawString(">", x-gp.tileSize/4, y);
+            }
+
+            text = "Player's House";
+            x = getXForCenteredText(text);
+            y += gp.tileSize * 2;
+            g2.drawString(text, x, y);
+            if (commandNumber == 10){
                 g2.drawString(">", x-gp.tileSize/4, y);
             }
         }

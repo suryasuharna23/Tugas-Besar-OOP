@@ -98,6 +98,7 @@ public class Player extends Entity{
     }
 
     public void setDefaultValues(){
+        inventory.clear();
         worldX = gp.tileSize * 21;
         worldY = gp.tileSize * 26;
         speed = 4;
