@@ -28,19 +28,19 @@ public class AssetSetter {
             gp.entities.add(key1);
 
         // Contoh menempatkan peti
-        Entity chest1 = new OBJ_Chest(gp);
-        chest1.worldX = gp.tileSize * 22;
-        chest1.worldY = gp.tileSize * 30;
-        gp.entities.add(chest1);
+            Entity chest1 = new OBJ_Chest(gp);
+            chest1.worldX = gp.tileSize * 22;
+            chest1.worldY = gp.tileSize * 30;
+            gp.entities.add(chest1);
 
 // COMMON FISH
-        Entity bullhead = new OBJ_Fish(gp, ItemType.FISH, "Bullhead", true, 300, 200,
+            Entity bullhead = new OBJ_Fish(gp, ItemType.FISH, "Bullhead", true, 300, 200,
                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
                 Arrays.asList(Location.MOUNTAIN_LAKE),
                 FishType.COMMON,
                 0, 24 // Jam Any
-        );
+            );
 
         Entity carp = new OBJ_Fish(gp, ItemType.FISH, "Carp", true, 300, 200,
                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
@@ -230,6 +230,12 @@ public class AssetSetter {
             playerSingleBed.worldX = gp.tileSize * 5; // Sesuaikan X (kolom ke-8 dari kiri jika tile 0)
             playerSingleBed.worldY = gp.tileSize * 5; // Sesuaikan Y (baris ke-4 dari atas jika tile 0)
             gp.entities.add(playerSingleBed);
+
+            Entity stove = new OBJ_Stove(gp);
+            stove.worldX = gp.tileSize * 15;
+            stove.worldY = gp.tileSize * 20;
+            gp.entities.add(stove);
+
         }
         // Tambahkan logika untuk peta lain jika perlu
     }

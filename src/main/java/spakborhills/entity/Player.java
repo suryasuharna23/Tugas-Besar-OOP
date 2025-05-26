@@ -151,6 +151,10 @@ public class Player extends Entity{
         inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
         inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
         inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
+        inventory.add(new OBJ_Misc(gp,ItemType.MISC, "Coal", false, 0, 0));
+        inventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
+        inventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
+
     }
     private void initializeRecipeStatus() {
         recipeUnlockStatus.clear();
