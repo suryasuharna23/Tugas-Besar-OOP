@@ -550,6 +550,7 @@ public class KeyHandler implements KeyListener {
     private void sellScreenControls(int code) {
         if (gp.player.inventory.isEmpty()) {
             gp.ui.commandNumber = 0;
+
             return;
         }
         int currentInventorySize = gp.player.inventory.size();
