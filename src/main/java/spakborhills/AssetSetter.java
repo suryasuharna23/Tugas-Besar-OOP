@@ -20,17 +20,22 @@ public class AssetSetter {
             key1.worldY = gp.tileSize * 40;
             gp.entities.add(key1);
 
-            Entity shippingBin = new OBJ_ShippingBin(gp);
-            shippingBin.worldX = gp.tileSize * 25;
-            shippingBin.worldY = gp.tileSize * 15;
-            gp.entities.add(shippingBin);
+//            Entity shippingBin = new OBJ_ShippingBin(gp);
+//            shippingBin.worldX = gp.tileSize * 25;
+//            shippingBin.worldY = gp.tileSize * 15;
+//            gp.entities.add(shippingBin);
+
+
 
             Entity chest1 = new OBJ_Chest(gp);
             chest1.worldX = gp.tileSize * 22;
             chest1.worldY = gp.tileSize * 30;
             gp.entities.add(chest1);
         } else if ("Player's House".equalsIgnoreCase(currentMapName)) {
-            // Tambahkan objek spesifik untuk rumah pemain jika ada
+            Entity playerSingleBed = new OBJ_Bed(gp); // Beri tahu tipe ranjangnya
+            playerSingleBed.worldX = gp.tileSize * 5; // Sesuaikan X (kolom ke-8 dari kiri jika tile 0)
+            playerSingleBed.worldY = gp.tileSize * 5; // Sesuaikan Y (baris ke-4 dari atas jika tile 0)
+            gp.entities.add(playerSingleBed);
         }
         // Tambahkan logika untuk peta lain jika perlu
     }
@@ -51,15 +56,7 @@ public class AssetSetter {
             caroline.worldY = gp.tileSize * 10;
             gp.npcs.add(caroline);
             gp.entities.add(caroline);
-        } else if ("Farm".equalsIgnoreCase(currentMapName)) {
-            // Contoh NPC di Peta Farm
-            NPC perry = new NPC_PERRY(gp);
-            perry.worldX = gp.tileSize * 30;
-            perry.worldY = gp.tileSize * 15;
-            gp.npcs.add(perry);
-            gp.entities.add(perry);
-
-        } else if ("Store".equalsIgnoreCase(currentMapName)) {
+        }else if ("Store".equalsIgnoreCase(currentMapName)) {
             NPC emily = new NPC_EMILY(gp);
             emily.worldX = gp.tileSize * 7;
             emily.worldY = gp.tileSize * 9;

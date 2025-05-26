@@ -499,50 +499,78 @@ public class Player extends Entity{
     }
 
     // In Player.java, method checkCollisionAndMove()
+
     private void checkCollisionAndMove() {
         collisionON = false;
-        gp.collisionChecker.checkTile(this);
+        gp.collisionChecker.checkTile(this); // Cek tabrakan tile untuk pergerakan
 
-        // Check collision with general entities (which should include NPCs and objects)
+        // Cek tabrakan dengan entitas lain untuk pergerakan.
+        // 'entityIndex' di sini adalah hasil dari pengecekan gp.collisionChecker.checkEntity(),
+        // yang mungkin lebih difokuskan pada tabrakan untuk PENCEGAHAN pergerakan.
+        // Untuk interaksi 'Enter', idealnya ada pengecekan yang lebih spesifik
+        // ke arah mana pemain menghadap atau area di depan pemain.
+        // Namun, kita akan mengikuti struktur yang Anda berikan.
         int entityIndex = gp.collisionChecker.checkEntity(this, gp.entities);
 
         if (gp.keyH.enterPressed) {
-            if (entityIndex != 999) {
-                Entity interactedEntity = gp.entities.get(entityIndex); // Get from the list used for collision
+            boolean interactionHandled = false; // Flag untuk menandai apakah interaksi sudah ditangani
 
-                if (interactedEntity instanceof NPC) { // Check if it's an NPC
-                    NPC npc = (NPC) interactedEntity; // Cast to NPC
+            // 1. PROSES INTERAKSI DENGAN ENTITAS (NPC, OBJEK INTERAKTIF, ITEM PICKUP)
+            if (entityIndex != 999) {
+                Entity interactedEntity = gp.entities.get(entityIndex);
+
+                if (interactedEntity instanceof NPC) {
+                    NPC npc = (NPC) interactedEntity;
                     gp.gameState = gp.dialogueState;
-                    gp.currentInteractingNPC = npc; // Store the actual NPC object
+                    gp.currentInteractingNPC = npc;
                     npc.openInteractionMenu();
+                    interactionHandled = true;
                 } else if (interactedEntity.type == EntityType.INTERACTIVE_OBJECT) {
-                    // Handle interactive objects (doors, chests) as before
-                    if (interactedEntity.name.equals("Door")) {
-                        gp.ui.showMessage("Kamu berinteraksi dengan " + interactedEntity.name);
-                    } else if (interactedEntity.name.equals("Chest")) {
-                        gp.ui.showMessage("Kamu membuka " + interactedEntity.name);
-                    } else if (interactedEntity.name.equals("Shipping Bin")){
-                        interactedEntity.interact();
-                    }
-                    else {
-                        gp.ui.showMessage("Kamu melihat " + interactedEntity.name);
-                    }
-                } else if (interactedEntity.type == EntityType.PICKUP_ITEM) {
-                    // Handle pickup items as before
+                    // Pendekatan paling sederhana dan polimorfik:
+                    interactedEntity.interact(); // Panggil metode interact() dari objek tersebut.
+                    // Jika targetEntity adalah instance dari OBJ_Bed, maka
+                    // OBJ_Bed.interact() akan dipanggil.
+                    // Jika itu OBJ_ShippingBin, maka OBJ_ShippingBin.interact() akan dipanggil, dst.
+
+                    // Jika Anda masih ingin pesan khusus untuk Door atau Chest yang tidak memiliki metode interact() kompleks:
+                    // if (targetEntity.name.equals("Door") || targetEntity.name.equals("Chest")) {
+                    //     // Jika Door dan Chest tidak punya metode interact() yang bermakna dan hanya menampilkan pesan:
+                    //     gxp.ui.showMessage("Kamu berinteraksi dengan " + targetEntity.name);
+                    // } else {
+                    //     // Untuk semua INTERACTIVE_OBJECT lain yang punya metode interact() sendiri (seperti Bed, Stove, TV, ShippingBin):
+                    //     targetEntity.interact();
+                    // }
+                    interactionHandled = true;
+                    // break; // Jika ini di dalam loop deteksi targetEntity
+                }
+                else if (interactedEntity.type == EntityType.PICKUP_ITEM) {
                     gp.ui.showMessage("Kamu mengambil " + interactedEntity.name + "!");
-                    addItemToInventory(interactedEntity); // Make sure this method exists or is pickUpObject
-                    gp.entities.remove(entityIndex); // Remove item from the map
+                    addItemToInventory(interactedEntity);
+                    gp.entities.remove(entityIndex); // Hapus item dari peta
+                    interactionHandled = true;
                 }
             }
-            gp.keyH.enterPressed = false;
+            gp.keyH.enterPressed = false; // Selalu konsumsi tombol Enter setelah semua pengecekan 'Enter' selesai
         }
 
+        // Logika pergerakan pemain
         if (!collisionON) {
-            switch (direction) {
-                case "up": worldY -= speed; break;
-                case "down": worldY += speed; break;
-                case "left": worldX -= speed; break;
-                case "right": worldX += speed; break;
+            // Pemain hanya bergerak jika tidak ada tabrakan DAN
+            // tombol arah ditekan (dan tombol Enter tidak sedang diproses yang menyebabkan perubahan state atau aksi).
+            // Karena gp.keyH.enterPressed direset di atas, kondisi ini seharusnya OK.
+            // Jika sebuah interaksi 'Enter' mengubah gameState (misal ke dialogueState atau sleepTransitionState),
+            // maka update() di Player untuk playState tidak akan berjalan, sehingga gerakan tidak terjadi.
+            if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
+                // Jika enterPressed sebelumnya true dan interactionHandled false (tidak ada aksi),
+                // pemain tidak seharusnya bergerak. Namun, karena enterPressed sudah direset,
+                // logika ini akan dievaluasi dengan enterPressed=false.
+                // Jadi, jika pemain menekan Enter tapi tidak ada aksi, lalu menekan arah, dia akan bergerak. Ini OK.
+                switch (direction) {
+                    case "up": worldY -= speed; break;
+                    case "down": worldY += speed; break;
+                    case "left": worldX -= speed; break;
+                    case "right": worldX += speed; break;
+                }
             }
         }
     }
