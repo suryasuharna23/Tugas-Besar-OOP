@@ -8,8 +8,6 @@ import java.util.List;
 
 
 public class NPC_ABIGAIL extends NPC{
-
-
     public NPC_ABIGAIL(GamePanel gp){
         super(gp);
         direction = "down";

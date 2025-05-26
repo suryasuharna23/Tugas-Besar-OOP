@@ -22,6 +22,120 @@ public class OBJ_Seed extends OBJ_Item {
         this.dayToHarvest = dayToHarvest;
         this.countWater = countWater;
 
+        if (this.name.equals("Parsnip")) {
+            this.dayToHarvest = 1;
+            this.buyPrice = 20;
+            this.sellPrice = 10;
+            this.season = Season.SPRING;
+            if (this.weather == Weather.SUNNY) {
+                this.countWater = 2;
+            } else {
+                this.countWater = 1;
+            }
+        } else if (this.name.equals("Cauliflower")) {
+            this.dayToHarvest = 5;
+            this.buyPrice = 80;
+            this.sellPrice = 40;
+            this.season = Season.SPRING;
+            if (this.weather == Weather.SUNNY) {
+                this.countWater = 2;
+            } else {
+                this.countWater = 1;
+            }
+        } else if (this.name.equals("Potato")) {
+            this.dayToHarvest = 3;
+            this.buyPrice = 50;
+            this.sellPrice = 25;
+            this.season = Season.SPRING;
+            if (this.weather == Weather.SUNNY) {
+                this.countWater = 2;
+            } else {
+                this.countWater = 1;
+            }
+        } else if (this.name.equals("Wheat")) {
+            if (this.season == Season.SPRING || this.season == Season.FALL) {
+                this.dayToHarvest = 1;
+                this.buyPrice = 60;
+                this.sellPrice = 30;
+
+                if (this.weather == Weather.SUNNY) {
+                    this.countWater = 2;
+                } else {
+                    this.countWater = 1;
+                }
+            }
+        } else if (this.name.equals("Blueberry")) {
+            this.dayToHarvest = 7;
+            this.buyPrice = 80;
+            this.sellPrice = 40;
+            this.season = Season.SUMMER;
+            if (this.weather == Weather.SUNNY) {
+                this.countWater = 2;
+            } else {
+                this.countWater = 1;
+            }
+        } else if (this.name.equals("Tomato")) {
+            this.dayToHarvest = 3;
+            this.buyPrice = 50;
+            this.sellPrice = 25;
+            this.season = Season.SUMMER;
+            if (this.weather == Weather.SUNNY) {
+                this.countWater = 2;
+            } else {
+                this.countWater = 1;
+            }
+        } else if (this.name.equals("Hot Pepper")) {
+            this.dayToHarvest = 1;
+            this.buyPrice = 40;
+            this.sellPrice = 20;
+            this.season = Season.SUMMER;
+            if (this.weather == Weather.SUNNY) {
+                this.countWater = 2;
+            } else {
+                this.countWater = 1;
+            }
+        } else if (this.name.equals("Melon")) {
+            this.dayToHarvest = 4;
+            this.buyPrice = 80;
+            this.sellPrice = 40;
+            this.season = Season.SUMMER;
+            if (this.weather == Weather.SUNNY) {
+                this.countWater = 2;
+            } else {
+                this.countWater = 1;
+            }
+        } else if (this.name.equals("Cranberry")) {
+            this.dayToHarvest = 2;
+            this.buyPrice = 100;
+            this.sellPrice = 50;
+            this.season = Season.FALL;
+            if (this.weather == Weather.SUNNY) {
+                this.countWater = 2;
+            } else {
+                this.countWater = 1;
+            }
+        } else if (this.name.equals("Pumpkin")) {
+            this.dayToHarvest = 7;
+            this.buyPrice = 150;
+            this.sellPrice = 75;
+            this.season = Season.FALL;
+            if (this.weather == Weather.SUNNY) {
+                this.countWater = 2;
+            } else {
+                this.countWater = 1;
+            }
+        } else if (this.name.equals("Grape")) {
+            this.dayToHarvest = 3;
+            this.buyPrice = 60;
+            this.sellPrice = 30;
+            this.season = Season.FALL;
+            if (this.weather == Weather.SUNNY) {
+                this.countWater = 2;
+            } else {
+                this.countWater = 1;
+            }
+        }
+
 
         switch(name) {
             case "Parsnip":

@@ -5,6 +5,10 @@ import spakborhills.GamePanel;
 import spakborhills.KeyHandler;
 import spakborhills.action.Command;
 import spakborhills.action.EatCommand;
+import spakborhills.cooking.ActiveCookingProcess;
+import spakborhills.cooking.FoodFactory;
+import spakborhills.cooking.Recipe;
+import spakborhills.cooking.RecipeManager;
 import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
@@ -12,11 +16,11 @@ import spakborhills.enums.Weather;
 import spakborhills.enums.Location;
 import spakborhills.interfaces.Edible;
 import spakborhills.object.*;
+import spakborhills.Tile.*;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 import spakborhills.enums.Location;
 import spakborhills.enums.FishType;
@@ -26,15 +30,38 @@ import java.util.List;
 import java.util.Random;
 
 
-public class Player extends  Entity{
+public class Player extends Entity{
     KeyHandler keyH;
     public final int screenX;
     public final int screenY;
     private String farmName;
     public int currentEnergy;
+    private String location;
 
     public ArrayList<Entity> inventory = new ArrayList<>();
     public int currentEquippedItemIndex = -1;
+
+    // GOLD && SHIPPING BIN
+    public int gold;
+    public ArrayList<Entity> itemsInShippingBinToday = new ArrayList<>();
+    public boolean hasUsedShippingBinToday = false;
+    public int goldFromShipping = 0;
+
+
+    // Data untuk Memasak
+    public Map<String, Boolean> recipeUnlockStatus = new HashMap<>();
+    public ArrayList<ActiveCookingProcess> activeCookingProcesses = new ArrayList<>();
+
+    // Statistik untuk membuka resep (contoh)
+    public int totalFishCaught = 0;
+    public int totalCommonFishCaught = 0;
+    public int totalRegularFishCaught = 0;
+    public int totalLegendaryFishCaught = 0;
+    public Map<String, Boolean> firstHarvestByName = new HashMap<>(); // Melacak panen pertama per jenis tanaman
+    public boolean hasFishedPufferfish = false;
+    public boolean hasFishedLegend = false;
+    public boolean hasObtainedHotPepper = false;
+
 
     // WEDDING
     public NPC partner;
@@ -91,7 +118,16 @@ public class Player extends  Entity{
         right2 = setup("/player/boy_right_2");
     }
 
+    public String getLocation() {
+        return this.location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
     public void setDefaultValues(){
+        inventory.clear();
         worldX = gp.tileSize * 21;
         worldY = gp.tileSize * 26;
         speed = 4;
@@ -99,6 +135,8 @@ public class Player extends  Entity{
         type = EntityType.PLAYER;
         currentEnergy = MAX_POSSIBLE_ENERGY;
         this.isCurrentlySleeping = false;
+        gold = 500;
+        initializeRecipeStatus();
         inventory.add(new OBJ_Door(gp));
         inventory.add(new OBJ_Potion(gp));
         inventory.add(new OBJ_ProposalRing(gp));
@@ -109,8 +147,46 @@ public class Player extends  Entity{
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
         inventory.add(new OBJ_Food(gp, ItemType.FOOD, "Fish n' Chips", true, 150, 135, 50));
     }
+    private void initializeRecipeStatus() {
+        recipeUnlockStatus.clear();
+        for (Recipe recipe : RecipeManager.getAllRecipes()) {
+            recipeUnlockStatus.put(recipe.recipeId, "DEFAULT".equals(recipe.unlockMechanismKey));
+        }
+    }
+    public void checkAndUnlockRecipes() {
+        if (gp.gameState == gp.titleState) return; // Jangan cek saat di title screen
 
+        for (Recipe recipe : RecipeManager.getAllRecipes()) {
+            if (Boolean.FALSE.equals(recipeUnlockStatus.get(recipe.recipeId))) { // Hanya cek jika belum terbuka
+                boolean unlocked = false;
+                switch (recipe.unlockMechanismKey) {
+                    case "FISH_COUNT_10":
+                        if (totalFishCaught >= 10) unlocked = true;
+                        break;
+                    case "FISH_SPECIFIC_PUFFERFISH":
+                        if (hasFishedPufferfish) unlocked = true;
+                        break;
+                    case "HARVEST_ANY_FIRST": // Jika minimal satu jenis tanaman sudah pernah dipanen pertama kali
+                        if (!firstHarvestByName.isEmpty() && firstHarvestByName.containsValue(true)) unlocked = true;
+                        break;
+                    case "OBTAIN_HOT_PEPPER":
+                        if (hasObtainedHotPepper) unlocked = true;
+                        break;
+                    case "FISH_SPECIFIC_LEGEND":
+                        if (hasFishedLegend) unlocked = true;
+                        break;
+                    // "STORE_BOUGHT" akan di-handle saat pemain membeli resep dari toko
+                }
 
+                if (unlocked) {
+                    recipeUnlockStatus.put(recipe.recipeId, true);
+                    if (gp.ui != null) { // Pastikan UI ada sebelum menampilkan pesan
+                        gp.ui.showMessage("New Recipe Unlocked: " + recipe.outputFoodName + "!");
+                    }
+                }
+            }
+        }
+    }
     public String getFarmName() {
         return farmName;
     }
@@ -227,7 +303,8 @@ public class Player extends  Entity{
         }
 
         if (gp.gameState == gp.playState) {
-
+            updateActiveCookingProcesses();
+            checkAndUnlockRecipes();
             // Handle aksi makan dengan tombol 'E'
             if (this.keyH != null && this.keyH.eatPressed) {
                 System.out.println("DEBUG: Player.update (playState) - eatPressed is true.");
@@ -262,6 +339,46 @@ public class Player extends  Entity{
             spriteCounter = 0;
         }
     }
+    private void updateActiveCookingProcesses() {
+        if (activeCookingProcesses.isEmpty() || gp.gameClock == null || gp.gameClock.isPaused()) {
+            return;
+        }
+
+        Iterator<ActiveCookingProcess> iterator = activeCookingProcesses.iterator();
+        spakborhills.Time currentTime = gp.gameClock.getTime();
+
+        while (iterator.hasNext()) {
+            ActiveCookingProcess process = iterator.next();
+            boolean dayMatches = currentTime.getDay() == process.gameDayFinish;
+            boolean timeIsDue = currentTime.getHour() > process.gameHourFinish ||
+                    (currentTime.getHour() == process.gameHourFinish && currentTime.getMinute() >= process.gameMinuteFinish);
+            boolean dayHasPassed = currentTime.getDay() > process.gameDayFinish;
+
+
+            if (dayHasPassed || (dayMatches && timeIsDue)) {
+                OBJ_Food cookedFood = FoodFactory.createFood(gp, process.foodNameToProduce);
+                if (cookedFood != null) {
+                    for (int i = 0; i < process.foodQuantityToProduce; i++) {
+                        // Buat instance baru setiap kali menambahkan ke inventory
+                        addItemToInventory(FoodFactory.createFood(gp, process.foodNameToProduce));
+                    }
+                    gp.ui.showMessage(process.foodNameToProduce + " is ready!");
+                    // gp.playSE(soundEffectSelesaiMasak);
+                } else {
+                    gp.ui.showMessage("Error creating " + process.foodNameToProduce + " after cooking.");
+                }
+                iterator.remove();
+            }
+        }
+    }
+
+    //
+    public void setPositionForMapEntry(int worldX, int worldY, String direction) {
+        this.worldX = worldX;
+        this.worldY = worldY;
+        this.direction = direction;
+        System.out.println("[Player] Position set for map entry: X=" + this.worldX + ", Y=" + this.worldY + ", Dir=" + this.direction);
+    }
 
     // In Player.java, method checkCollisionAndMove()
     private void checkCollisionAndMove() {
@@ -286,7 +403,10 @@ public class Player extends  Entity{
                         gp.ui.showMessage("Kamu berinteraksi dengan " + interactedEntity.name);
                     } else if (interactedEntity.name.equals("Chest")) {
                         gp.ui.showMessage("Kamu membuka " + interactedEntity.name);
-                    } else {
+                    } else if (interactedEntity.name.equals("Shipping Bin")){
+                        interactedEntity.interact();
+                    }
+                    else {
                         gp.ui.showMessage("Kamu melihat " + interactedEntity.name);
                     }
                 } else if (interactedEntity.type == EntityType.PICKUP_ITEM) {
@@ -468,7 +588,7 @@ public class Player extends  Entity{
     public void plantSeed(String name) {
         tryDecreaseEnergy(5);
         gp.gameClock.getTime().advanceTime(5);
-        }
+    }
 
     public void equipItem(int inventoryIndex) {
         if (inventoryIndex >= 0 && inventoryIndex < inventory.size()) {
@@ -488,24 +608,33 @@ public class Player extends  Entity{
 
     // Method untuk memulai memancing dengan pengecekan constraint ikan
     public void startFishing() {
-        Location currentLocation = Location.MOUNTAIN_LAKE;
+        String currentLocation = getLocation();
         Season currentSeason = gp.gameClock.getCurrentSeason();
         Weather currentWeather = gp.gameClock.getCurrentWeather();
         this.currentSeason = currentSeason;
         this.currentWeather = currentWeather;
         this.currentHour = gp.gameClock.getTime().getHour();
 
+        System.out.println("DEBUG: Current Location: " + currentLocation);
+        System.out.println("DEBUG: Current Season: " + currentSeason);
+        System.out.println("DEBUG: Current Weather: " + currentWeather);
+        System.out.println("DEBUG: Current Hour: " + currentHour);
+
         if (isFishing) {
+            System.out.println("DEBUG: Already fishing, cannot start new fishing process");
             gp.ui.showMessage("Sedang memancing, tunggu proses selesai.");
             return;
         }
 
-        boolean valid = (currentLocation == Location.POND
-                || currentLocation == Location.MOUNTAIN_LAKE
-                || currentLocation == Location.FOREST_RIVER
-                || currentLocation == Location.OCEAN);
+        boolean valid = (currentLocation.equals("Pond")
+                || currentLocation.equals("Mountain Lake")
+                || currentLocation.equals("Forest River")
+                || currentLocation.equals("Ocean"));
+
+        System.out.println("DEBUG: Location validity check: " + valid);
 
         if (!valid) {
+            System.out.println("DEBUG: Invalid fishing location detected");
             gp.ui.showMessage("Kamu tidak berada di lokasi memancing yang valid!");
             return;
         }
@@ -519,18 +648,20 @@ public class Player extends  Entity{
         List<OBJ_Fish> availableFish = new ArrayList<>();
         for (Entity entity : gp.entities) {
             if (entity instanceof OBJ_Fish fish) {
-                if (fish.isAvailable(currentSeason, currentWeather, currentHour, currentLocation)) {
+                if (fish.isAvailable(currentSeason, currentWeather, currentHour, spakborhills.enums.Location.valueOf(currentLocation))) {
                     availableFish.add(fish);
                 }
             }
         }
 
         if (availableFish.isEmpty()) {
+            System.out.println("DEBUG: No fish available with current conditions");
             gp.ui.showMessage("Tidak ada ikan yang tersedia.");
             isFishing = false;
             gp.gameClock.resumeTime();
             return;
         }
+        System.out.println("DEBUG: Number of available fish: " + availableFish.size());
 
         // Ambil satu ikan random yg available
         Random rand = new Random();

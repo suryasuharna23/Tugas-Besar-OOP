@@ -7,8 +7,8 @@ import spakborhills.enums.ItemType;
 
 public class OBJ_Item extends Entity {
     private ItemType itemType; 
-    private int buyPrice;
-    private int sellPrice;
+    int buyPrice;
+    int sellPrice;
     private boolean isEdible;
 
     public OBJ_Item(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice) {
