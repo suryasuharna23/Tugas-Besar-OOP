@@ -217,14 +217,14 @@ public class AssetSetter {
         gp.entities.add(crimsonfish);
         gp.entities.add(glacierfish);
         gp.entities.add(legend);
-            Entity shippingBin = new OBJ_ShippingBin(gp);
-            shippingBin.worldX = gp.tileSize * 25;
-            shippingBin.worldY = gp.tileSize * 15;
-            gp.entities.add(shippingBin);
+        Entity shippingBin = new OBJ_ShippingBin(gp);
+        shippingBin.worldX = gp.tileSize * 25;
+        shippingBin.worldY = gp.tileSize * 15;
+        gp.entities.add(shippingBin);
 
-            chest1.worldX = gp.tileSize * 22;
-            chest1.worldY = gp.tileSize * 30;
-            gp.entities.add(chest1);
+        chest1.worldX = gp.tileSize * 22;
+        chest1.worldY = gp.tileSize * 30;
+        gp.entities.add(chest1);
         } else if ("Player's House".equalsIgnoreCase(currentMapName)) {
             Entity playerSingleBed = new OBJ_Bed(gp); // Beri tahu tipe ranjangnya
             playerSingleBed.worldX = gp.tileSize * 5; // Sesuaikan X (kolom ke-8 dari kiri jika tile 0)
