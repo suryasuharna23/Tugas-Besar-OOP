@@ -221,7 +221,7 @@ public class AssetSetter {
             shippingBin.worldX = gp.tileSize * 25;
             shippingBin.worldY = gp.tileSize * 15;
             gp.entities.add(shippingBin);
-            
+
             chest1.worldX = gp.tileSize * 22;
             chest1.worldY = gp.tileSize * 30;
             gp.entities.add(chest1);
