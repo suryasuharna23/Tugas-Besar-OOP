@@ -47,6 +47,7 @@ public class Player extends Entity{
     public boolean hasUsedShippingBinToday = false;
     public int goldFromShipping = 0;
 
+    
 
     // Data untuk Memasak
     public Map<String, Boolean> recipeUnlockStatus = new HashMap<>();
@@ -811,7 +812,7 @@ public class Player extends Entity{
 
         // 7. Hasil memancing
         if (success) { //
-            addToInventory(targetFish); // Memanggil overload untuk OBJ_Fish
+            inventory.add(targetFish); // Memanggil overload untuk OBJ_Fish
             // gp.entities.remove(targetFish); // DIKOMENTARI: Hapus ikan dari daftar entitas global jika ikan itu unik dan tidak respawn.
             // Jika ikan bisa ditangkap berulang kali, jangan dihapus.
             System.out.println("[PLAYER.startFishing()] SUKSES: Berhasil menangkap " + targetFish.getFishName() + "!");
@@ -821,7 +822,7 @@ public class Player extends Entity{
         }
 
         gp.gameClock.getTime().advanceTime(15);
-        isFishing = false;
+        boolean isFishing = false;
         gp.gameClock.resumeTime();
     }
     // Utility: perhitungan harga ikan
