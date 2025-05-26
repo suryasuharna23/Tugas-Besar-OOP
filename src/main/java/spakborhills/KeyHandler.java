@@ -85,6 +85,11 @@ public class KeyHandler implements KeyListener {
                     gp.gameState = gp.eatState;
                     eatPressed = true;
                 }
+            if (e.getKeyCode() == java.awt.event.KeyEvent.VK_F) {
+                if (gp.player != null) {
+                    gp.player.startFishing();
+                }
+            }
             }
 
         // PAUSE STATE

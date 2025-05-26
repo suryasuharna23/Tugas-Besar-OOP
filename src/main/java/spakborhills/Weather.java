@@ -3,6 +3,10 @@ package spakborhills;
 import java.util.Random;
 
 public class Weather {
+    public String getWeatherName() {
+        return currentWeather.name();
+    }
+
     public enum WeatherType { SUNNY, RAINY }
 
     private WeatherType currentWeather;
@@ -37,8 +41,7 @@ public class Weather {
         return currentWeather;
     }
 
-    public String getWeatherName() {
+    public String getWeather() {
         return currentWeather.name();
     }
 }
-

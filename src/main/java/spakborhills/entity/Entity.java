@@ -2,6 +2,8 @@
 
     import spakborhills.GamePanel;
     import spakborhills.enums.EntityType;
+    import spakborhills.enums.Season;
+    import spakborhills.enums.Weather;
 
     import javax.imageio.ImageIO;
     import java.awt.*;
@@ -27,6 +29,9 @@
         public ArrayList<String> dialogues = new ArrayList<>();
         public int dialogueIndex = 0;
         public EntityType type;
+        protected Season currentSeason;
+        protected int currentHour;
+        protected Weather currentWeather;
 
 
         public Entity(GamePanel gp){

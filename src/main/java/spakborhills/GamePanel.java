@@ -6,6 +6,7 @@ import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
 import spakborhills.enums.EntityType;
 
+
 import javax.swing.JPanel;
 import java.awt.*;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public CollisionChecker collisionChecker = new CollisionChecker(this);
     public UI ui;
     Thread gameThread;
-    private Time time;
+    public Time time;
     private Weather weather;
     public GameClock gameClock;
 

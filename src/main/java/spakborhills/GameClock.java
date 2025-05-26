@@ -157,10 +157,13 @@ public class GameClock extends Thread {
         if (this.weather != null) {
             this.weather.resetToDefault();
         }
+    }
 
-        System.out.println("GameClock system has been reset. New time: Day " + (this.time != null ? this.time.getDay() : "N/A") +
-                ", Season: " + currentSeason.name() +
-                ", Time: " + getFormattedTime() +
-                ", Weather: " + (this.weather != null ? this.weather.getWeatherName() : "N/A"));
+    public spakborhills.enums.Weather getCurrentWeather() {
+        if (weather != null) {
+            return spakborhills.enums.Weather.valueOf(weather.getCurrentWeather().name());
+        }
+        // Nilai default jika weather null, misal default ke SUNNY
+        return spakborhills.enums.Weather.SUNNY;
     }
 }
