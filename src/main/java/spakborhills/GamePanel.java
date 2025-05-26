@@ -279,6 +279,7 @@ public class GamePanel extends  JPanel implements Runnable {
             this.previousMapIndex = this.currentMapIndex;
             this.currentMapIndex = newMapIndex;
             MapInfo selectedMap = mapInfos.get(this.currentMapIndex);
+            player.setLocation(selectedMap.getMapName());
 
             System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to " + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
 

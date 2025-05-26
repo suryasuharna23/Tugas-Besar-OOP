@@ -29,6 +29,7 @@ public class Player extends Entity{
     public final int screenY;
     private String farmName;
     public int currentEnergy;
+    private String location;
 
     public ArrayList<Entity> inventory = new ArrayList<>();
     public int currentEquippedItemIndex = -1;
@@ -95,6 +96,14 @@ public class Player extends Entity{
         left2 = setup("/player/boy_left_2");
         right1 = setup("/player/boy_right_1");
         right2 = setup("/player/boy_right_2");
+    }
+
+    public String getLocation() {
+        return this.location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public void setDefaultValues(){
