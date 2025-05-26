@@ -28,7 +28,6 @@ public class WateringCommand implements Command {
         if (playerCol < 0 || playerCol >= gp.maxWorldCol || playerRow < 0 || playerRow >= gp.maxWorldRow) {
             return;
         }
-
         // Ambil tile
         int tileIndex = gp.tileManager.mapTileNum[playerCol][playerRow];
         int plantedSoilIndex = 55;       // Tile sudah ditanami
