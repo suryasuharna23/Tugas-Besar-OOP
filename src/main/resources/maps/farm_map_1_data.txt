@@ -148,9 +148,9 @@ shipping_box_5.png
 false
 shipping_box_6.png
 false
-tileable.png
+land.png
 false
-tiled.png
+soil.png
 false
 tong1.png
 false

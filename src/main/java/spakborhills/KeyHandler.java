@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import spakborhills.action.PlantingCommand;
+import spakborhills.action.RecoverLandCommand;
+import spakborhills.action.TillingCommand;
 import spakborhills.cooking.ActiveCookingProcess;
 import spakborhills.cooking.Recipe;
 import spakborhills.cooking.RecipeManager;
@@ -187,6 +190,12 @@ public class KeyHandler implements KeyListener {
             }
             else if (code == KeyEvent.VK_E) {
                 eatPressed = true; // Flag ini akan ditangani di Player.update()
+            } else if (code == KeyEvent.VK_R) {
+                new TillingCommand(gp.player).execute(gp);
+            } else if (code == KeyEvent.VK_T) {
+                new RecoverLandCommand(gp.player).execute(gp);
+            } else if (code == KeyEvent.VK_F) {
+                new PlantingCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_I){
                 if (gp.player != null) { // Selalu baik untuk null check
                     gp.gameState = gp.inventoryState;
