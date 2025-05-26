@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import spakborhills.action.PlantingCommand;
 import spakborhills.action.RecoverLandCommand;
 import spakborhills.action.TillingCommand;
+import spakborhills.action.WateringCommand;
 import spakborhills.cooking.ActiveCookingProcess;
 import spakborhills.cooking.Recipe;
 import spakborhills.cooking.RecipeManager;
@@ -192,28 +193,14 @@ public class KeyHandler implements KeyListener {
                     gp.gameClock.pauseTime();
                 }
             }
-
-            if (code == KeyEvent.VK_C) { // 'C' untuk Cooking
-                // Idealnya, cek apakah pemain ada di rumah
-                // if (playerIsInHouse()) { // Anda perlu implementasi playerIsInHouse()
-                gp.selectedRecipeForCooking = null; // Reset pilihan resep
-                gp.gameState = gp.cookingState;
-                gp.ui.cookingCommandNum = 0; // Reset navigasi UI masak
-                gp.ui.cookingSubState = 0;   // 0: pilih resep, 1: konfirmasi
-                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
-                    gp.gameClock.pauseTime();
-                }
-                gp.ui.showMessage("Welcome to the kitchen! Select a recipe.");
-                // } else {
-                // gp.ui.showMessage("You can only cook inside your house.");
-                // }
-            }
             else if (code == KeyEvent.VK_E) {
                 eatPressed = true; // Flag ini akan ditangani di Player.update()
             } else if (code == KeyEvent.VK_R) {
                 new TillingCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_T) {
                 new RecoverLandCommand(gp.player).execute(gp);
+            } else if (code == KeyEvent.VK_G) {
+                new WateringCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_F) {
                 new PlantingCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_I){

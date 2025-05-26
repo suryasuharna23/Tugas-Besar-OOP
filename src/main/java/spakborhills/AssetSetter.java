@@ -3,8 +3,6 @@ package spakborhills;
 import spakborhills.entity.*;
 import spakborhills.enums.FishType;
 import spakborhills.enums.ItemType;
-// Hapus impor Location jika tidak digunakan langsung di sini, atau pastikan path-nya benar
-// import spakborhills.enums.Location;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.object.*;
@@ -21,11 +19,11 @@ public class AssetSetter {
     public void setObject(String currentMapName) {
         gp.entities.removeIf(e -> !(e instanceof Player) && !(e instanceof NPC)); // Hapus objek lama
 
-        System.out.println("[AssetSetter.setObject()] INFO: Memuat aset untuk peta: " + currentMapName);
-
-        // --- BAGIAN PENAMBAHAN IKAN (SEKARANG DI LUAR KONDISI PETA FARM) ---
-        // Ini membuat ikan menjadi entitas yang 'selalu ada' di game,
-        // ketersediaannya untuk ditangkap kemudian difilter oleh Player.startFishing()
+        // Contoh menempatkan peti
+            Entity chest1 = new OBJ_Chest(gp);
+            chest1.worldX = gp.tileSize * 22;
+            chest1.worldY = gp.tileSize * 30;
+            gp.entities.add(chest1);
 
         // COMMON FISH
         Entity bullhead = new OBJ_Fish(gp, ItemType.FISH, "Bullhead", true, 300, 200,
@@ -157,23 +155,58 @@ public class AssetSetter {
             shippingBin.worldY = gp.tileSize * 15;
             gp.entities.add(shippingBin);
 
-            // Baris gp.entities.add(chest1) yang kedua di kode asli Anda akan menambahkan objek yang sama dua kali.
-            // Jika Anda membutuhkan dua chest berbeda di Farm, buat instance baru:
-            // Entity anotherChestOnFarm = new OBJ_Chest(gp);
-            // anotherChestOnFarm.worldX = ...;
-            // gp.entities.add(anotherChestOnFarm);
+        chest1.worldX = gp.tileSize * 22;
+        chest1.worldY = gp.tileSize * 30;
+        gp.entities.add(chest1);
         } else if ("Player's House".equalsIgnoreCase(currentMapName)) {
             Entity playerSingleBed = new OBJ_Bed(gp);
             playerSingleBed.worldX = gp.tileSize * 5;
             playerSingleBed.worldY = gp.tileSize * 5;
             gp.entities.add(playerSingleBed);
+
+            Entity stove = new OBJ_Stove(gp);
+            stove.worldX = gp.tileSize * 15;
+            stove.worldY = gp.tileSize * 20;
+            gp.entities.add(stove);
+
         }
         // Tambahkan logika untuk peta lain jika perlu
-        System.out.println("[AssetSetter.setObject()] INFO: Selesai memuat aset spesifik peta. Jumlah total entitas akhir: " + gp.entities.size());
     }
 
-    // Metode setNPC tetap sama
+    // Ubah metode setNPC untuk menerima nama peta saat ini
     public void setNPC(String currentMapName){
-        // ... (kode setNPC Anda)
+        // Logika penempatan NPC berdasarkan nama peta
+        if ("Abigail's House".equalsIgnoreCase(currentMapName)) {
+            NPC abigail = new NPC_ABIGAIL(gp);
+            abigail.worldX = gp.tileSize * 10; // Contoh koordinat X untuk Abigail di rumahnya
+            abigail.worldY = gp.tileSize * 12; // Contoh koordinat Y untuk Abigail di rumahnya
+            gp.npcs.add(abigail);
+            gp.entities.add(abigail);
+
+        } else if ("Caroline's House".equalsIgnoreCase(currentMapName)) {
+            NPC caroline = new NPC_CAROLINE(gp);
+            caroline.worldX = gp.tileSize * 8; // Contoh koordinat untuk Caroline
+            caroline.worldY = gp.tileSize * 10;
+            gp.npcs.add(caroline);
+            gp.entities.add(caroline);
+        }else if ("Store".equalsIgnoreCase(currentMapName)) {
+            NPC emily = new NPC_EMILY(gp);
+            emily.worldX = gp.tileSize * 7;
+            emily.worldY = gp.tileSize * 9;
+            gp.npcs.add(emily);
+            gp.entities.add(emily);
+        } else if ("Perry's House".equalsIgnoreCase(currentMapName)){
+            NPC perry = new NPC_PERRY(gp);
+            perry.worldX = gp.tileSize * 23;
+            perry.worldY = gp.tileSize * 12;
+            gp.npcs.add(perry);
+            gp.entities.add(perry);
+        } else if ("Mayor_Tadi_House".equalsIgnoreCase(currentMapName)){
+            NPC mayorTadi = new NPC_ABIGAIL(gp);
+            mayorTadi.worldX = gp.tileSize * 23;
+            mayorTadi.worldY = gp.tileSize * 12;
+            gp.npcs.add(mayorTadi);
+            gp.entities.add(mayorTadi);
+        }
     }
 }

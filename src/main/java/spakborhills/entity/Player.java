@@ -143,6 +143,16 @@ public class Player extends Entity{
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Hot Pepper", false, 40, 20, 1,1,Season.FALL, Weather.RAINY));
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
         inventory.add(new OBJ_Food(gp, ItemType.FOOD, "Fish n' Chips", true, 150, 135, 50));
+        // default inventory
+        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0));
+        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
+        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
+        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
+        inventory.add(new OBJ_Misc(gp,ItemType.MISC, "Coal", false, 0, 0));
+        inventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
+        inventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
+
+
     }
     private void initializeRecipeStatus() {
         recipeUnlockStatus.clear();

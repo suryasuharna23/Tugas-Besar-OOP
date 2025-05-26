@@ -114,14 +114,17 @@ public class UI {
         // PLAYER NAME INPUT STATE
         else if (gp.gameState == gp.playerNameInputState) {
             drawPlayerNameInputScreen();
+            drawTimedMessage(g2);
         }
         // FARM NAME INPUT STATE
         else if (gp.gameState == gp.farmNameInputState) {
             drawFarmNameInputScreen();
+            drawTimedMessage(g2);
         }
         // SLEEP TRANSITION STATE  <-- TAMBAHKAN INI
         else if (gp.gameState == gp.sleepTransitionState) {
-            drawSleepTransitionScreen(g2); // Panggil metode baru
+            drawSleepTransitionScreen(g2);
+            drawTimedMessage(g2);
         }
         // PLAY STATE
         else if (gp.gameState == gp.playState) {
@@ -161,6 +164,7 @@ public class UI {
             // drawTimeHUD(g2);
             // drawEnergyBar(g2);
             drawInventoryScreen();
+            drawTimedMessage(g2);
         }
         // NPC INTERACTION MENU
         else if (gp.gameState == gp.interactionMenuState) {

@@ -158,5 +158,5 @@ tong2.png
 false
 Wild_Grass_Screenshot.png
 false
-watered.png
+watered_plant.png
 false

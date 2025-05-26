@@ -5,7 +5,6 @@ import spakborhills.entity.Entity;
 import spakborhills.enums.EntityType;
 
 public class OBJ_Bed extends Entity {
-
     public OBJ_Bed(GamePanel gp) { // Tambahkan parameter bedType
         super(gp);// Simpan tipe ranjangnya
         type = EntityType.INTERACTIVE_OBJECT;
