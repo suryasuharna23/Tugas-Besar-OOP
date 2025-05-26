@@ -137,23 +137,20 @@ public class Player extends Entity{
         this.isCurrentlySleeping = false;
         gold = 500;
         initializeRecipeStatus();
-        inventory.add(new OBJ_Door(gp));
-        inventory.add(new OBJ_Potion(gp));
-        inventory.add(new OBJ_ProposalRing(gp));
-        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Pumpkin", false, 150, 75, 1,7,Season.FALL, Weather.RAINY));
-        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Cranberry", false,100, 50, 1,2,Season.FALL, Weather.RAINY));
-        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Melon", false,80, 40, 1,4,Season.FALL, Weather.RAINY));
-        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Hot Pepper", false, 40, 20, 1,1,Season.FALL, Weather.RAINY));
-        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
-        inventory.add(new OBJ_Food(gp, ItemType.FOOD, "Fish n' Chips", true, 150, 135, 50));
+        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Pumpkin", false, 150, 75, 1,7,Season.FALL, Weather.RAINY));
+        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Cranberry", false,100, 50, 1,2,Season.FALL, Weather.RAINY));
+        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Melon", false,80, 40, 1,4,Season.FALL, Weather.RAINY));
+        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Hot Pepper", false, 40, 20, 1,1,Season.FALL, Weather.RAINY));
+        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
+        addItemToInventory(new OBJ_Food(gp, ItemType.FOOD, "Fish n' Chips", true, 150, 135, 50));
         // default inventory
-        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0));
-        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
-        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
-        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
-        inventory.add(new OBJ_Misc(gp,ItemType.MISC, "Coal", false, 0, 0));
-        inventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
-        inventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
+        addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0));
+        addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
+        addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
+        addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
+        addItemToInventory(new OBJ_Misc(gp,ItemType.MISC, "Coal", false, 0, 0));
+        addItemToInventory(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
+        addItemToInventory(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
 
 
     }
@@ -480,12 +477,45 @@ public class Player extends Entity{
         }
         gp.keyH.enterPressed = false;
     }
+    public boolean addItemToInventory(Entity itemToAdd) { //
+        if (!(itemToAdd instanceof OBJ_Item newItem)) {
+            if (inventory.size() < 20) { // Batas slot inventaris, misal 20
+                inventory.add(itemToAdd); //
+                if (gp.ui != null) gp.ui.showMessage("Kamu mendapatkan: " + itemToAdd.name); //
+                return true;
+            } else {
+                if (gp.ui != null) gp.ui.showMessage("Inventaris penuh!"); //
+                return false;
+            }
+        }
 
+        // Logika untuk OBJ_Item
+        // Cari item yang sudah ada dengan nama dan tipe yang sama untuk ditumpuk
+        for (Entity existingEntity : inventory) { //
+            if (existingEntity instanceof OBJ_Item existingItem) {
+                // Pastikan newItem juga di-cast ke OBJ_Item jika belum untuk mengakses getItemType()
+                if (newItem instanceof OBJ_Item) { // Tambahan pengecekan untuk keamanan
+                    OBJ_Item newItemAsObjItem = (OBJ_Item) newItem;
+                    if (existingItem.name.equals(newItemAsObjItem.name) &&
+                            existingItem.getType() == newItemAsObjItem.getType()) { // << PERBAIKAN DI SINI
 
-    public boolean addItemToInventory(Entity item){
-        inventory.add(item);
-        gp.ui.showMessage("You got: " + item.name);
-        return true;
+                        existingItem.quantity += newItemAsObjItem.quantity; //
+                        if (gp.ui != null) gp.ui.showMessage("Menambahkan x" + newItemAsObjItem.quantity + " " + newItemAsObjItem.name + " ke tumpukan. Total: " + existingItem.quantity); //
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // Jika tidak ada tumpukan yang cocok, tambahkan sebagai item baru jika ada ruang
+        if (inventory.size() < 20) { // Batas slot inventaris, misal 20
+            inventory.add(newItem); // Tambahkan item baru ke inventaris
+            if (gp.ui != null) gp.ui.showMessage("Kamu mendapatkan: " + newItem.name + (newItem.quantity > 1 ? " x" + newItem.quantity : "")); //
+            return true;
+        } else {
+            if (gp.ui != null) gp.ui.showMessage("Inventaris penuh! Tidak dapat menambahkan " + newItem.name); //
+            return false;
+        }
     }
 
     public void removeItemFromInventory(int item){
@@ -755,7 +785,7 @@ public class Player extends Entity{
         }
 
         if (success) {
-            addToInventory(targetFish);
+            addItemToInventory(targetFish);
             gp.entities.remove(targetFish);
             gp.ui.showMessage("Berhasil menangkap " + targetFish.getFishName() + "!");
         } else if (!success) {
@@ -781,10 +811,6 @@ public class Player extends Entity{
         return 4 * nSeason * hourSpan * 2 * nWeather * 4 * nLocation * C / 32;
     }
 
-    // Contoh tampilan menambah ke inventory (pastikan method ini ada)
-    public void addToInventory(Entity item) {
-        this.inventory.add(item); // Pastikan inventory bertipe List<Entity>
-    }
 }
 // Misal, player adalah objek Player yang sudah ada
 // Letakkan kode berikut di dalam method (misal, main atau setupGame)

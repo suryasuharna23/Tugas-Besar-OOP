@@ -7,7 +7,7 @@ import spakborhills.enums.ItemType;
 
 public class OBJ_Misc extends OBJ_Item {
     public OBJ_Misc (GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice) {
-        super(gp, itemType.MISC, name, false, 0, 0);
+        super(gp, itemType.MISC, name, false, 0, 0, 1);
 
         switch (name) {
             case "Firewood":

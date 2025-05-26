@@ -22,6 +22,7 @@ import spakborhills.entity.Player;
 import spakborhills.interfaces.Edible;
 import spakborhills.object.OBJ_Fish;
 import spakborhills.object.OBJ_Item;
+import spakborhills.object.OBJ_Misc;
 
 public class KeyHandler implements KeyListener {
     public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, inventoryPressed, eatPressed;
@@ -367,116 +368,175 @@ public class KeyHandler implements KeyListener {
         }
     }
 
+    // In spakborhills/KeyHandler.java
     private boolean canPlayerCookRecipe(Recipe recipe, Player player) {
-        // Cek Energi Awal (walaupun akan dicek lagi saat memulai)
-        if (player.currentEnergy < 10 && (player.currentEnergy > Player.MIN_ENERGY_THRESHOLD) ) { // Minimal punya 10 energi untuk mencoba
-            // Jika energi sudah <= MIN_ENERGY_THRESHOLD, tryDecreaseEnergy akan handle
-            // Tapi jika energi positif tapi <10, mungkin ingin cegah di sini.
-            // Sesuai spec, player.tryDecreaseEnergy akan menangani ini. Jadi cek ini opsional.
+        // Cek Bahan Bakar (asumsi Firewood dan Coal adalah OBJ_Misc dengan quantity)
+        boolean hasFuel = false;
+        int firewoodQty = 0;
+        int coalQty = 0;
+
+        for (Entity itemInInventory : player.inventory) {
+            if (itemInInventory instanceof OBJ_Misc) {
+                OBJ_Misc miscItem = (OBJ_Misc) itemInInventory;
+                if (miscItem.name != null && miscItem.name.startsWith("Firewood")) { // Nama dari OBJ_Misc adalah "Firewood misc"
+                    firewoodQty += miscItem.quantity;
+                } else if (miscItem.name != null && miscItem.name.startsWith("Coal")) { // Nama dari OBJ_Misc adalah "Coal misc"
+                    coalQty += miscItem.quantity;
+                }
+            }
+        }
+        if (firewoodQty > 0 || coalQty > 0) {
+            hasFuel = true;
         }
 
-        // Cek Bahan
+        if (!hasFuel) {
+            System.out.println("DEBUG Cook: No fuel (Firewood: " + firewoodQty + ", Coal: " + coalQty + ")");
+            gp.ui.showMessage("You need Firewood or Coal to cook.");
+            return false;
+        }
+
+        // Cek Bahan Resep
         for (Map.Entry<String, Integer> ingredientEntry : recipe.ingredients.entrySet()) {
-            String itemName = ingredientEntry.getKey();
+            String requiredIngredientBaseName = ingredientEntry.getKey(); // Ini adalah nama dasar, mis. "Wheat"
             int requiredQty = ingredientEntry.getValue();
             int playerHasQty = 0;
 
-            if (RecipeManager.ANY_FISH.equals(itemName)) {
-                for (Entity item : player.inventory) {
-                    if (item instanceof OBJ_Fish) {
+            if (RecipeManager.ANY_FISH.equals(requiredIngredientBaseName)) { //
+                for (Entity itemInInventory : player.inventory) {
+                    if (itemInInventory instanceof OBJ_Fish) {
+                        // Asumsi setiap OBJ_Fish adalah 1 unit ikan, tidak menggunakan quantity untuk tumpukan ikan sejenis
                         playerHasQty++;
                     }
                 }
             } else {
-                for (Entity item : player.inventory) {
-                    // Perlu cara yang lebih baik untuk mencocokkan nama bahan dengan nama item di inventaris
-                    // Misal, OBJ_Crop "Wheat crop" vs bahan "Wheat"
-                    // Untuk sekarang, kita asumsikan nama dasar item (tanpa " crop" atau " seeds")
-                    if (item.name.toLowerCase().contains(itemName.toLowerCase())) {
-                        playerHasQty++; // Asumsi 1 item = 1 qty, belum ada stack
+                for (Entity itemInInventory : player.inventory) {
+                    if (itemInInventory instanceof OBJ_Item) {
+                        OBJ_Item objItem = (OBJ_Item) itemInInventory;
+                        // Ekstrak nama dasar dari item di inventaris
+                        // Nama item di inventaris: "NamaDasar tipedataitem" (mis. "Wheat crop")
+                        String itemFullName = objItem.name;
+                        String itemTypeString = " " + objItem.getType().name().toLowerCase();
+                        String currentItemBaseName = "";
+
+                        if (itemFullName != null && itemFullName.toLowerCase().endsWith(itemTypeString)) {
+                            currentItemBaseName = itemFullName.substring(0, itemFullName.length() - itemTypeString.length());
+                        } else {
+                            currentItemBaseName = itemFullName; // Jika tidak ada akhiran tipe, anggap nama penuh adalah nama dasar
+                        }
+
+                        if (currentItemBaseName != null && currentItemBaseName.equalsIgnoreCase(requiredIngredientBaseName)) {
+                            playerHasQty += objItem.quantity;
+                        }
                     }
                 }
             }
-            if (playerHasQty < requiredQty) return false; // Bahan tidak cukup
+
+            if (playerHasQty < requiredQty) {
+                System.out.println("DEBUG Cook: Not enough " + requiredIngredientBaseName + ". Has: " + playerHasQty + ", Needs: " + requiredQty);
+                gp.ui.showMessage("You don't have enough " + requiredIngredientBaseName + ".");
+                return false;
+            }
         }
-
-        // Cek Bahan Bakar [cite: 188]
-        boolean hasFirewood = player.inventory.stream().anyMatch(item -> item.name.startsWith("Firewood"));
-        boolean hasCoal = player.inventory.stream().anyMatch(item -> item.name.startsWith("Coal"));
-        if (!hasFirewood && !hasCoal) return false; // Tidak ada bahan bakar
-
-        return true;
+        return true; // Semua bahan dan bahan bakar tersedia
     }
-
+    // In spakborhills/KeyHandler.java
     private void initiateCookingProcess(Recipe recipe, Player player) {
-        if (!player.tryDecreaseEnergy(10)) { // Mengurangi 10 energi [cite: 216]
+        // Cek energi (sudah ada dan sepertinya benar)
+        if (!player.tryDecreaseEnergy(10)) { //
             gp.ui.showMessage("Not enough energy to cook!");
             return;
         }
 
-        // Konsumsi Bahan
+        // Konsumsi Bahan Resep
         for (Map.Entry<String, Integer> ingredientEntry : recipe.ingredients.entrySet()) {
-            String itemName = ingredientEntry.getKey();
-            int requiredQty = ingredientEntry.getValue();
-            int consumedQty = 0;
+            String requiredIngredientBaseName = ingredientEntry.getKey();
+            int qtyToConsume = ingredientEntry.getValue();
+            int qtyActuallyConsumed = 0;
+
             Iterator<Entity> invIterator = player.inventory.iterator();
-            while (invIterator.hasNext() && consumedQty < requiredQty) {
-                Entity item = invIterator.next();
-                boolean match = false;
-                if (RecipeManager.ANY_FISH.equals(itemName) && item instanceof OBJ_Fish) {
-                    match = true;
-                } else if (item.name.toLowerCase().contains(itemName.toLowerCase())) {
-                    match = true;
+            while (invIterator.hasNext() && qtyActuallyConsumed < qtyToConsume) {
+                Entity itemInInventory = invIterator.next();
+
+                if (RecipeManager.ANY_FISH.equals(requiredIngredientBaseName) && itemInInventory instanceof OBJ_Fish) {
+                    invIterator.remove(); // Hapus instance ikan
+                    qtyActuallyConsumed++;
+                } else if (itemInInventory instanceof OBJ_Item) {
+                    OBJ_Item objItem = (OBJ_Item) itemInInventory;
+                    String itemFullName = objItem.name;
+                    String itemTypeString = " " + objItem.getType().name().toLowerCase();
+                    String currentItemBaseName = "";
+
+                    if (itemFullName != null && itemFullName.toLowerCase().endsWith(itemTypeString)) {
+                        currentItemBaseName = itemFullName.substring(0, itemFullName.length() - itemTypeString.length());
+                    } else {
+                        currentItemBaseName = itemFullName;
+                    }
+
+                    if (currentItemBaseName != null && currentItemBaseName.equalsIgnoreCase(requiredIngredientBaseName)) {
+                        int canConsumeFromThisStack = Math.min(qtyToConsume - qtyActuallyConsumed, objItem.quantity);
+
+                        objItem.quantity -= canConsumeFromThisStack;
+                        qtyActuallyConsumed += canConsumeFromThisStack;
+
+                        if (objItem.quantity <= 0) {
+                            invIterator.remove(); // Hapus item dari inventaris jika kuantitas habis
+                        }
+                    }
                 }
-                if (match) {
-                    invIterator.remove();
-                    consumedQty++;
-                }
+            }
+
+            // Jika setelah iterasi, bahan yang dikonsumsi kurang (seharusnya tidak terjadi jika canPlayerCookRecipe benar)
+            if (qtyActuallyConsumed < qtyToConsume) {
+                System.err.println("CRITICAL COOKING ERROR: Failed to consume enough " + requiredIngredientBaseName +
+                        ". Had: " + qtyActuallyConsumed + ", Needed: " + qtyToConsume + ". Inventory might be corrupted or check logic failed.");
+                gp.ui.showMessage("Error: Could not find enough " + requiredIngredientBaseName + " during consumption!");
+                player.increaseEnergy(10); // Kembalikan energi karena proses gagal
+                return; // Hentikan proses memasak
             }
         }
 
-        // Konsumsi Bahan Bakar (prioritaskan Coal jika ada, karena lebih efisien)
-        // Spek: "1 kayu bisa masak 1 makanan. Coal: Arang, 1 arang bisa masak 2 makanan." [cite: 188]
-        // Untuk sistem pasif ini, lebih mudah jika 1 aksi masak = 1 fuel.
-        // Jika Coal digunakan, ia "membayar" 2 "poin masak", resep butuh 1 "poin masak".
-        // Ini rumit dilacak jika pasif.
-        // Alternatif: 1 Coal bisa dipakai untuk 2x masak. Atau 1 Coal = 1 Firewood dalam konsumsi per resep.
-        // Mari kita asumsikan 1 aksi masak (1 resep) mengkonsumsi 1 unit bahan bakar.
+        // Konsumsi Bahan Bakar
         boolean fuelConsumed = false;
+        // Prioritaskan Coal
         Iterator<Entity> fuelIterator = player.inventory.iterator();
         Entity fuelToConsume = null;
-        while(fuelIterator.hasNext()){
+        while (fuelIterator.hasNext()) {
             Entity item = fuelIterator.next();
-            if(item.name.startsWith("Coal")){ // Coba Coal dulu
+            if (item instanceof OBJ_Misc && item.name != null && item.name.startsWith("Coal")) {
                 fuelToConsume = item;
                 break;
             }
         }
-        if(fuelToConsume == null){ // Jika tidak ada Coal, cari Firewood
-            fuelIterator = player.inventory.iterator(); // Reset iterator
-            while(fuelIterator.hasNext()){
+        if (fuelToConsume == null) { // Jika tidak ada Coal, cari Firewood
+            fuelIterator = player.inventory.iterator(); // Perlu iterator baru atau reset jika didukung
+            while (fuelIterator.hasNext()) {
                 Entity item = fuelIterator.next();
-                if(item.name.startsWith("Firewood")){
+                if (item instanceof OBJ_Misc && item.name != null && item.name.startsWith("Firewood")) {
                     fuelToConsume = item;
                     break;
                 }
             }
         }
-        if(fuelToConsume != null){
-            player.inventory.remove(fuelToConsume);
+
+        if (fuelToConsume != null) {
+            OBJ_Misc fuelObjItem = (OBJ_Misc) fuelToConsume; // Asumsi fuel adalah OBJ_Misc
+            fuelObjItem.quantity--;
             fuelConsumed = true;
+            System.out.println("DEBUG Cook: Consumed 1 unit of " + fuelObjItem.name + ". Remaining: " + fuelObjItem.quantity);
+            if (fuelObjItem.quantity <= 0) {
+                player.inventory.remove(fuelToConsume); // Hapus dari inventory jika habis
+                System.out.println("DEBUG Cook: Removed empty fuel stack: " + fuelObjItem.name);
+            }
         }
 
-
-        if (!fuelConsumed) { // Seharusnya tidak terjadi jika canPlayerCookRecipe benar
-            gp.ui.showMessage("Error: No fuel found to consume!");
-            player.increaseEnergy(10); // Kembalikan energi jika gagal konsumsi fuel
+        if (!fuelConsumed) {
+            System.err.println("CRITICAL COOKING ERROR: No fuel consumed. This should have been caught by canPlayerCookRecipe.");
+            gp.ui.showMessage("Error: No fuel to cook with!");
+            player.increaseEnergy(10); // Kembalikan energi
             return;
         }
-
-        // Tambahkan ke antrian proses memasak
         spakborhills.Time startTime = gp.gameClock.getTime();
-        int finishHour = startTime.getHour() + 1; // Durasi 1 jam [cite: 215]
+        int finishHour = startTime.getHour() + 1; // Durasi 1 jam
         int finishMinute = startTime.getMinute();
         int finishDay = startTime.getDay();
         if (finishHour >= 24) {
@@ -485,6 +545,7 @@ public class KeyHandler implements KeyListener {
         }
         player.activeCookingProcesses.add(new ActiveCookingProcess(recipe.outputFoodName, recipe.outputFoodQuantity, finishDay, finishHour, finishMinute));
         gp.ui.showMessage(recipe.outputFoodName + " is cooking! Ready in 1 hour.");
+        System.out.println("DEBUG Cook: Started cooking " + recipe.outputFoodName);
     }
     private void sellScreenControls(int code) {
         if (gp.player.inventory.isEmpty()) {
@@ -671,57 +732,165 @@ public class KeyHandler implements KeyListener {
                 eatPressed = false;
             }
         }
-
-
     }
 
+    // In spakborhills/KeyHandler.java
 
     private void handleInventoryInput(int code, boolean isGifting) {
+        int currentCommandNum = gp.ui.inventoryCommandNum;
+        int newCommandNum = currentCommandNum;
         int maxInventoryItems = gp.player.inventory.size();
-        if (maxInventoryItems == 0) { // Handle inventory kosong
+
+        if (maxInventoryItems == 0) {
+            gp.ui.inventoryCommandNum = 0;
             if (code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_I) {
-                gp.gameState = gp.playState;
+                // Kembali ke playState jika inventaris kosong dan Esc/I ditekan
+                if (isGifting) {
+                    gp.gameState = gp.interactionMenuState;
+                } else {
+                    gp.gameState = gp.playState;
+                }
                 if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
                 gp.ui.isSelectingGift = false;
             }
-            return;
+            return; // Tidak ada navigasi atau aksi lain jika inventaris kosong
         }
+
+        // Perhitungan itemsPerRow (pastikan ini akurat dan konsisten dengan UI.java)
+        int frameWidth_inv = gp.screenWidth - (gp.tileSize * 4);
+        int slotSize_inv = gp.tileSize + 10;
+        int slotGap_inv = 5;
+        int itemsPerRow = (frameWidth_inv - gp.tileSize) / (slotSize_inv + slotGap_inv);
+        if (itemsPerRow <= 0) itemsPerRow = 1;
+
+        int currentRow = currentCommandNum / itemsPerRow;
+        int currentCol = currentCommandNum % itemsPerRow;
+        // Hitung jumlah baris aktual yang terisi item
+        int numRows = (maxInventoryItems + itemsPerRow - 1) / itemsPerRow;
+
 
         if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
-            gp.ui.inventoryCommandNum--;
-            if (gp.ui.inventoryCommandNum < 0) gp.ui.inventoryCommandNum = maxInventoryItems - 1;
-            gp.ui.itemSelectedByEnter = null; // Reset item yang dipilih Enter saat navigasi
+            if (currentRow > 0) { // Jika tidak di baris pertama
+                newCommandNum = currentCommandNum - itemsPerRow;
+            } else { // Di baris pertama, wrap ke baris terakhir, kolom yang sama
+                newCommandNum = ((numRows - 1) * itemsPerRow) + currentCol;
+                // Jika kolom target di baris terakhir (yang mungkin pendek) tidak valid
+                if (newCommandNum >= maxInventoryItems) {
+                    newCommandNum = maxInventoryItems - 1; // Pindah ke item paling terakhir
+                }
+            }
         } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
-            gp.ui.inventoryCommandNum++;
-            if (gp.ui.inventoryCommandNum >= maxInventoryItems) gp.ui.inventoryCommandNum = 0;
-            gp.ui.itemSelectedByEnter = null; // Reset item yang dipilih Enter saat navigasi
+            if (currentRow < numRows - 1) { // Jika tidak di baris terakhir
+                newCommandNum = currentCommandNum + itemsPerRow;
+                // Jika target di baris berikutnya melebihi jumlah item (karena baris target pendek)
+                if (newCommandNum >= maxInventoryItems) {
+                    newCommandNum = maxInventoryItems - 1; // Pindah ke item paling terakhir
+                }
+            } else { // Di baris terakhir, wrap ke baris pertama, kolom yang sama
+                newCommandNum = currentCol;
+                // Jika kolom target di baris pertama ternyata melebihi jumlah item (inventaris sangat kecil)
+                if (newCommandNum >= maxInventoryItems) {
+                    // Ini seharusnya tidak terjadi jika maxInventoryItems >= 1 dan currentCol valid
+                    // Jika terjadi, berarti ada sangat sedikit item, kurang dari currentCol
+                    newCommandNum = (maxInventoryItems > 0) ? maxInventoryItems - 1 : 0;
+                }
+            }
+        } else if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
+            if (currentCommandNum > 0) {
+                newCommandNum = currentCommandNum - 1;
+            } else { // currentCommandNum adalah 0 (item pertama)
+                newCommandNum = maxInventoryItems - 1; // Wrap ke item terakhir
+            }
+        } else if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
+            if (currentCommandNum < maxInventoryItems - 1) {
+                newCommandNum = currentCommandNum + 1;
+            } else { // currentCommandNum adalah item terakhir
+                newCommandNum = 0; // Wrap ke item pertama
+            }
         }
 
+        // Clamping akhir untuk memastikan newCommandNum selalu dalam batas yang valid
+        // Ini seharusnya menjadi redundan jika logika di atas sudah benar, tetapi sebagai pengaman.
+        if (maxInventoryItems > 0) { // Hanya lakukan jika ada item
+            if (newCommandNum < 0) {
+                newCommandNum = 0; // Tidak boleh kurang dari 0
+            }
+            if (newCommandNum >= maxInventoryItems) {
+                // Jika logika navigasi sudah benar, ini seharusnya berarti wrap ke 0 atau maxInventoryItems-1.
+                // Untuk mencegah "memilih di luar", kita clamp ke item terakhir atau wrap ke item pertama.
+                // Berdasarkan "kembali ke item pertama" saat overshoot, 0 lebih baik.
+                // Namun, logika individual KANAN/BAWAH sudah harusnya melakukan wrap ke 0.
+                // Jadi, jika masih >= maxInventoryItems di sini, itu aneh. Kita clamp ke terakhir saja.
+                newCommandNum = maxInventoryItems - 1;
+            }
+        } else { // Jika maxInventoryItems adalah 0 (inventaris kosong)
+            newCommandNum = 0;
+        }
+
+        gp.ui.inventoryCommandNum = newCommandNum;
+        // Hapus atau beri komentar pada System.out.println setelah debugging selesai
+        System.out.println("KeyHandler: Nav current=" + currentCommandNum + " itemsPerRow=" + itemsPerRow +
+                " maxItems=" + maxInventoryItems + " numRows=" + numRows +
+                " -> new invCmdNum=" + gp.ui.inventoryCommandNum);
+
+
+        // Logika untuk tombol ENTER (Pilih/Equip) dan E (Makan) tetap sama,
+        // karena mereka menggunakan gp.ui.inventoryCommandNum yang sudah diperbarui.
         if (code == KeyEvent.VK_ENTER) {
             enterPressed = false;
             if (isGifting) {
                 NPC currentNPC = (NPC) gp.currentInteractingNPC;
-                if (currentNPC != null && gp.ui.inventoryCommandNum < maxInventoryItems) {
+                // Pastikan gp.ui.inventoryCommandNum valid sebelum mengakses inventaris
+                if (currentNPC != null && gp.ui.inventoryCommandNum >= 0 && gp.ui.inventoryCommandNum < maxInventoryItems) {
                     Entity selectedItem = gp.player.inventory.get(gp.ui.inventoryCommandNum);
+                    System.out.println("DEBUG KeyHandler: Gifting item at index: " + gp.ui.inventoryCommandNum + " which is: " + selectedItem.name);
                     currentNPC.receiveGift(selectedItem, gp.player);
+                    // Setelah memberi hadiah, kembali ke menu interaksi NPC, bukan playState langsung
+                    gp.gameState = gp.interactionMenuState;
+                    gp.ui.isSelectingGift = false;
+                } else if (currentNPC != null) {
+                    System.out.println("DEBUG KeyHandler: Gifting attempt with invalid inventoryCommandNum: " + gp.ui.inventoryCommandNum);
+                    // Mungkin tampilkan pesan atau kembali ke menu NPC
+                    gp.gameState = gp.interactionMenuState; // Kembali jika tidak ada item valid terpilih
+                    gp.ui.isSelectingGift = false;
                 }
-                gp.ui.isSelectingGift = false;
-            } else { // Bukan gifting, ini adalah aksi equip/select item
-                if (!gp.player.inventory.isEmpty() && gp.ui.inventoryCommandNum >= 0 && gp.ui.inventoryCommandNum < gp.player.inventory.size()) {
-                    gp.player.equipItem(gp.ui.inventoryCommandNum); // Panggil metode equipItem baru di Player
+            } else { // Bukan gifting, berarti equip/use dari inventory biasa
+                // Pastikan gp.ui.inventoryCommandNum valid
+                if (gp.ui.inventoryCommandNum >= 0 && gp.ui.inventoryCommandNum < maxInventoryItems) {
+                    Entity selectedItemToEquip = gp.player.inventory.get(gp.ui.inventoryCommandNum);
+                    System.out.println("DEBUG KeyHandler: Equipping item at index: " + gp.ui.inventoryCommandNum + " which is: " + selectedItemToEquip.name);
+                    gp.player.equipItem(gp.ui.inventoryCommandNum);
+                } else {
+                    System.out.println("DEBUG KeyHandler: Equip attempt with invalid inventoryCommandNum: " + gp.ui.inventoryCommandNum);
                 }
             }
         }
 
-        if (code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_I || (code == KeyEvent.VK_E && !isGifting) ) {
+        if (code == KeyEvent.VK_E && !isGifting) {
+            // Pastikan gp.ui.inventoryCommandNum valid
+            if (gp.ui.inventoryCommandNum >= 0 && gp.ui.inventoryCommandNum < maxInventoryItems) {
+                Entity selectedItem = gp.player.inventory.get(gp.ui.inventoryCommandNum);
+                if (selectedItem instanceof Edible) {
+                    System.out.println("DEBUG KeyHandler: Eating item at index: " + gp.ui.inventoryCommandNum + " which is: " + selectedItem.name);
+                    ((Edible) selectedItem).eat(gp.player);
+                } else {
+                    gp.ui.showMessage(selectedItem.name + " tidak bisa dimakan.");
+                }
+            } else {
+                System.out.println("DEBUG KeyHandler: Eat attempt with invalid inventoryCommandNum: " + gp.ui.inventoryCommandNum);
+                gp.ui.showMessage("Tidak ada item valid yang dipilih untuk dimakan.");
+            }
+            eatPressed = false;
+        }
+
+        if (code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_I ) {
             if (isGifting) {
-                gp.gameState = gp.interactionMenuState;
+                gp.gameState = gp.interactionMenuState; // Kembali ke menu NPC jika sedang memilih hadiah
             } else {
                 gp.gameState = gp.playState;
             }
             if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
             gp.ui.isSelectingGift = false;
-            gp.ui.itemSelectedByEnter = null;
         }
     }
 

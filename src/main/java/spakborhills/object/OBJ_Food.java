@@ -12,7 +12,7 @@ public class OBJ_Food extends OBJ_Item implements Edible {
 
 
     public OBJ_Food(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice, int energy){
-        super(gp, itemType, name, isEdible, buyPrice, sellPrice);
+        super(gp, itemType, name, isEdible, buyPrice, sellPrice, 1);
         this.energy = energy;
         this.type = EntityType.INTERACTIVE_OBJECT;
 

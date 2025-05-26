@@ -4,6 +4,8 @@ import spakborhills.cooking.Recipe;
 import spakborhills.cooking.RecipeManager;
 import spakborhills.entity.Entity;
 import spakborhills.entity.NPC;
+import spakborhills.enums.ItemType;
+import spakborhills.interfaces.Edible;
 import spakborhills.object.OBJ_Item;
 
 import javax.imageio.ImageIO;
@@ -712,94 +714,114 @@ public class UI {
         return frameX + (frameWidth - length) / 2;
     }
 
-    public void drawInventoryScreen() {
-        int frameX = gp.tileSize * 2;
-        int frameY = gp.tileSize;
-        int frameWidth = gp.screenWidth - (gp.tileSize * 4);
-        int frameHeight = gp.tileSize * 10; // Tinggi frame bisa disesuaikan
-        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+    public void drawInventoryScreen() { //
+        int frameX = gp.tileSize * 2; //
+        int frameY = gp.tileSize; //
+        int frameWidth = gp.screenWidth - (gp.tileSize * 4); //
+        int frameHeight = gp.tileSize * 10; //
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight); //
 
         g2.setColor(Color.white);
-        g2.setFont(g2.getFont().deriveFont(24F));
-        g2.drawString("INVENTORY", getXForInventoryTitle("INVENTORY", frameX, frameWidth), frameY + gp.tileSize - 10);
+        // Pastikan pressStart dimuat, jika tidak gunakan fallback
+        Font titleFont = (pressStart != null) ? pressStart.deriveFont(24F) : new Font("Arial", Font.BOLD, 24); //
+        g2.setFont(titleFont);
+        g2.drawString("INVENTORY", getXForInventoryTitle("INVENTORY", frameX, frameWidth), frameY + gp.tileSize - 10); //
 
-        // Pengaturan Slot Awal
-        final int slotStartX = frameX + gp.tileSize / 2;
-        final int slotStartY = frameY + gp.tileSize;
+        final int slotStartX = frameX + gp.tileSize / 2; //
+        final int slotStartY = frameY + gp.tileSize + 20; // Menambahkan sedikit padding dari judul
         int currentSlotX = slotStartX;
         int currentSlotY = slotStartY;
-        final int slotSize = gp.tileSize + 10;
+        final int slotSize = gp.tileSize + 10; //
         final int slotGap = 5;
-        final int itemsPerRow = (frameWidth - gp.tileSize) / (slotSize + slotGap);
+        final int itemsPerRow = (frameWidth - gp.tileSize) / (slotSize + slotGap); //
 
-        int currentItemIndex = 0;
+        int currentItemIndexInList = 0; // Ini akan menjadi indeks untuk perbandingan inventoryCommandNum
 
+        Font itemQuantityFont = (pressStart != null) ? pressStart.deriveFont(Font.BOLD, 12F) : new Font("Arial", Font.BOLD, 12); //
+        Font itemInfoFont = (pressStart != null) ? pressStart.deriveFont(18F) : new Font("Arial", Font.PLAIN, 18); //
 
-
-
-        for (Entity item : gp.player.inventory) {
-            if (currentSlotY + slotSize > frameY + frameHeight - gp.tileSize / 2) {
-                g2.setColor(Color.white);
-                g2.drawString("...", currentSlotX, currentSlotY + slotSize / 2);
-                break;
+        for (Entity itemEntity : gp.player.inventory) { //
+            if (!(itemEntity instanceof OBJ_Item item)) { // Pastikan kita berurusan dengan OBJ_Item
+                continue; // Lewati jika bukan OBJ_Item (atau tangani secara berbeda)
             }
 
-            g2.setColor(new Color(100, 100, 100, 150)); // Warna slot
+            if (currentSlotY + slotSize > frameY + frameHeight - gp.tileSize / 2) { //
+                g2.setColor(Color.white);
+                g2.setFont(itemInfoFont);
+                g2.drawString("...", currentSlotX, currentSlotY + slotSize / 2);
+                break; // Berhenti menggambar jika di luar ruang yang terlihat
+            }
+
+            g2.setColor(new Color(100, 100, 100, 150));
             g2.fillRoundRect(currentSlotX, currentSlotY, slotSize, slotSize, 10, 10);
             g2.setColor(Color.white);
             g2.drawRoundRect(currentSlotX, currentSlotY, slotSize, slotSize, 10, 10);
 
-            // Gambar ikon item
-            if (item.down1 != null) {
-                g2.drawImage(item.down1, currentSlotX + 5, currentSlotY + 5, gp.tileSize, gp.tileSize, null);
-            } else if (item.image != null) { // Fallback jika down1 tidak ada tapi image ada
-                g2.drawImage(item.image, currentSlotX + 5, currentSlotY + 5, gp.tileSize, gp.tileSize, null);
+            BufferedImage imageToDraw = item.image != null ? item.image : item.down1; //
+            if (imageToDraw != null) {
+                g2.drawImage(imageToDraw, currentSlotX + 5, currentSlotY + 5, gp.tileSize, gp.tileSize, null); //
             }
 
-            // Tandai slot yang dipilih berdasarkan inventoryCommandNum
-            // inventoryCommandNum sekarang harus merujuk ke indeks dalam gp.player.inventory
-            if (currentItemIndex == inventoryCommandNum) {
+            // << BARU: Tampilkan Kuantitas >>
+            if (item.quantity > 0) { // Tampilkan kuantitas jika ada (misal, > 0 atau > 1 tergantung preferensi)
+                g2.setFont(itemQuantityFont); // Font sudah didefinisikan sebelumnya
+                g2.setColor(Color.white);
+                String quantityText = "x" + item.quantity;
+                FontMetrics qfm = g2.getFontMetrics(itemQuantityFont);
+                int qtyX = currentSlotX + slotSize - qfm.stringWidth(quantityText) - 5;
+                int qtyY = currentSlotY + slotSize - 5;
+
+                g2.setColor(Color.black); // Bayangan
+                g2.drawString(quantityText, qtyX + 1, qtyY + 1);
+                g2.setColor(Color.white); // Teks utama
+                g2.drawString(quantityText, qtyX, qtyY);
+            }
+            if (currentItemIndexInList == inventoryCommandNum) { //
                 g2.setColor(Color.yellow);
                 g2.setStroke(new BasicStroke(3));
                 g2.drawRoundRect(currentSlotX - 2, currentSlotY - 2, slotSize + 4, slotSize + 4, 12, 12);
-                g2.setStroke(new BasicStroke(1)); // Reset stroke
+                g2.setStroke(new BasicStroke(1));
 
-                // Tampilkan nama item yang dipilih
-                g2.setColor(Color.white); // Set ulang warna setelah highlight
-                g2.setFont(g2.getFont().deriveFont(18F));
-                int itemInfoY = frameY + frameHeight + gp.tileSize / 2; // Posisi di bawah frame
-                g2.drawString("Item: " + item.name, slotStartX, itemInfoY);
-
-                // kalo mau menambahkan deskripsi atau detail lain di sini:
-                // if (item.description != null) {
-                //     g2.drawString(item.description, slotStartX, itemInfoY + 20);
-                // }
+                g2.setColor(Color.white);
+                int itemInfoY = frameY + frameHeight + gp.tileSize / 2; //
+                // Gunakan getFullName() jika Anda ingin tipe disertakan, atau getName() hanya untuk nama dasar
+                g2.drawString("Item: " + item.getName(), slotStartX, itemInfoY); //
+                if (item.isEdible() && item instanceof spakborhills.interfaces.Edible) { //
+                    g2.drawString("Tekan 'E' untuk Makan", slotStartX, itemInfoY + 20);
+                }
             }
 
-            // Pindah ke posisi slot berikutnya
             currentSlotX += slotSize + slotGap;
-            if ((currentItemIndex + 1) % itemsPerRow == 0) { // Jika item berikutnya adalah awal baris baru
-                currentSlotX = slotStartX;  // Kembali ke kolom pertama
-                currentSlotY += slotSize + slotGap; // Pindah ke baris baru
+            if ((currentItemIndexInList + 1) % itemsPerRow == 0) {
+                currentSlotX = slotStartX;
+                currentSlotY += slotSize + slotGap;
             }
-
-            currentItemIndex++; // Increment indeks item saat ini
+            currentItemIndexInList++;
         }
 
-        // Jika inventaris kosong atau tidak ada item yang dipilih (misalnya, commandNum di luar jangkauan)
-        // Bagian ini perlu disesuaikan karena info item kini digambar di dalam loop jika slot terpilih.
-        if (gp.player.inventory.isEmpty()) {
+        if (gp.player.inventory.isEmpty()) { //
             g2.setColor(Color.white);
-            g2.setFont(g2.getFont().deriveFont(18F));
-            int itemInfoY = frameY + frameHeight + gp.tileSize / 2;
-            g2.drawString("Inventory is Empty", slotStartX, itemInfoY);
-        } else if (inventoryCommandNum < 0 || inventoryCommandNum >= gp.player.inventory.size()) {
-            // Jika kursor menunjuk ke luar jangkauan item yang ada (seharusnya tidak sering terjadi dengan navigasi yang benar)
+            g2.setFont(itemInfoFont);
+            int itemInfoY = frameY + frameHeight + gp.tileSize / 2; //
+            g2.drawString("Inventaris Kosong", slotStartX, itemInfoY);
+        } else if (inventoryCommandNum < 0 || inventoryCommandNum >= gp.player.inventory.size()) { //
+            // Kasus ini idealnya tidak akan terjadi jika inventoryCommandNum selalu valid
+            // Atau jika ya, berarti tidak ada item yang aktif "dipilih" untuk ditampilkan detailnya.
             g2.setColor(Color.white);
-            g2.setFont(g2.getFont().deriveFont(18F));
-            int itemInfoY = frameY + frameHeight + gp.tileSize / 2;
-            g2.drawString("Select Item...", slotStartX, itemInfoY);
+            g2.setFont(itemInfoFont);
+            int itemInfoY = frameY + frameHeight + gp.tileSize / 2; //
+            g2.drawString("Pilih item...", slotStartX, itemInfoY);
         }
+        // Instruksi
+        g2.setFont((pressStart != null) ? pressStart.deriveFont(Font.PLAIN, 10F) : new Font("Arial", Font.PLAIN, 10)); //
+        g2.setColor(Color.white);
+        String instructions = "[Panah] Navigasi | [Enter] Pilih/Equip | [I/Esc] Tutup";
+        if (gp.player.getEquippedItem() instanceof Edible) { //
+            instructions += " | [E] Makan Item yang Dipegang";
+        }
+        int instructionY = frameY + frameHeight - gp.tileSize + 35; // Y yang disesuaikan untuk info item
+        int instructionX = getXForCenteredTextInFrame(instructions, frameX, frameWidth); //
+        g2.drawString(instructions, instructionX, instructionY);
     }
 
     public void drawNPCInteractionMenu() {

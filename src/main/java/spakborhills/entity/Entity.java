@@ -166,13 +166,6 @@ import java.util.Objects;
                             ". Periksa apakah 'down1' atau 'image' sudah dimuat di konstruktor objek (misal OBJ_Bed).");
                 }
             }
-        } else {
-//             Log jika objek di-cull (untuk debugging jika objek tidak muncul karena dianggap di luar layar)
-             if (this.name != null && this.name.toLowerCase().contains("bed")) {
-                 System.out.println("[Entity.draw DEBUG] " + this.name +
-                                    " DI-CULL. worldX=" + worldX + ", worldY=" + worldY +
-                                    ", playerX=" + gp.player.worldX + ", playerY=" + gp.player.worldY);
-             }
         }
     }
 

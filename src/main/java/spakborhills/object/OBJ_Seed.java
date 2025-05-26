@@ -15,7 +15,7 @@ public class OBJ_Seed extends OBJ_Item {
     private Weather weather;
  
     public OBJ_Seed(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice, int countWater, int dayToHarvest, Season season, Weather weather){
-        super(gp, itemType, name, isEdible, buyPrice, sellPrice);
+        super(gp, itemType, name, isEdible, buyPrice, sellPrice, 1);
         this.type = EntityType.INTERACTIVE_OBJECT;
         this.season = season;
         this.weather = weather;
