@@ -14,8 +14,8 @@ public class PlantingCommand implements Command {
     @Override
     public void execute(GamePanel gp) {
         int tileSize = gp.tileSize;
-        int playerCol = player.worldX / tileSize;
-        int playerRow = player.worldY / tileSize;
+        int playerCol = (player.worldX + player.solidArea.x) / tileSize;
+        int playerRow = (player.worldY + player.solidArea.y) / tileSize;
 
         // Hitung posisi tile di depan player
         switch (player.direction) {
