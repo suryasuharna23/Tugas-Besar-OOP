@@ -2,5 +2,7 @@ package spakborhills.enums;
 
 public enum TileState {
     LAND,
-    SOIL
+    SOIL,
+    PLANTED,
+    WATERED_PLANT
 }

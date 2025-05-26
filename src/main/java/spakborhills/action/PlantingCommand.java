@@ -48,8 +48,10 @@ public class PlantingCommand implements Command {
 
     private int getTileIndexFromState(TileState state) {
         return switch (state) {
-            case LAND -> 14;  // sesuaikan index LAND
-            case SOIL -> 76;  // sesuaikan index SOIL
+            case LAND -> 14;             // Sesuaikan dengan index land.png
+            case SOIL -> 76;             // Sesuaikan dengan index soil.png
+            case PLANTED -> 55;          // Sesuaikan dengan index planted.png
+            case WATERED_PLANT -> 80;  // sesuaikan index SOIL
         };
     }
 }

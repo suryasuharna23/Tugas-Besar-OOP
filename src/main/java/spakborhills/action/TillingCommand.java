@@ -56,8 +56,10 @@ public class TillingCommand implements Command {
 
     private int getTileIndexFromState(TileState state) {
         return switch (state) {
-            case LAND -> 14;
-            case SOIL -> 76;
+            case LAND -> 14;             // Sesuaikan dengan index land.png
+            case SOIL -> 76;             // Sesuaikan dengan index soil.png
+            case PLANTED -> 55;          // Sesuaikan dengan index planted.png
+            case WATERED_PLANT -> 80;
         };
     }
 }

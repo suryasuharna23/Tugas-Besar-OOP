@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import spakborhills.action.PlantingCommand;
 import spakborhills.action.RecoverLandCommand;
 import spakborhills.action.TillingCommand;
+import spakborhills.action.WateringCommand;
 import spakborhills.cooking.ActiveCookingProcess;
 import spakborhills.cooking.Recipe;
 import spakborhills.cooking.RecipeManager;
@@ -214,6 +215,8 @@ public class KeyHandler implements KeyListener {
                 new TillingCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_T) {
                 new RecoverLandCommand(gp.player).execute(gp);
+            } else if (code == KeyEvent.VK_G) {
+                new WateringCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_F) {
                 new PlantingCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_I){

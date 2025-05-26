@@ -5,6 +5,7 @@ import spakborhills.entity.Player;
 import spakborhills.enums.TileState;
 
 public class RecoverLandCommand implements Command {
+
     private final Player player;
 
     public RecoverLandCommand(Player player) {
@@ -26,11 +27,17 @@ public class RecoverLandCommand implements Command {
         }
 
         // Validasi batas
-        if (playerCol < 0 || playerCol >= gp.maxWorldCol || playerRow < 0 || playerRow >= gp.maxWorldRow)
+        if (playerCol < 0 || playerCol >= gp.maxWorldCol || playerRow < 0 || playerRow >= gp.maxWorldRow) {
             return;
+        }
 
         int tileIndex = gp.tileManager.mapTileNum[playerCol][playerRow];
-        if (tileIndex == getTileIndexFromState(TileState.SOIL)) {
+
+        // Periksa apakah tile bisa di-recover
+        if (tileIndex == getTileIndexFromState(TileState.SOIL) ||
+                tileIndex == getTileIndexFromState(TileState.PLANTED) ||
+                tileIndex == getTileIndexFromState(TileState.WATERED_PLANT)) {
+
             boolean success = player.tryDecreaseEnergy(5);
             if (!success) return;
 
@@ -38,14 +45,16 @@ public class RecoverLandCommand implements Command {
             gp.gameClock.getTime().advanceTime(5);
             System.out.println("Tile berhasil di-recover menjadi LAND.");
         } else {
-            System.out.println("Tile ini bukan SOIL, tidak bisa di-recover.");
+            System.out.println("Tile ini tidak bisa di-recover.");
         }
     }
 
     private int getTileIndexFromState(TileState state) {
         return switch (state) {
-            case LAND -> 14; // ganti sesuai index land.png
-            case SOIL -> 76; // ganti sesuai index soil.png
+            case LAND -> 14;             // Sesuaikan dengan index land.png
+            case SOIL -> 76;             // Sesuaikan dengan index soil.png
+            case PLANTED -> 55;          // Sesuaikan dengan index planted.png
+            case WATERED_PLANT -> 80;  // Sesuaikan dengan index watered_planted.png
         };
     }
 }
