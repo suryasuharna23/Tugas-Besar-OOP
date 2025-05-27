@@ -14,7 +14,7 @@ public class NPC_PERRY extends NPC{
         type = EntityType.NPC;
         Collections.addAll(lovedGiftsName, "Cranberry", "Blueberry");
         Collections.addAll(likedGiftsName, "Wine");
-        Collections.addAll(hatedItems, "Semua item fish"); // tunggu fish selesai implement
+        Collections.addAll(hatedItems, "Semua item fish"); 
         setDialogue();
         getNPCImage();
     }

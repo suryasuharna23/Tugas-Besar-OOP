@@ -13,7 +13,7 @@ public class OBJ_Seed extends OBJ_Item {
     private int countWater;
     private Season season;
     private Weather weather;
- 
+
     public OBJ_Seed(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice, int countWater, int dayToHarvest, Season season, Weather weather){
         super(gp, itemType, name, isEdible, buyPrice, sellPrice, 1);
         this.type = EntityType.INTERACTIVE_OBJECT;
@@ -176,7 +176,7 @@ public class OBJ_Seed extends OBJ_Item {
         if (user instanceof Player player) {
             gp.ui.showMessage("Kamu menanam " + this.getName() + ".");
             player.plantSeed(this.getName() + " Seeds");
-            return true; // true berarti item ini akan dikonsumsi (dihapus dari inventaris)
+            return true; 
         }
         return false;
     }

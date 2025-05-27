@@ -39,11 +39,11 @@ import java.util.Objects;
 
     public Entity(GamePanel gp){
         this.gp = gp;
-        // Default ukuran visual dan solidArea adalah 1 tile
+        
         this.imageWidth = gp.tileSize;
         this.imageHeight = gp.tileSize;
-        this.solidArea = new Rectangle(0, 0, gp.tileSize, gp.tileSize); // Default solid area
-        // solidAreaDefaultX dan Y akan diatur oleh sub-kelas jika perlu offset
+        this.solidArea = new Rectangle(0, 0, gp.tileSize, gp.tileSize); 
+        
     }
 
     public BufferedImage setup(String imagePath){
@@ -70,14 +70,14 @@ import java.util.Objects;
     }
 
     private void checkCollisionAndMove(){
-        //CHECK TILE COLLISION
+        
         collisionON = false;
         gp.collisionChecker.checkTile(this);
         gp.collisionChecker.checkPlayer(this);
 
-        // Check object collision
+        
 
-        //IF COLLISION FALSE, PLAYER CAN MOVE
+        
         if (!collisionON){
             switch (direction){
                 case "up": worldY -= speed; break;
@@ -111,9 +111,9 @@ import java.util.Objects;
                 worldY + this.imageHeight > gp.player.worldY - gp.player.screenY &&
                 worldY < gp.player.worldY + gp.player.screenY) {
 
-            // Logika pemilihan gambar berdasarkan tipe entitas
+            
             if (type == EntityType.PLAYER || type == EntityType.NPC) {
-                // Untuk Player dan NPC, selalu gunakan logika animasi sprite
+                
                 switch (direction) {
                     case "up":
                         imageToRender = (spriteNum == 1) ? up1 : up2;
@@ -128,35 +128,35 @@ import java.util.Objects;
                         imageToRender = (spriteNum == 1) ? right1 : right2;
                         break;
                     default:
-                        // Fallback jika arah tidak valid (seharusnya tidak terjadi untuk Player/NPC aktif)
-                        imageToRender = down1; // Atau gambar default lainnya
+                        
+                        imageToRender = down1; 
                 }
             } else if (type == EntityType.INTERACTIVE_OBJECT ||
                     type == EntityType.PICKUP_ITEM ||
                     type == EntityType.STATIC_DECORATION) {
-                // Untuk objek, item, atau dekorasi statis, prioritaskan this.image, lalu this.down1
+                
                 if (this.image != null) {
                     imageToRender = this.image;
                 } else {
-                    imageToRender = this.down1; // OBJ_Bed Anda mengatur down1
+                    imageToRender = this.down1; 
                 }
             } else {
-                // Fallback untuk tipe entitas lain yang tidak terdefinisi secara spesifik di atas
-                // Mungkin bisa default ke this.down1 jika ada, atau null
+                
+                
                 imageToRender = this.down1;
             }
 
             if (imageToRender != null) {
                 g2.drawImage(imageToRender, screenX, screenY, this.imageWidth, this.imageHeight, null);
             } else {
-                // Fallback: Gambar kotak berwarna jika tidak ada gambar
+                
                 g2.setColor(Color.MAGENTA);
                 g2.fillRect(screenX, screenY, this.imageWidth, this.imageHeight);
                 g2.setColor(Color.BLACK);
                 String nameToDraw = (name != null && name.length() > 0) ? name : "NUL";
                 g2.drawString(nameToDraw.substring(0, Math.min(nameToDraw.length(), 3)), screenX + 2, screenY + 12);
 
-                // Log error jika gambar null untuk tipe yang seharusnya punya gambar
+                
                 if (type == EntityType.PLAYER || type == EntityType.NPC) {
                     System.err.println("[Entity.draw ERROR] imageToRender adalah NULL untuk animated entity: " + this.name +
                             " (direction: " + direction + ", spriteNum: " + spriteNum +

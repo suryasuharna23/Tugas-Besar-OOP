@@ -62,38 +62,38 @@ public class OBJ_Food extends OBJ_Item implements Edible {
 
     @Override
     public boolean use(Entity entity) {
-        if (isEdible() && entity instanceof Player) { // Player yang menggunakan dari inventory
+        if (isEdible() && entity instanceof Player) { 
             Player player = (Player) entity;
-            //player.increaseEnergy(this.getEnergy());
+            
             gp.ui.showMessage(this.name + " is now held. Press 'E' to eat.");
             return false;
         }
         return false;
     }
 
-    @Override // Implementasi dari interface Edible
+    @Override 
     public void eat(Player player) {
-        System.out.println("DEBUG: OBJ_Food.eat() called for " + this.name); // DEBUG
+        System.out.println("DEBUG: OBJ_Food.eat() called for " + this.name); 
         if (player.gp.ui != null) {
-            player.gp.ui.showMessage("You are eating " + this.name + "."); // Memulai dialog besar
+            player.gp.ui.showMessage("You are eating " + this.name + "."); 
         }
 
-        if (this.getEnergy() != 0) { // Cek apakah ada perubahan energi (bisa positif atau negatif)
-            player.increaseEnergy(this.getEnergy()); // Metode increaseEnergy di Player akan menangani batas max/min
+        if (this.getEnergy() != 0) { 
+            player.increaseEnergy(this.getEnergy()); 
         }
 
-        // Mengurangi/Memajukan waktu
+        
         if (player.gp.gameClock != null && player.gp.gameClock.getTime() != null) {
-            player.gp.gameClock.getTime().advanceTime(-5); // Contoh: memajukan waktu 5 menit game
+            player.gp.gameClock.getTime().advanceTime(-5); 
             System.out.println("DEBUG: Game time advanced by 5 minutes due to eating.");
         } else {
             System.out.println("DEBUG: GameClock or Time is null, cannot advance time.");
         }
 
-        // Mainkan suara makan jika ada
-        // if (player.gp.se != null) player.gp.se.playSE(INDEKS_SUARA_MAKAN);
+        
+        
 
-        player.consumeItemFromInventory(this); // Konsumsi item
+        player.consumeItemFromInventory(this); 
     }
 
 }

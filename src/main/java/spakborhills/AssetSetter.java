@@ -17,15 +17,15 @@ public class AssetSetter {
         }
 
         public void setObject(String currentMapName) {
-                gp.entities.removeIf(e -> !(e instanceof Player) && !(e instanceof NPC)); // Hapus objek lama
+                gp.entities.removeIf(e -> !(e instanceof Player) && !(e instanceof NPC)); 
 
-                // Contoh menempatkan peti
+                
                 Entity chest1 = new OBJ_Chest(gp);
                 chest1.worldX = gp.tileSize * 22;
                 chest1.worldY = gp.tileSize * 30;
                 gp.entities.add(chest1);
 
-                // COMMON FISH
+                
                 Entity bullhead = new OBJ_Fish(gp, ItemType.FISH, "Bullhead", true, 300, 200,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
@@ -47,7 +47,7 @@ public class AssetSetter {
                                 FishType.COMMON, 0, 24);
                 gp.entities.add(chub);
 
-                // REGULAR FISH
+                
                 Entity largemouthBass = new OBJ_Fish(gp, ItemType.FISH, "Largemouth Bass", true, 500, 300,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
@@ -120,7 +120,7 @@ public class AssetSetter {
                                 Arrays.asList("Forest River"), FishType.REGULAR, 6, 18);
                 gp.entities.add(salmon);
 
-                // LEGENDARY FISH
+                
                 Entity angler = new OBJ_Fish(gp, ItemType.FISH, "Angler", true, 1000, 800,
                                 Arrays.asList(Season.FALL), Arrays.asList(Weather.RAINY, Weather.SUNNY),
                                 Arrays.asList("Pond"), FishType.LEGENDARY, 8, 20);
@@ -140,20 +140,20 @@ public class AssetSetter {
                                 Arrays.asList(Season.SPRING), Arrays.asList(Weather.RAINY),
                                 Arrays.asList("Mountain Lake"), FishType.LEGENDARY, 8, 20);
                 gp.entities.add(legend);
-                // --- AKHIR BAGIAN PENAMBAHAN IKAN ---
+                
 
                 System.out.println(
                                 "[AssetSetter.setObject()] INFO: Selesai menambahkan semua entitas ikan global. Jumlah entitas (termasuk ikan) sekarang: "
                                                 + gp.entities.size());
 
-                // Sekarang, tambahkan objek-objek yang spesifik untuk peta tertentu
+                
                 if ("Farm".equalsIgnoreCase(currentMapName)) {
                         Entity key1 = new OBJ_Key(gp);
                         key1.worldX = gp.tileSize * 23;
                         key1.worldY = gp.tileSize * 40;
                         gp.entities.add(key1);
 
-                        Entity chestOnFarm = new OBJ_Chest(gp); // Beri nama unik jika ada chest lain
+                        Entity chestOnFarm = new OBJ_Chest(gp); 
                         chestOnFarm.worldX = gp.tileSize * 22;
                         chestOnFarm.worldY = gp.tileSize * 30;
                         gp.entities.add(chestOnFarm);
@@ -178,22 +178,22 @@ public class AssetSetter {
                         gp.entities.add(stove);
 
                 }
-                // Tambahkan logika untuk peta lain jika perlu
+                
         }
 
-        // Ubah metode setNPC untuk menerima nama peta saat ini
+        
         public void setNPC(String currentMapName) {
-                // Logika penempatan NPC berdasarkan nama peta
+                
                 if ("Abigail's House".equalsIgnoreCase(currentMapName)) {
                         NPC abigail = new NPC_ABIGAIL(gp);
-                        abigail.worldX = gp.tileSize * 10; // Contoh koordinat X untuk Abigail di rumahnya
-                        abigail.worldY = gp.tileSize * 12; // Contoh koordinat Y untuk Abigail di rumahnya
+                        abigail.worldX = gp.tileSize * 10; 
+                        abigail.worldY = gp.tileSize * 12; 
                         gp.npcs.add(abigail);
                         gp.entities.add(abigail);
 
                 } else if ("Caroline's House".equalsIgnoreCase(currentMapName)) {
                         NPC caroline = new NPC_CAROLINE(gp);
-                        caroline.worldX = gp.tileSize * 8; // Contoh koordinat untuk Caroline
+                        caroline.worldX = gp.tileSize * 8; 
                         caroline.worldY = gp.tileSize * 10;
                         gp.npcs.add(caroline);
                         gp.entities.add(caroline);
