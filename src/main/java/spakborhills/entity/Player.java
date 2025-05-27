@@ -24,10 +24,8 @@ import java.util.*;
 
 import spakborhills.enums.Location;
 import spakborhills.enums.FishType;
-import spakborhills.object.OBJ_Fish;
 import spakborhills.enums.ItemType;
 import java.util.List;
-import java.util.Random;
 
 
 public class Player extends Entity{
@@ -262,8 +260,25 @@ public class Player extends Entity{
         // GamePanel akan mengambil gp.ui.currentDialogue ini saat dalam state transisi tidur.
         gp.ui.currentDialogue = sleepMessagePrefix + "\n" + energyRecoveryMessage;
         System.out.println("[Player] Sleeping. Message: " + gp.ui.currentDialogue); // Debug
+        teleportToPlayerHouse();
 
     }
+
+    /**
+ * Memindahkan player ke rumahnya di samping tempat tidur
+ */
+private void teleportToPlayerHouse() {
+    int houseX = gp.tileSize * 7; // Posisi X di rumah (samping tempat tidur)
+    int houseY = gp.tileSize * 6; // Posisi Y di rumah (samping tempat tidur)
+
+    if (gp.currentMapIndex != gp.PLAYER_HOUSE_INDEX) {
+        gp.loadMapbyIndex(10);
+    } 
+    this.worldX = houseX;
+    this.worldY = houseY;
+    this.direction = "down"; // Arah menghadap setelah bangun
+
+}
 
     public boolean isMarried() {
         return married;
