@@ -11,14 +11,14 @@ public class CollisionChecker {
     }
 
     public void checkTile(Entity entity) {
-        // Hitung batas area solid entitas dalam koordinat dunia
+        
         int entityLeftWorldX = entity.worldX + entity.solidArea.x;
         int entityRightWorldX = entity.worldX + entity.solidArea.x + entity.solidArea.width;
         int entityTopWorldY = entity.worldY + entity.solidArea.y;
         int entityBottomWorldY = entity.worldY + entity.solidArea.y + entity.solidArea.height;
 
-        // Tentukan kolom/baris entitas saat ini berdasarkan area solidnya.
-        // Note: These are current column/row, used for some direction checks.
+        
+        
         int entityLeftCol = entityLeftWorldX / gp.tileSize;
         int entityRightCol = entityRightWorldX / gp.tileSize;
         int entityTopRow = entityTopWorldY / gp.tileSize;
@@ -26,27 +26,27 @@ public class CollisionChecker {
 
         int tileNum1, tileNum2;
 
-        // Helper lambda to check tile validity and collision property
+        
         java.util.function.IntPredicate isSolidTile = (tileNum) -> {
-            // Check if tileNum is within the bounds of the tile definition array
+            
             if (tileNum >= 0 && tileNum < gp.tileManager.tile.length) {
-                // Check if the specific tile object exists
+                
                 if (gp.tileManager.tile[tileNum] != null) {
-                    return gp.tileManager.tile[tileNum].collision; // Return its collision state
+                    return gp.tileManager.tile[tileNum].collision; 
                 } else {
-                    return true; // Treat a null tile object (undefined tile type) as collision
+                    return true; 
                 }
             }
-            // Treat invalid tile numbers (e.g., -1 from map data, or out of tile array bounds) as collision
+            
             return true;
         };
 
         switch (entity.direction) {
             case "up":
                 int nextEntityTopY = entityTopWorldY - entity.speed;
-                int nextTopRow = nextEntityTopY / gp.tileSize; // Predicted row after moving
+                int nextTopRow = nextEntityTopY / gp.tileSize; 
 
-                // Check if the predicted move is outside map boundaries for mapTileNum access
+                
                 if (entityLeftCol < 0 || entityLeftCol >= gp.maxWorldCol ||
                         entityRightCol < 0 || entityRightCol >= gp.maxWorldCol ||
                         nextTopRow < 0 || nextTopRow >= gp.maxWorldRow) {
@@ -133,15 +133,15 @@ public class CollisionChecker {
                 continue;
             }
 
-            // Atur posisi solidArea entitas ke posisi dunia aktualnya untuk pemeriksaan
+            
             entity.solidArea.x = entity.worldX + entity.solidAreaDefaultX;
             entity.solidArea.y = entity.worldY + entity.solidAreaDefaultY;
 
-            // Atur posisi solidArea objek ke posisi dunia aktualnya untuk pemeriksaan
+            
             currentObject.solidArea.x = currentObject.worldX + currentObject.solidAreaDefaultX;
             currentObject.solidArea.y = currentObject.worldY + currentObject.solidAreaDefaultY;
 
-            // Prediksi pergerakan solidArea entitas
+            
             switch (entity.direction) {
                 case "up":
                     entity.solidArea.y -= entity.speed;
@@ -158,19 +158,19 @@ public class CollisionChecker {
             }
 
             if (entity.solidArea.intersects(currentObject.solidArea)) {
-                if (currentObject.collision) { // Periksa properti collision dari SuperObject
-                    entity.collisionON = true; // Entitas tidak bisa bergerak jika objek solid
+                if (currentObject.collision) { 
+                    entity.collisionON = true; 
                 }
-                if (isPlayer) { // Jika pemain, tandai indeks objek untuk potensi interaksi/pickup
+                if (isPlayer) { 
                     index = i;
                 }
             }
-            // Kembalikan solidArea entitas ke offset default relatif terhadap posisi entitas
-            // Ini penting agar posisi solidArea.x dan .y tidak mengakumulasi posisi dunia.
+            
+            
             entity.solidArea.x = entity.solidAreaDefaultX;
             entity.solidArea.y = entity.solidAreaDefaultY;
 
-            // Kembalikan solidArea objek (meskipun tidak diubah di sini, ini praktik yang baik)
+            
             currentObject.solidArea.x = currentObject.solidAreaDefaultX;
             currentObject.solidArea.y = currentObject.solidAreaDefaultY;
         }
@@ -189,19 +189,19 @@ public class CollisionChecker {
 
         for (int i = 0; i < targetNPCs.size(); i++) {
             Entity targetNPC = targetNPCs.get(i);
-            if (targetNPC == null || targetNPC == entity) { // Jangan cek tabrakan dengan diri sendiri atau NPC null
+            if (targetNPC == null || targetNPC == entity) { 
                 continue;
             }
 
-            // Atur posisi solidArea entitas utama ke posisi dunia aktualnya
+            
             entity.solidArea.x = entity.worldX + entity.solidAreaDefaultX;
             entity.solidArea.y = entity.worldY + entity.solidAreaDefaultY;
 
-            // Atur posisi solidArea NPC target ke posisi dunia aktualnya
+            
             targetNPC.solidArea.x = targetNPC.worldX + targetNPC.solidAreaDefaultX;
             targetNPC.solidArea.y = targetNPC.worldY + targetNPC.solidAreaDefaultY;
 
-            // Prediksi pergerakan solidArea entitas utama
+            
             switch (entity.direction) {
                 case "up":
                     entity.solidArea.y -= entity.speed;
@@ -218,18 +218,18 @@ public class CollisionChecker {
             }
 
             if (entity.solidArea.intersects(targetNPC.solidArea)) {
-                // If the target is collidable, set collisionON for the checking entity
-                if (targetNPC.collision) { // Assuming NPC (Entity) also has a 'collision' property
+                
+                if (targetNPC.collision) { 
                     entity.collisionON = true;
                 }
-                index = i; // Kembalikan indeks NPC yang ditabrak (berguna untuk interaksi)
+                index = i; 
             }
 
-            // Kembalikan solidArea entitas utama ke offset defaultnya
+            
             entity.solidArea.x = entity.solidAreaDefaultX;
             entity.solidArea.y = entity.solidAreaDefaultY;
 
-            // Kembalikan solidArea NPC target (meskipun tidak diubah di sini)
+            
             targetNPC.solidArea.x = targetNPC.solidAreaDefaultX;
             targetNPC.solidArea.y = targetNPC.solidAreaDefaultY;
         }
@@ -243,15 +243,15 @@ public class CollisionChecker {
      * @param npcEntity Entitas NPC yang melakukan pemeriksaan.
      */
     public void checkPlayer(Entity npcEntity) {
-        // Atur posisi solidArea NPC ke posisi dunia aktualnya
+        
         npcEntity.solidArea.x = npcEntity.worldX + npcEntity.solidAreaDefaultX;
         npcEntity.solidArea.y = npcEntity.worldY + npcEntity.solidAreaDefaultY;
 
-        // Atur posisi solidArea Pemain ke posisi dunia aktualnya
+        
         gp.player.solidArea.x = gp.player.worldX + gp.player.solidAreaDefaultX;
         gp.player.solidArea.y = gp.player.worldY + gp.player.solidAreaDefaultY;
 
-        // Prediksi pergerakan solidArea NPC
+        
         switch (npcEntity.direction) {
             case "up":
                 npcEntity.solidArea.y -= npcEntity.speed;
@@ -268,15 +268,15 @@ public class CollisionChecker {
         }
 
         if (npcEntity.solidArea.intersects(gp.player.solidArea)) {
-            // Player is always collidable from an NPC's perspective
-            npcEntity.collisionON = true; // NPC tidak bisa bergerak jika akan menabrak pemain
+            
+            npcEntity.collisionON = true; 
         }
 
-        // Kembalikan solidArea NPC ke offset defaultnya
+        
         npcEntity.solidArea.x = npcEntity.solidAreaDefaultX;
         npcEntity.solidArea.y = npcEntity.solidAreaDefaultY;
 
-        // Kembalikan solidArea Pemain (meskipun tidak diubah di sini)
+        
         gp.player.solidArea.x = gp.player.solidAreaDefaultX;
         gp.player.solidArea.y = gp.player.solidAreaDefaultY;
     }

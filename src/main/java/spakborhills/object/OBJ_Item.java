@@ -22,18 +22,18 @@ public class OBJ_Item extends Entity {
         this.sellPrice = sellPrice;
         this.quantity = quantity;
     }
-    // OVERLOAD
+    
     public OBJ_Item(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice) {
-        this(gp, itemType, name, isEdible, buyPrice, sellPrice, 1); // Kuantitas awal default 1
+        this(gp, itemType, name, isEdible, buyPrice, sellPrice, 1); 
     }
 
-    // Item selalu dianggap bisa ditumpuk jika tidak ada batasan maxStack
+    
     public boolean isStackable() {
-        // Jika sebuah item secara inheren tidak bisa ditumpuk (misalnya alat),
-        // Anda bisa membuat konstruktornya selalu mengatur quantity=1
-        // dan logika addItemToInventory tidak akan pernah menumpuknya jika namanya unik.
-        // Atau, Anda bisa menambahkan field boolean `canBeStacked` jika diperlukan.
-        // Untuk saat ini, asumsikan semua OBJ_Item bisa ditumpuk secara tak terbatas.
+        
+        
+        
+        
+        
         return true;
     }
 

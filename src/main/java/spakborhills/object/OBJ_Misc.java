@@ -21,9 +21,9 @@ public class OBJ_Misc extends OBJ_Item {
 
     @Override
     public boolean use(Entity entity) {
-        if (isEdible() && entity instanceof Player) { // Player yang menggunakan dari inventory
+        if (isEdible() && entity instanceof Player) { 
             Player player = (Player) entity;
-            //player.increaseEnergy(this.getEnergy());
+            
             gp.ui.showMessage("You can use " + this.name + " now.");
             return false;
         }

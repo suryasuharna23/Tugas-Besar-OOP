@@ -14,7 +14,7 @@ public class NPC_EMILY extends NPC{
         type = EntityType.NPC;
         isMarriageCandidate = true;
         currentHeartPoints = 0;
-        Collections.addAll(lovedGiftsName, "seluruh item seeds"); // tunggu seeds selesai implement
+        Collections.addAll(lovedGiftsName, "seluruh item seeds"); 
         Collections.addAll(likedGiftsName, "Catfish", "Salmon", "Sardine");
         Collections.addAll(hatedItems, "Coal", "Wood");
         setDialogue();
