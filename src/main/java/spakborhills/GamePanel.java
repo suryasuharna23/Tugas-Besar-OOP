@@ -6,6 +6,7 @@ import spakborhills.entity.NPC;
 import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
 import spakborhills.enums.EntityType;
+import spakborhills.environment.EnvironmentManager;
 import spakborhills.object.OBJ_Item;
 
 
@@ -28,6 +29,7 @@ public class GamePanel extends  JPanel implements Runnable {
 
     final int fps = 60;
 
+    EnvironmentManager environmentManager = new EnvironmentManager(this);
     public KeyHandler keyH = new KeyHandler(this);
     Sound music = new Sound();
     Sound se = new Sound();
@@ -98,6 +100,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public void setupGame() {
         initializeMapInfos();
         gameState = titleState;
+        environmentManager.setup();
     }
 
     public void startGameThread() {
@@ -198,6 +201,9 @@ public class GamePanel extends  JPanel implements Runnable {
                     character.update();
                 }
             }
+            if (environmentManager != null) {
+                environmentManager.update();
+            }
         }
         else if (gameState == sleepTransitionState) {
             if (!isProcessingNewDayDataInTransition) {
@@ -246,6 +252,11 @@ public class GamePanel extends  JPanel implements Runnable {
             }
         } else if (gameState == dialogueState || gameState == inventoryState ||
                 gameState == interactionMenuState || gameState == giftSelectionState || gameState == sellState) {
+            if (environmentManager != null) {
+                environmentManager.update();
+            } else {
+                System.err.println("[GamePanel.update()] FATAL: environmentManager is null!");
+            }
             if (gameClock != null && !gameClock.isPaused()) {
                 gameClock.pauseTime();
             }
@@ -442,6 +453,10 @@ public class GamePanel extends  JPanel implements Runnable {
                 entity.draw(g2);
             }
             player.draw(g2);
+
+            if (environmentManager != null) {
+                environmentManager.draw(g2);
+            }
 
             ui.draw(g2);
         }
