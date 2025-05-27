@@ -217,8 +217,7 @@ public class Player extends Entity{
 
         if (currentEnergy <= MIN_ENERGY_THRESHOLD) {
             currentEnergy = MIN_ENERGY_THRESHOLD; 
-            sleep("You collapsed from sheer exhaustion!"); 
-            return true; 
+             return true;
         }
         return true;
     }

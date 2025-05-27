@@ -9,12 +9,14 @@ public class OBJ_Item extends Entity {
     private ItemType itemType; 
     int buyPrice;
     int sellPrice;
-    private boolean isEdible;
+    private final boolean isEdible;
     public int quantity;
+    public String baseName;
 
     public OBJ_Item(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice, int quantity) {
         super(gp);
         this.itemType = itemType;
+        this.baseName = name;
         this.name = name + " " + itemType.name().toString().toLowerCase();
         this.type = EntityType.INTERACTIVE_OBJECT;
         this.isEdible = isEdible;

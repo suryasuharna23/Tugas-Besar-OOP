@@ -2,6 +2,8 @@ package spakborhills.entity;
 
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
+import spakborhills.enums.ItemType;
+import spakborhills.object.OBJ_Item;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,38 +85,81 @@ public class NPC extends Entity{
             currentHeartPoints = maxHeartPoints;
         }
     }
-    public void receiveGift(Entity item, Player player) {
+
+    public void receiveGift(Entity itemEntity, Player player) {
         facePlayer();
         if (hasReceivedGiftToday) {
             gp.ui.currentDialogue = alreadyGiftedDialogue;
-        } else {
-            
-            
-            if (lovedGiftsName.contains(item.name)){
-                addHeartPoints(25); 
-                this.hasReceivedGiftToday = true;
-                player.inventory.remove(item); 
-            }
-            else if (likedGiftsName.contains(item.name)){
-                addHeartPoints(20); 
-                this.hasReceivedGiftToday = true;
-                player.inventory.remove(item); 
-            }
-            else if (!lovedGiftsName.contains(item.name) && !likedGiftsName.contains(item.name) && !hatedItems.contains(item.name)){
-                addHeartPoints(0); 
-                this.hasReceivedGiftToday = true;
-                player.inventory.remove(item); 
-            }
-            else{
-                addHeartPoints(-25); 
-                this.hasReceivedGiftToday = true;
-                player.inventory.remove(item); 
-            }
-            
-            gp.gameClock.getTime().advanceTime(10);
-            gp.player.tryDecreaseEnergy(5);
-            gp.ui.currentDialogue = giftReactionDialogue + " (HP: " + this.currentHeartPoints + ")";
+            gp.gameState = gp.dialogueState;
+            return;
         }
+
+        if (!(itemEntity instanceof OBJ_Item)) {
+            // Should not happen if player is gifting from OBJ_Item based inventory
+            gp.ui.currentDialogue = this.name + ": I'm not sure what this is.";
+            gp.gameState = gp.dialogueState;
+            return;
+        }
+
+        OBJ_Item giftedItem = (OBJ_Item) itemEntity;
+        String giftedItemBaseName = giftedItem.baseName; // Use the base name for comparison
+        ItemType giftedItemType = giftedItem.getType();
+
+        boolean giftConsumed = false;
+
+        // Specific NPC preferences first
+        if (this.name.equals("Emily") && giftedItemType == ItemType.SEEDS) { // [cite: 104]
+            addHeartPoints(25); // Loved
+            gp.ui.currentDialogue = this.name + ": Oh, seeds! I love these! Thank you so much! (HP: " + this.currentHeartPoints + ")";
+            giftConsumed = true;
+        } else if (this.name.equals("Perry") && giftedItemType == ItemType.FISH) { // [cite: 94]
+            addHeartPoints(-25); // Hated
+            gp.ui.currentDialogue = this.name + ": Ugh, fish? I really don't care for these. (HP: " + this.currentHeartPoints + ")";
+            giftConsumed = true;
+        } else {
+            // General preferences
+            if (lovedGiftsName.contains(giftedItemBaseName)) {
+                addHeartPoints(25); // [cite: 194]
+                gp.ui.currentDialogue = (this.name.equals("Caroline") || this.name.equals("Abigail")) ? "Wahh, buat aku? Makasih banyak yaa! Aku sangat suka ini! (HP: " + this.currentHeartPoints + ")" : this.name + ": This is amazing! Thank you! (HP: " + this.currentHeartPoints + ")";
+                giftConsumed = true;
+            } else if (likedGiftsName.contains(giftedItemBaseName)) {
+                addHeartPoints(20); // [cite: 194]
+                gp.ui.currentDialogue = this.name + ": Oh, this is very nice. Thank you. (HP: " + this.currentHeartPoints + ")";
+                giftConsumed = true;
+            } else if (this.name.equals("Mayor Tadi") && !lovedGiftsName.contains(giftedItemBaseName) && !likedGiftsName.contains(giftedItemBaseName)) { // Mayor Tadi hates everything not loved/liked [cite: 86, 83]
+                addHeartPoints(-25);
+                gp.ui.currentDialogue = this.name + ": This isn't really my style. (HP: " + this.currentHeartPoints + ")";
+                giftConsumed = true;
+            } else if (hatedItems.contains(giftedItemBaseName)) {
+                addHeartPoints(-25); // [cite: 194]
+                gp.ui.currentDialogue = this.name + ": I... appreciate the thought, but I don't like this much. (HP: " + this.currentHeartPoints + ")";
+                giftConsumed = true;
+            } else { // Neutral item
+                addHeartPoints(0); // [cite: 194]
+                gp.ui.currentDialogue = this.giftReactionDialogue + " (HP: " + this.currentHeartPoints + ")"; // Uses the NPC's default reaction or the generic one
+                giftConsumed = true;
+            }
+        }
+
+        if (giftConsumed) {
+            this.hasReceivedGiftToday = true;
+
+            giftedItem.quantity--;
+            if (giftedItem.quantity <= 0) {
+                player.inventory.remove(giftedItem); // Remove the item object itself
+            }
+            // Adjust player's inventory command number if the gifted item was selected and removed/quantity changed
+            if (gp.ui.inventoryCommandNum >= player.inventory.size() && !player.inventory.isEmpty()) {
+                gp.ui.inventoryCommandNum = player.inventory.size() - 1;
+            } else if (player.inventory.isEmpty()) {
+                gp.ui.inventoryCommandNum = 0;
+            }
+
+
+            gp.gameClock.getTime().advanceTime(10); // [cite: 194]
+            gp.player.tryDecreaseEnergy(5); // [cite: 194]
+        }
+
         gp.gameState = gp.dialogueState;
     }
 

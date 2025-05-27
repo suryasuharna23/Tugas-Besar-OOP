@@ -37,7 +37,6 @@ public class KeyHandler implements KeyListener {
     public void keyTyped(KeyEvent e) {
     }
 
-    @Override
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
         if (gp.gameState == gp.titleState) {
@@ -128,7 +127,7 @@ public class KeyHandler implements KeyListener {
                 gp.gameState = gp.titleState; // Re-use title state for map selection UI
                 gp.ui.mapSelectionState = 1; // Set UI to map selection mode
                 gp.ui.commandNumber = gp.currentMapIndex != -1 ? gp.currentMapIndex : 0; // Start on current map or
-                                                                                         // first map
+                // first map
 
                 if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                     gp.gameClock.pauseTime();
