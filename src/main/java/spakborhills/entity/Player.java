@@ -413,22 +413,8 @@ public class Player extends Entity{
                     npc.openInteractionMenu();
                     interactionHandled = true;
                 } else if (interactedEntity.type == EntityType.INTERACTIVE_OBJECT) {
-                    // Pendekatan paling sederhana dan polimorfik:
                     interactedEntity.interact(); // Panggil metode interact() dari objek tersebut.
-                    // Jika targetEntity adalah instance dari OBJ_Bed, maka
-                    // OBJ_Bed.interact() akan dipanggil.
-                    // Jika itu OBJ_ShippingBin, maka OBJ_ShippingBin.interact() akan dipanggil, dst.
-
-                    // Jika Anda masih ingin pesan khusus untuk Door atau Chest yang tidak memiliki metode interact() kompleks:
-                    // if (targetEntity.name.equals("Door") || targetEntity.name.equals("Chest")) {
-                    //     // Jika Door dan Chest tidak punya metode interact() yang bermakna dan hanya menampilkan pesan:
-                    //     gxp.ui.showMessage("Kamu berinteraksi dengan " + targetEntity.name);
-                    // } else {
-                    //     // Untuk semua INTERACTIVE_OBJECT lain yang punya metode interact() sendiri (seperti Bed, Stove, TV, ShippingBin):
-                    //     targetEntity.interact();
-                    // }
                     interactionHandled = true;
-                    // break; // Jika ini di dalam loop deteksi targetEntity
                 }
                 else if (interactedEntity.type == EntityType.PICKUP_ITEM) {
                     gp.ui.showMessage("Kamu mengambil " + interactedEntity.name + "!");
@@ -437,21 +423,12 @@ public class Player extends Entity{
                     interactionHandled = true;
                 }
             }
-            gp.keyH.enterPressed = false; // Selalu konsumsi tombol Enter setelah semua pengecekan 'Enter' selesai
+            gp.keyH.enterPressed = false;
         }
 
         // Logika pergerakan pemain
         if (!collisionON) {
-            // Pemain hanya bergerak jika tidak ada tabrakan DAN
-            // tombol arah ditekan (dan tombol Enter tidak sedang diproses yang menyebabkan perubahan state atau aksi).
-            // Karena gp.keyH.enterPressed direset di atas, kondisi ini seharusnya OK.
-            // Jika sebuah interaksi 'Enter' mengubah gameState (misal ke dialogueState atau sleepTransitionState),
-            // maka update() di Player untuk playState tidak akan berjalan, sehingga gerakan tidak terjadi.
             if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
-                // Jika enterPressed sebelumnya true dan interactionHandled false (tidak ada aksi),
-                // pemain tidak seharusnya bergerak. Namun, karena enterPressed sudah direset,
-                // logika ini akan dievaluasi dengan enterPressed=false.
-                // Jadi, jika pemain menekan Enter tapi tidak ada aksi, lalu menekan arah, dia akan bergerak. Ini OK.
                 switch (direction) {
                     case "up": worldY -= speed; break;
                     case "down": worldY += speed; break;
@@ -840,11 +817,3 @@ public class Player extends Entity{
     }
 
 }
-// Misal, player adalah objek Player yang sudah ada
-// Letakkan kode berikut di dalam method (misal, main atau setupGame)
-/*
-player.setCurrentLocation(Location.FOREST_RIVER);
-
-// Debug output untuk memastikan
-System.out.println("DEBUG: Player berada di lokasi: " + player.getCurrentLocation().name());
-*/

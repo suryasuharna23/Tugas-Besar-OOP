@@ -996,71 +996,126 @@ public class UI {
 
         // Display messages from gp.ui.showMessage() if messageOn is true
         // This is handled by the main draw() method, so no need to add it here unless
-        // you want sellState-specific message display.
     }
 
     private void drawTimedMessage(Graphics2D g2) {
         if (messageOn && this.message != null && !this.message.isEmpty()) {
             // Pengaturan Font dan Warna Pesan
-            Font messageFont = silkScreen.deriveFont(Font.PLAIN, 16F); // Ukuran font bisa disesuaikan
+            Font messageFont = silkScreen.deriveFont(Font.PLAIN, 16F);
             g2.setFont(messageFont);
-            g2.setColor(Color.YELLOW);
             FontMetrics fm = g2.getFontMetrics(messageFont);
 
-            // Tentukan area untuk pesan
-            int messageAreaX = gp.tileSize / 2;
-            int messageAreaY = gp.tileSize * 2 + 10;
-            int messageAreaWidth = gp.screenWidth - (gp.tileSize); // Lebar maksimum pesan
-            int lineHeight = fm.getHeight() + 2;
+            // Hitung area untuk pesan dengan padding yang lebih baik
+            int padding = 15;
+            int messageAreaX = padding;
+            int messageAreaY = gp.tileSize * 5; // Di bawah gold display
+            int messageAreaWidth = gp.screenWidth - (padding * 2); // Lebar dengan padding kiri-kanan
+            int lineHeight = fm.getHeight() + 4; // Spasi antar baris yang lebih baik
 
-            // Bagi pesan menjadi beberapa baris
+            // Proses text wrapping yang lebih baik
             List<String> lines = new ArrayList<>();
-            String[] words = this.message.split(" "); // Gunakan this.message
-            StringBuilder currentLine = new StringBuilder();
+            String[] paragraphs = this.message.split("\\\\n"); // Handle manual line breaks
 
-            for (String word : words) {
-                if (word.equals("\\n")) {
-                    lines.add(currentLine.toString());
-                    currentLine = new StringBuilder();
+            for (String paragraph : paragraphs) {
+                if (paragraph.trim().isEmpty()) {
+                    lines.add(""); // Tambahkan baris kosong untuk paragraph break
                     continue;
                 }
-                String testLine = currentLine.length() > 0 ? currentLine.toString() + " " + word : word;
-                if (fm.stringWidth(testLine) <= messageAreaWidth) {
-                    if (currentLine.length() > 0) {
-                        currentLine.append(" ");
-                    }
-                    currentLine.append(word);
-                } else {
-                    lines.add(currentLine.toString());
-                    currentLine = new StringBuilder(word);
-                    if (fm.stringWidth(currentLine.toString()) > messageAreaWidth && currentLine.length() > 0) {
-                        // Jika satu kata terlalu panjang, gambar apa adanya (mungkin perlu penanganan lebih lanjut)
-                        lines.add(currentLine.toString());
-                        currentLine = new StringBuilder();
+
+                String[] words = paragraph.split(" ");
+                StringBuilder currentLine = new StringBuilder();
+
+                for (String word : words) {
+                    String testLine = currentLine.length() > 0 ? currentLine + " " + word : word;
+
+                    // Cek apakah testLine muat dalam lebar yang tersedia
+                    if (fm.stringWidth(testLine) <= messageAreaWidth) {
+                        if (currentLine.length() > 0) {
+                            currentLine.append(" ");
+                        }
+                        currentLine.append(word);
+                    } else {
+                        // Simpan baris saat ini jika ada isinya
+                        if (currentLine.length() > 0) {
+                            lines.add(currentLine.toString());
+                            currentLine = new StringBuilder(word);
+                        } else {
+                            // Jika kata tunggal terlalu panjang, potong kata tersebut
+                            String longWord = word;
+                            while (fm.stringWidth(longWord) > messageAreaWidth && longWord.length() > 1) {
+                                // Cari titik potong terbaik
+                                int cutPoint = longWord.length() - 1;
+                                while (cutPoint > 0
+                                        && fm.stringWidth(longWord.substring(0, cutPoint) + "-") > messageAreaWidth) {
+                                    cutPoint--;
+                                }
+                                if (cutPoint > 0) {
+                                    lines.add(longWord.substring(0, cutPoint) + "-");
+                                    longWord = longWord.substring(cutPoint);
+                                } else {
+                                    break; // Avoid infinite loop
+                                }
+                            }
+                            currentLine = new StringBuilder(longWord);
+                        }
                     }
                 }
-            }
-            if (currentLine.length() > 0) {
-                lines.add(currentLine.toString());
+
+                // Tambahkan sisa baris terakhir jika ada
+                if (currentLine.length() > 0) {
+                    lines.add(currentLine.toString());
+                }
             }
 
-            // Gambar setiap baris pesan
+            // Hitung total tinggi yang dibutuhkan
+            int totalHeight = lines.size() * lineHeight + (padding * 2);
+            int maxDisplayableLines = (gp.screenHeight - messageAreaY - padding) / lineHeight;
+
+            // Batasi jumlah baris yang ditampilkan jika terlalu banyak
+            List<String> displayLines = lines;
+            if (lines.size() > maxDisplayableLines) {
+                displayLines = lines.subList(0, maxDisplayableLines - 1);
+                displayLines.add("...(continued)");
+            }
+
+            // Gambar background untuk pesan dengan rounded corners
+            int backgroundWidth = messageAreaWidth + (padding * 2);
+            int backgroundHeight = displayLines.size() * lineHeight + (padding * 2);
+            int backgroundX = messageAreaX - padding;
+            int backgroundY = messageAreaY - padding - fm.getAscent();
+
+            // Background dengan transparansi
+            g2.setColor(new Color(0, 0, 0, 180));
+            g2.fillRoundRect(backgroundX, backgroundY, backgroundWidth, backgroundHeight, 10, 10);
+
+            // Border
+            g2.setColor(new Color(255, 255, 0, 200));
+            g2.setStroke(new BasicStroke(2));
+            g2.drawRoundRect(backgroundX, backgroundY, backgroundWidth, backgroundHeight, 10, 10);
+            g2.setStroke(new BasicStroke(1)); // Reset stroke
+
+            // Gambar teks
+            g2.setColor(Color.YELLOW);
             int currentMessageY = messageAreaY;
-            for (String line : lines) {
-                int lineX = messageAreaX;
-                g2.drawString(line, lineX, currentMessageY);
+            for (String line : displayLines) {
+                if (!line.trim().isEmpty()) {
+                    // Tambahkan shadow effect untuk readability
+                    g2.setColor(Color.BLACK);
+                    g2.drawString(line, messageAreaX + 1, currentMessageY + 1);
+                    g2.setColor(Color.YELLOW);
+                    g2.drawString(line, messageAreaX, currentMessageY);
+                }
                 currentMessageY += lineHeight;
             }
-
+            // Update counter dan reset message
             messageCounter++;
-            if (messageCounter > 120) { // Tampilkan pesan selama 2 detik (60fps * 2)
+            if (messageCounter > 180) { // Tampilkan lebih lama (3 detik) untuk pesan yang panjang
                 messageCounter = 0;
                 messageOn = false;
-                this.message = ""; // Reset pesan di UI
+                this.message = "";
             }
         }
     }
-
     public void drawCookingScreen() {
         // 1. Gambar window latar belakang
         int frameX = gp.tileSize * 2;
