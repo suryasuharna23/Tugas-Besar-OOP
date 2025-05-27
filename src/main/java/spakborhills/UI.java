@@ -198,21 +198,32 @@ public class UI {
         }
     }
 
-    public void drawPlayerGold(){
-        int x = gp.tileSize / 2;
-        int y = gp.tileSize * 2;
+    public void drawPlayerGold() {
         g2.setFont(pressStart.deriveFont(Font.BOLD, 15F));
         g2.setColor(Color.white);
+
+        String goldText = "Gold: " + gp.player.gold;
+        FontMetrics fm = g2.getFontMetrics();
+        int textWidth = fm.stringWidth(goldText);
+        int coinSize = gp.tileSize / 2;
+
+        int padding = 10;
+        int x = gp.screenWidth - textWidth - coinSize - padding * 2;
+        int y = padding * 8;
+
+        // Gambar icon coin
         InputStream inputStream = getClass().getResourceAsStream("/objects/gold.png");
         BufferedImage coinImage;
-        try{
+        try {
+            int coinY = y - fm.getAscent() + (fm.getAscent() - coinSize) / 2;
             coinImage = ImageIO.read(inputStream);
-            g2.drawImage(coinImage, x, y - gp.tileSize/2, gp.tileSize/2, gp.tileSize/2, null);
-        } catch (IOException e){
+            g2.drawImage(coinImage, x, coinY, coinSize, coinSize, null);
+        } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-        x += gp.tileSize/2 + 5;
-        g2.drawString("Gold: " + gp.player.gold, x, y);
+
+        x += coinSize + 5;
+        g2.drawString(goldText, x, y);
     }
 
     public void drawTitleScreen(){
