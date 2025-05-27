@@ -218,7 +218,6 @@ public class Player extends Entity{
 
         if (currentEnergy <= MIN_ENERGY_THRESHOLD) {
             currentEnergy = MIN_ENERGY_THRESHOLD; // Pastikan tidak lebih rendah dari -20
-            gp.ui.showMessage("You've collapsed from exhaustion!");
             sleep("You collapsed from sheer exhaustion!"); // Otomatis tidur
             return true; // Aksi dilakukan, tapi pemain pingsan setelahnya
         }
@@ -256,7 +255,7 @@ public class Player extends Entity{
             energyRecoveryMessage = "You were deeply exhausted and \n only recovered half your energy.";
         } else {
             currentEnergy = MAX_POSSIBLE_ENERGY;
-            energyRecoveryMessage = "You feel fully refreshed after a good night's sleep!";
+            energyRecoveryMessage = "You feel fully refreshed\nafter a good night's sleep!";
         }
 
         // 2. Siapkan dialog untuk ditampilkan oleh GamePanel/UI
@@ -475,7 +474,6 @@ public class Player extends Entity{
                             existingItem.getType() == newItemAsObjItem.getType()) { // << PERBAIKAN DI SINI
 
                         existingItem.quantity += newItemAsObjItem.quantity; //
-                        if (gp.ui != null) gp.ui.showMessage("Menambahkan x" + newItemAsObjItem.quantity + " " + newItemAsObjItem.name + " ke tumpukan. Total: " + existingItem.quantity); //
                         return true;
                     }
                 }
