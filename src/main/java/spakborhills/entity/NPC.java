@@ -96,7 +96,7 @@ public class NPC extends Entity{
                 player.inventory.remove(item); 
             }
             else if (likedGiftsName.contains(item.name)){
-                 addHeartPoints(20); 
+                addHeartPoints(20); 
                 this.hasReceivedGiftToday = true;
                 player.inventory.remove(item); 
             }
@@ -130,7 +130,7 @@ public class NPC extends Entity{
         } else {
             boolean hasProposalItem = false;
             for (Entity item : gp.player.inventory) {
-                if (item.name.equals("Proposal Ring")) { 
+                if (item.name.equals("Proposal Ring misc")) { 
                     hasProposalItem = true;
                     break;
                 }
@@ -147,9 +147,6 @@ public class NPC extends Entity{
         }
         gp.gameState = gp.dialogueState;
     }
-
-    
-
     public void getMarried() {
         facePlayer();
         if (!engaged) {
@@ -159,60 +156,16 @@ public class NPC extends Entity{
             gp.ui.currentDialogue = alreadyMarriedDialogue;
             gp.gameState = gp.dialogueState; 
         } else {
-            
             this.marriedToPlayer = true;
             this.engaged = false; 
             gp.player.setMarried(true);
             gp.player.partner = this; 
-
-            
-            
             boolean energySpent = gp.player.tryDecreaseEnergy(80); 
-            
-            
-            
-            
-            
-            
-            
-            
-            
-
-            
-            gp.ui.currentDialogue = marriageDialogue; 
-
-            
-            
-            
-            
-
-            
-            
-            
-
-            
-            
-            
-            
-
-            
-            
-
-            
-            
-            
-            
-
-            
-            
-            
+            gp.ui.currentDialogue = marriageDialogue;             
             gp.player.justGotMarried = true; 
-            
-
             gp.gameState = gp.dialogueState; 
         }
     }
-
     public void facePlayer() {
         switch (gp.player.direction) {
             case "up":
@@ -229,28 +182,12 @@ public class NPC extends Entity{
                 break;
         }
     }
-
-
         public void setAction(){
         actionLockCounter++;
         if (actionLockCounter >= actionLockInterval) { 
             Random random = new Random();
             int i = random.nextInt(125) + 1; 
-
-            
-            
-            
-            
-            
-
             if (i <= 20) { 
-                
-                
-                
-                
-                
-                
-                
                 
             } else if (i <= 45) { 
                 direction = "up";

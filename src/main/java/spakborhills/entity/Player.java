@@ -133,6 +133,7 @@ public class Player extends Entity{
         this.isCurrentlySleeping = false;
         gold = 500;
         initializeRecipeStatus();
+        addItemToInventory(new OBJ_Misc(gp, ItemType.MISC, "Proposal Ring", false, 0, 0));
         addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Pumpkin", false, 150, 75, 1,7,Season.FALL, Weather.RAINY));
         addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Cranberry", false,100, 50, 1,2,Season.FALL, Weather.RAINY));
         addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Melon", false,80, 40, 1,4,Season.FALL, Weather.RAINY));
@@ -548,6 +549,61 @@ private void teleportToPlayerHouse() {
         }
     }
 
+
+    public boolean buyItem(OBJ_Item itemToBuy, String recipeIdToUnlockIfApplicable) {
+        if (itemToBuy == null) {
+            gp.ui.showMessage("Item tidak valid.");
+            return false;
+        }
+
+        int price = itemToBuy.getBuyPrice();
+        if (gold >= price) {
+            gold -= price;
+
+            if (itemToBuy instanceof OBJ_Recipe) {
+                
+                if (recipeIdToUnlockIfApplicable != null
+                        && recipeUnlockStatus.containsKey(recipeIdToUnlockIfApplicable)) {
+                    recipeUnlockStatus.put(recipeIdToUnlockIfApplicable, true);
+                    gp.ui.showMessage(
+                            "Kamu membeli dan mempelajari resep: " + itemToBuy.name.replace("Recipe: ", "") + "!");
+                } else {
+                    gp.ui.showMessage("Kamu membeli resep: " + itemToBuy.name.replace("Recipe: ", "")
+                            + ", tapi ada masalah saat mempelajarinya.");
+                }
+            } else {
+                
+                OBJ_Item purchasedItemInstance = null;
+                if (itemToBuy instanceof OBJ_Seed) {
+                    OBJ_Seed seedTemplate = (OBJ_Seed) itemToBuy;
+                    purchasedItemInstance = new OBJ_Seed(gp, seedTemplate.getType(),
+                            seedTemplate.name.replace(" seeds", ""), seedTemplate.isEdible(),
+                            seedTemplate.getBuyPrice(), seedTemplate.getSellPrice(),
+                            1, 1, Season.SPRING, Weather.SUNNY); 
+                    purchasedItemInstance = itemToBuy; 
+
+                } else if (itemToBuy instanceof OBJ_Food) {
+                    OBJ_Food foodTemplate = (OBJ_Food) itemToBuy;
+                    purchasedItemInstance = FoodFactory.createFood(gp, foodTemplate.name.replace(" food", "")); 
+                }
+                if (purchasedItemInstance != null) {
+                    addItemToInventory(purchasedItemInstance); 
+                    gp.ui.showMessage("Kamu membeli: " + purchasedItemInstance.name + " seharga " + price + "G.");
+                } else {
+                    OBJ_Item genericItem = new OBJ_Item(gp, itemToBuy.getType(),
+                            itemToBuy.name.replace(" " + itemToBuy.getType().name().toLowerCase(), ""),
+                            itemToBuy.isEdible(), itemToBuy.getBuyPrice(), itemToBuy.getSellPrice(),
+                            itemToBuy.quantity);
+                    addItemToInventory(genericItem);
+                    gp.ui.showMessage("Kamu membeli: " + genericItem.name + " seharga " + price + "G.");
+                }
+            }
+            return true;
+        } else {
+            gp.ui.showMessage("Gold tidak cukup untuk membeli " + itemToBuy.name + ".");
+            return false;
+        }
+    }
     public void consumeItemFromInventory(Entity itemToConsume) {
         Entity equippedItemBeforeConsumption = getEquippedItem();
         boolean wasEquippedAndIsTheSameItem = (equippedItemBeforeConsumption == itemToConsume);
@@ -589,7 +645,6 @@ private void teleportToPlayerHouse() {
             }
         }
     }
-
     private void updateSprite(){
         spriteCounter++;
         if(spriteCounter > 12){
@@ -661,16 +716,11 @@ private void teleportToPlayerHouse() {
             
         }
     }
-
-    
-    public void startFishing() {
-        
+    public void startFishing() {    
         Season currentSeasonForFishing = gp.gameClock.getCurrentSeason(); 
         Weather currentWeatherForFishing = gp.gameClock.getCurrentWeather(); 
         int currentHourForFishing = gp.gameClock.getTime().getHour(); 
         String playerCurrentLocationString = getLocation(); 
-
-        
         System.out.println("--------------------------------------------------");
         System.out.println("[PLAYER.startFishing()] Memulai proses memancing...");
         System.out.println("[PLAYER.startFishing()] Player.getLocation() (String): '" + playerCurrentLocationString + "'");
@@ -678,23 +728,17 @@ private void teleportToPlayerHouse() {
         System.out.println("[PLAYER.startFishing()] Cuaca saat ini: " + currentWeatherForFishing);
         System.out.println("[PLAYER.startFishing()] Jam saat ini: " + currentHourForFishing);
         System.out.println("--------------------------------------------------");
-
-        
         if (this.playerIsActuallyFishing) { 
             System.out.println("[PLAYER.startFishing()] INFO: Pemain sudah dalam proses memancing. Permintaan baru diabaikan.");
             gp.ui.showMessage("Sedang memancing, tunggu proses selesai."); 
             return;
         }
-
-        
         boolean isValidFishingLocation = (playerCurrentLocationString != null &&
                 (playerCurrentLocationString.equals("Pond") 
                         || playerCurrentLocationString.equals("Mountain Lake") 
                         || playerCurrentLocationString.equals("Forest River") 
                         || playerCurrentLocationString.equals("Ocean"))); 
-
         System.out.println("[PLAYER.startFishing()] INFO: Validitas lokasi '" + playerCurrentLocationString + "' untuk memancing: " + isValidFishingLocation);
-
         if (!isValidFishingLocation) {
             System.out.println("[PLAYER.startFishing()] ERROR: Lokasi '" + playerCurrentLocationString + "' TIDAK VALID atau null untuk memancing!");
             gp.ui.showMessage("Kamu tidak berada di lokasi memancing yang valid!"); 
@@ -723,13 +767,7 @@ private void teleportToPlayerHouse() {
                     System.out.println("    +++ [IKAN TERSEDIA]: " + fish.getFishName() 
                             + " (Lokasi Cocok: " + fish.getLocations().contains(playerCurrentLocationString) + ")"); 
                 } else {
-                    
-                    
-                    
-                    
-                    
-                    
-                    
+                    return;
                 }
             }
         }

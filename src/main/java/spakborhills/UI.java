@@ -4,9 +4,11 @@ import spakborhills.cooking.Recipe;
 import spakborhills.cooking.RecipeManager;
 import spakborhills.entity.Entity;
 import spakborhills.entity.NPC;
-import spakborhills.enums.ItemType;
+import spakborhills.entity.NPC_EMILY;
 import spakborhills.interfaces.Edible;
+import spakborhills.object.OBJ_Food;
 import spakborhills.object.OBJ_Item;
+import spakborhills.object.OBJ_Recipe;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -39,6 +41,7 @@ public class UI {
     public int inventoryCommandNum = 0;
     public int inventorySlotCol = 0;
     public int inventorySlotRow = 0;
+    public int storeCommandNum = 0;
 
     public Entity focusedItem = null;
     public int inventorySubstate = 0;
@@ -58,7 +61,7 @@ public class UI {
     public int cookingCommandNum = 0;
     public int cookingSubState = 0;
 
-    public UI(GamePanel gp, GameClock gameClock){
+    public UI(GamePanel gp, GameClock gameClock) {
         this.gp = gp;
         this.gameClock = gameClock;
 
@@ -67,28 +70,27 @@ public class UI {
             silkScreen = Font.createFont(Font.TRUETYPE_FONT, inputStream);
             inputStream = getClass().getResourceAsStream("/fonts/PressStart2PRegular.ttf");
             pressStart = Font.createFont(Font.TRUETYPE_FONT, inputStream);
-        } catch (FontFormatException | IOException e){
+        } catch (FontFormatException | IOException e) {
             System.out.println(e.getMessage());
         }
         loadTitleScreenImage();
     }
 
-    public void showMessage(String text){
+    public void showMessage(String text) {
         message = text;
         messageOn = true;
     }
 
-    public void loadTitleScreenImage(){
+    public void loadTitleScreenImage() {
         try {
             InputStream inputStream = getClass().getResourceAsStream("/background/title_screen.png");
 
-            if (inputStream != null){
+            if (inputStream != null) {
                 titleScreenBackground = ImageIO.read(inputStream);
-            }
-            else{
+            } else {
                 System.err.println("Cannot load the title screen!");
             }
-        }catch (IOException e){
+        } catch (IOException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -106,20 +108,16 @@ public class UI {
 
         if (gp.gameState == gp.titleState) {
             drawTitleScreen();
-        }
-        else if (gp.gameState == gp.playerNameInputState) {
+        } else if (gp.gameState == gp.playerNameInputState) {
             drawPlayerNameInputScreen();
             drawTimedMessage(g2);
-        }
-        else if (gp.gameState == gp.farmNameInputState) {
+        } else if (gp.gameState == gp.farmNameInputState) {
             drawFarmNameInputScreen();
             drawTimedMessage(g2);
-        }
-        else if (gp.gameState == gp.sleepTransitionState) {
+        } else if (gp.gameState == gp.sleepTransitionState) {
             drawSleepTransitionScreen(g2);
             drawTimedMessage(g2);
-        }
-        else if (gp.gameState == gp.playState) {
+        } else if (gp.gameState == gp.playState) {
             drawTimeHUD(g2);
             drawLocationHUD(g2);
             drawEnergyBar(g2);
@@ -138,27 +136,23 @@ public class UI {
                     message = "";
                 }
             }
-        }
-        else if (gp.gameState == gp.pauseState) {
+        } else if (gp.gameState == gp.pauseState) {
             drawPauseScreen();
-        }
-        else if (gp.gameState == gp.dialogueState) {
+        } else if (gp.gameState == gp.dialogueState) {
             drawDialogueScreen();
-        }
-        else if (gp.gameState == gp.inventoryState || gp.gameState == gp.giftSelectionState) {
+        } else if (gp.gameState == gp.inventoryState || gp.gameState == gp.giftSelectionState) {
             drawInventoryScreen();
             drawTimedMessage(g2);
-        }
-        else if (gp.gameState == gp.interactionMenuState) {
+        } else if (gp.gameState == gp.interactionMenuState) {
             drawNPCInteractionMenu();
-        }
-        else if (gp.gameState == gp.sellState){
+        } else if (gp.gameState == gp.sellState) {
             drawSellScreen();
             drawTimedMessage(g2);
-        }
-        else if (gp.gameState == gp.cookingState){
+        } else if (gp.gameState == gp.cookingState) {
             drawCookingScreen();
             drawTimedMessage(g2);
+        } else if (gp.gameState == gp.buyingState){
+            drawBuyingScreen();
         }
     }
 
@@ -198,12 +192,11 @@ public class UI {
         g2.drawString(goldText, x, y);
     }
 
-    public void drawTitleScreen(){
+    public void drawTitleScreen() {
         if (mapSelectionState == 0) {
-            if (titleScreenBackground != null){
+            if (titleScreenBackground != null) {
                 g2.drawImage(titleScreenBackground, 0, 0, gp.screenWidth, gp.screenHeight, null);
-            }
-            else{
+            } else {
                 g2.setColor(new Color(7, 150, 255));
                 g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
             }
@@ -214,7 +207,7 @@ public class UI {
             int y = gp.tileSize * 3;
 
             g2.setColor(Color.black);
-            g2.drawString(text, x+5, y+5);
+            g2.drawString(text, x + 5, y + 5);
             g2.setColor(Color.white);
             g2.drawString(text, x, y);
 
@@ -224,16 +217,16 @@ public class UI {
             x = getXForCenteredText(text);
             y += gp.tileSize * 4;
             g2.setColor(Color.black);
-            g2.drawString(text, x+5, y+5);
+            g2.drawString(text, x + 5, y + 5);
             g2.setColor(Color.white);
             g2.drawString(text, x, y);
-            if (commandNumber == 0){
-                g2.drawString(">", x-gp.tileSize, y);
-                if (gp.keyH.enterPressed){
+            if (commandNumber == 0) {
+                g2.drawString(">", x - gp.tileSize, y);
+                if (gp.keyH.enterPressed) {
                     gp.gameState = gp.playerNameInputState;
                     playerNameInput = "";
                     gp.keyH.enterPressed = false;
-                    if (gp.gameClock != null && !gp.gameClock.isPaused()){
+                    if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                         gp.gameClock.pauseTime();
                     }
                 }
@@ -243,25 +236,24 @@ public class UI {
             x = getXForCenteredText(text);
             y += gp.tileSize;
             g2.setColor(Color.black);
-            g2.drawString(text, x+5, y+5);
+            g2.drawString(text, x + 5, y + 5);
             g2.setColor(Color.white);
             g2.drawString(text, x, y);
-            if (commandNumber == 1){
-                g2.drawString(">", x-gp.tileSize, y);
+            if (commandNumber == 1) {
+                g2.drawString(">", x - gp.tileSize, y);
             }
 
             text = "QUIT";
             x = getXForCenteredText(text);
             y += gp.tileSize;
             g2.setColor(Color.black);
-            g2.drawString(text, x+5, y+5);
+            g2.drawString(text, x + 5, y + 5);
             g2.setColor(Color.white);
             g2.drawString(text, x, y);
-            if (commandNumber == 2){
-                g2.drawString(">", x-gp.tileSize, y);
+            if (commandNumber == 2) {
+                g2.drawString(">", x - gp.tileSize, y);
             }
-        }
-        else if (mapSelectionState == 1){
+        } else if (mapSelectionState == 1) {
             drawSharedBackground(g2);
 
             g2.setColor(new Color(0, 0, 0, 200));
@@ -281,117 +273,117 @@ public class UI {
             g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 12F));
 
             text = "Abigail's";
-            int x1 = gp.tileSize*3/2;
+            int x1 = gp.tileSize * 3 / 2;
             y += gp.tileSize * 2;
             g2.drawString(text, x1, y);
-            y += gp.tileSize/4;
+            y += gp.tileSize / 4;
             text = "House";
             g2.drawString(text, x1, y);
-            y -= gp.tileSize/4;
-            if (commandNumber == 0){
-                g2.drawString(">", x1-gp.tileSize/4, y+gp.tileSize/8);
+            y -= gp.tileSize / 4;
+            if (commandNumber == 0) {
+                g2.drawString(">", x1 - gp.tileSize / 4, y + gp.tileSize / 8);
             }
 
             text = "Caroline's";
-            int x2 = x1 + gp.tileSize*3;
+            int x2 = x1 + gp.tileSize * 3;
             g2.drawString(text, x2, y);
             text = "House";
-            y += gp.tileSize/4;
+            y += gp.tileSize / 4;
             g2.drawString(text, x2, y);
-            y -= gp.tileSize/4;
-            if (commandNumber == 1){
-                g2.drawString(">", x2-gp.tileSize/4, y+gp.tileSize/8);
+            y -= gp.tileSize / 4;
+            if (commandNumber == 1) {
+                g2.drawString(">", x2 - gp.tileSize / 4, y + gp.tileSize / 8);
             }
 
             text = "Dasco's";
-            int x3 = x2 + gp.tileSize*3;
+            int x3 = x2 + gp.tileSize * 3;
             g2.drawString(text, x3, y);
             text = "House";
-            y += gp.tileSize/4;
+            y += gp.tileSize / 4;
             g2.drawString(text, x3, y);
-            y -= gp.tileSize/4;
-            if (commandNumber == 2){
-                g2.drawString(">", x3-gp.tileSize/4, y+gp.tileSize/8);
+            y -= gp.tileSize / 4;
+            if (commandNumber == 2) {
+                g2.drawString(">", x3 - gp.tileSize / 4, y + gp.tileSize / 8);
             }
 
             text = "MayorTadi's";
-            int x4 = x3 + gp.tileSize*3;
+            int x4 = x3 + gp.tileSize * 3;
             g2.drawString(text, x4, y);
             text = "House";
-            y += gp.tileSize/4;
+            y += gp.tileSize / 4;
             g2.drawString(text, x4, y);
-            y -= gp.tileSize/4;
-            if (commandNumber == 3){
-                g2.drawString(">", x4-gp.tileSize/4, y+gp.tileSize/8);
+            y -= gp.tileSize / 4;
+            if (commandNumber == 3) {
+                g2.drawString(">", x4 - gp.tileSize / 4, y + gp.tileSize / 8);
             }
 
             text = "Perry's";
-            int x5 = x4 + gp.tileSize*3;
+            int x5 = x4 + gp.tileSize * 3;
             g2.drawString(text, x5, y);
             text = "House";
-            y += gp.tileSize/4;
+            y += gp.tileSize / 4;
             g2.drawString(text, x5, y);
-            y -= gp.tileSize/4;
-            if (commandNumber == 4){
-                g2.drawString(">", x5-gp.tileSize/4, y+gp.tileSize/8);
+            y -= gp.tileSize / 4;
+            if (commandNumber == 4) {
+                g2.drawString(">", x5 - gp.tileSize / 4, y + gp.tileSize / 8);
             }
 
             text = "Store";
             x = x1;
             y += gp.tileSize * 2;
             g2.drawString(text, x, y);
-            if (commandNumber == 5){
-                g2.drawString(">", x-gp.tileSize/4, y);
+            if (commandNumber == 5) {
+                g2.drawString(">", x - gp.tileSize / 4, y);
             }
 
             text = "Farm";
             x = x2;
             g2.drawString(text, x, y);
-            if (commandNumber == 6){
-                g2.drawString(">", x-gp.tileSize/4, y);
+            if (commandNumber == 6) {
+                g2.drawString(">", x - gp.tileSize / 4, y);
             }
 
             text = "Forest";
             x = x3;
             g2.drawString(text, x, y);
             text = "River";
-            y += gp.tileSize/4;
+            y += gp.tileSize / 4;
             g2.drawString(text, x, y);
-            y -= gp.tileSize/4;
-            if (commandNumber == 7){
-                g2.drawString(">", x-gp.tileSize/4, y);
+            y -= gp.tileSize / 4;
+            if (commandNumber == 7) {
+                g2.drawString(">", x - gp.tileSize / 4, y);
             }
 
             text = "Mountain";
             x = x4;
             g2.drawString(text, x, y);
             text = "Lake";
-            y += gp.tileSize/4;
+            y += gp.tileSize / 4;
             g2.drawString(text, x, y);
-            y -= gp.tileSize/4;
-            if (commandNumber == 8){
-                g2.drawString(">", x-gp.tileSize/4, y);
+            y -= gp.tileSize / 4;
+            if (commandNumber == 8) {
+                g2.drawString(">", x - gp.tileSize / 4, y);
             }
 
             text = "Ocean";
             x = x5;
             g2.drawString(text, x, y);
-            if (commandNumber == 9){
-                g2.drawString(">", x-gp.tileSize/4, y);
+            if (commandNumber == 9) {
+                g2.drawString(">", x - gp.tileSize / 4, y);
             }
 
             text = "Player's House";
             x = getXForCenteredText(text);
             y += gp.tileSize * 2;
             g2.drawString(text, x, y);
-            if (commandNumber == 10){
-                g2.drawString(">", x-gp.tileSize/4, y);
+            if (commandNumber == 10) {
+                g2.drawString(">", x - gp.tileSize / 4, y);
             }
         }
 
     }
 
-    public void drawPauseScreen(){
+    public void drawPauseScreen() {
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 80f));
         String text = "PAUSED";
         int x = getXForCenteredText(text);
@@ -588,22 +580,23 @@ public class UI {
         }
     }
 
-    public void drawSubWindow(int x, int y, int width, int height){
-        Color c = new Color(0, 0 ,0, 210);
+    public void drawSubWindow(int x, int y, int width, int height) {
+        Color c = new Color(0, 0, 0, 210);
         g2.setColor(c);
-        g2.fillRoundRect(x, y, width, height,35, 35);
+        g2.fillRoundRect(x, y, width, height, 35, 35);
 
         c = new Color(255, 255, 255);
         g2.setColor(c);
         g2.setStroke(new BasicStroke(5));
-        g2.drawRoundRect(x+5, y+5, width-10, height-10, 25, 25);
+        g2.drawRoundRect(x + 5, y + 5, width - 10, height - 10, 25, 25);
     }
-    public int getXForCenteredText(String text){
-        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth() ;
+
+    public int getXForCenteredText(String text) {
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
         return gp.screenWidth / 2 - length / 2;
     }
 
-    public void drawEnergyBar(Graphics2D g2){
+    public void drawEnergyBar(Graphics2D g2) {
         int x = gp.tileSize / 2;
         int y = gp.tileSize / 2;
         int segmentWidth = gp.tileSize / 2;
@@ -612,9 +605,9 @@ public class UI {
         int totalSegments = 10;
 
         int filledSegments = 0;
-        if (gp.player.MAX_POSSIBLE_ENERGY > 0){
+        if (gp.player.MAX_POSSIBLE_ENERGY > 0) {
             double energyPerSegments = (double) gp.player.MAX_POSSIBLE_ENERGY / totalSegments;
-            if (energyPerSegments > 0){
+            if (energyPerSegments > 0) {
                 filledSegments = (int) (gp.player.currentEnergy / energyPerSegments);
             }
         }
@@ -626,7 +619,7 @@ public class UI {
         g2.drawString(labelText, x, y - fmLabel.getDescent());
         y += 5;
 
-        for (int i = 0; i < totalSegments; i++){
+        for (int i = 0; i < totalSegments; i++) {
             int currentSegmentX = x + (i * (segmentWidth + segmentSpacing));
 
             g2.setColor(Color.black);
@@ -634,7 +627,7 @@ public class UI {
             g2.setColor(Color.gray);
             g2.fillRect(currentSegmentX, y, segmentWidth, segmenHeight);
 
-            if (i < filledSegments){
+            if (i < filledSegments) {
                 Color segmentColor = getColor(i, totalSegments);
 
                 g2.setColor(segmentColor);
@@ -656,25 +649,24 @@ public class UI {
         Color segmentColor;
         double currentEnergyPercentage = (double) gp.player.currentEnergy / gp.player.MAX_POSSIBLE_ENERGY;
 
-        if (currentEnergyPercentage > 0.6){
+        if (currentEnergyPercentage > 0.6) {
             segmentColor = new Color(0, 200, 0);
-        }
-        else if (currentEnergyPercentage > 0.3){
+        } else if (currentEnergyPercentage > 0.3) {
             segmentColor = new Color(255, 200, 0);
-        }
-        else{
-            segmentColor = new Color(200, 0 ,0);
+        } else {
+            segmentColor = new Color(200, 0, 0);
         }
         return segmentColor;
     }
 
-    public int getXForInventoryTitle(String text, int frameX, int frameWidth){
-        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth() ;
+    public int getXForInventoryTitle(String text, int frameX, int frameWidth) {
+        int length = (int) g2.getFontMetrics().getStringBounds(text, g2).getWidth();
         return frameX + (frameWidth / 2) - (length / 2);
     }
 
-    public int getXForCenteredTextInFrame(String text, int frameX, int frameWidth){
-        if (g2 == null || text == null) return frameX;
+    public int getXForCenteredTextInFrame(String text, int frameX, int frameWidth) {
+        if (g2 == null || text == null)
+            return frameX;
         FontMetrics fm = g2.getFontMetrics();
         int length = fm.stringWidth(text);
         return frameX + (frameWidth - length) / 2;
@@ -702,7 +694,8 @@ public class UI {
 
         int currentItemIndexInList = 0;
 
-        Font itemQuantityFont = (pressStart != null) ? pressStart.deriveFont(Font.BOLD, 12F) : new Font("Arial", Font.BOLD, 12);
+        Font itemQuantityFont = (pressStart != null) ? pressStart.deriveFont(Font.BOLD, 12F)
+                : new Font("Arial", Font.BOLD, 12);
         Font itemInfoFont = (pressStart != null) ? pressStart.deriveFont(18F) : new Font("Arial", Font.PLAIN, 18);
 
         for (Entity itemEntity : gp.player.inventory) {
@@ -785,14 +778,14 @@ public class UI {
     }
 
     public void drawNPCInteractionMenu() {
-        if (gp.currentInteractingNPC == null) return;
+        if (gp.currentInteractingNPC == null)
+            return;
         NPC npc = (NPC) gp.currentInteractingNPC;
 
         int frameX = gp.tileSize * 2;
         int frameY = gp.screenHeight / 2 - gp.tileSize * 2;
         int frameWidth = gp.tileSize * 5;
         int frameHeight = gp.tileSize * 5;
-        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
 
         g2.setColor(Color.white);
         g2.setFont(g2.getFont().deriveFont(20F));
@@ -805,13 +798,19 @@ public class UI {
         options.add("Give Gift");
 
         if (npc.isMarriageCandidate && !npc.marriedToPlayer && !gp.player.isMarried() && !npc.engaged) {
-                options.add("Propose");
+            options.add("Propose");
+        }
+        if (npc.name.equals("Emily")) {
+            options.add("Shop");
         }
         if (npc.isMarriageCandidate && npc.engaged && !npc.marriedToPlayer && !gp.player.isMarried()) {
             options.add("Marry");
         }
         options.add("Leave");
-
+        if (options.size() > 5) {
+            frameHeight = gp.tileSize * 9;
+        }
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
         for (int i = 0; i < options.size(); i++) {
             if (i == npcMenuCommandNum) {
                 g2.drawString(">", textX - gp.tileSize / 4, textY + i * gp.tileSize);
@@ -842,7 +841,7 @@ public class UI {
 
         String playerGoldText = "Gold: " + gp.player.gold;
         int goldTextWidth = g2.getFontMetrics().stringWidth(playerGoldText);
-        int goldTextX = frameX + frameWidth - goldTextWidth - (gp.tileSize /2);
+        int goldTextX = frameX + frameWidth - goldTextWidth - (gp.tileSize / 2);
         g2.drawString(playerGoldText, goldTextX, binStatusY);
 
         final int slotPadding = gp.tileSize / 2;
@@ -1023,6 +1022,7 @@ public class UI {
             }
         }
     }
+
     public void drawCookingScreen() {
         int frameX = gp.tileSize * 2;
         int frameY = gp.tileSize;
@@ -1056,7 +1056,8 @@ public class UI {
         if (cookingSubState == 0 && displayableRecipes.isEmpty()) {
             g2.setFont(baseFont.deriveFont(Font.PLAIN, 18F));
             String noRecipeMsg = "You haven't learned any recipes yet.";
-            g2.drawString(noRecipeMsg, getXForCenteredTextInFrame(noRecipeMsg, frameX, frameWidth), frameY + gp.tileSize * 3);
+            g2.drawString(noRecipeMsg, getXForCenteredTextInFrame(noRecipeMsg, frameX, frameWidth),
+                    frameY + gp.tileSize * 3);
             g2.drawString("[Esc] Exit Kitchen", frameX + gp.tileSize, frameY + frameHeight - gp.tileSize + 10);
             return;
         }
@@ -1097,8 +1098,10 @@ public class UI {
                     }
                     g2.drawString("Fuel: Firewood or Coal", detailStartX + 10, detailCurrentY);
                     detailCurrentY += detailLineHeight;
-                    if (recipe.unlockConditionDescription != null && !recipe.unlockConditionDescription.equals("Default/Bawaan")) {
-                        g2.drawString("Unlocks: " + recipe.unlockConditionDescription, detailStartX + 10, detailCurrentY);
+                    if (recipe.unlockConditionDescription != null
+                            && !recipe.unlockConditionDescription.equals("Default/Bawaan")) {
+                        g2.drawString("Unlocks: " + recipe.unlockConditionDescription, detailStartX + 10,
+                                detailCurrentY);
                     }
 
                     g2.setColor(Color.white);
@@ -1167,11 +1170,12 @@ public class UI {
     }
 
     private void drawTimeHUD(Graphics2D g2) {
-        if (gp.gameState != gp.playState) return;
+        if (gp.gameState != gp.playState)
+            return;
 
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 13F));
 
-        String[] labels = {"Time:", "Season:", "Weather:"};
+        String[] labels = { "Time:", "Season:", "Weather:" };
         String[] values = {
                 gameClock.getFormattedTime(),
                 gameClock.getCurrentSeason().name(),
@@ -1204,8 +1208,7 @@ public class UI {
                 totalWidth + 20,
                 totalHeight + 10,
                 15,
-                15
-        );
+                15);
 
         g2.setColor(Color.WHITE);
         for (int i = 0; i < labels.length; i++) {
@@ -1249,5 +1252,160 @@ public class UI {
         } else {
             System.out.println("DEBUG: UI.startSelfDialogue - GameClock or Time is null, cannot pause.");
         }
+    }
+    
+    public void drawBuyingScreen() {
+        if (!(gp.currentInteractingNPC instanceof NPC_EMILY))
+            return;
+        NPC_EMILY emily = (NPC_EMILY) gp.currentInteractingNPC;
+
+        int frameX = gp.tileSize;
+        int frameY = gp.tileSize;
+        int frameWidth = gp.screenWidth - (gp.tileSize * 2);
+        int frameHeight = gp.screenHeight - (gp.tileSize * 2);
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+
+        g2.setColor(Color.white);
+        Font baseFont = pressStart != null ? pressStart : new Font("Arial", Font.PLAIN, 20);
+        g2.setFont(baseFont.deriveFont(Font.BOLD, 24F));
+        String title = "Emily's Shop";
+        g2.drawString(title, getXForCenteredTextInFrame(title, frameX, frameWidth), frameY + gp.tileSize - 5);
+
+        g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
+        g2.drawString("Your Gold: " + gp.player.gold + "G", frameX + gp.tileSize / 2,
+                (int) (frameY + gp.tileSize * 1.5f));
+
+        
+        int padding = 20;
+        int listStartX = frameX + padding;
+        int listStartY = (int) (frameY + gp.tileSize * 2.5f);
+        int itemLineHeight = 22;
+
+        
+        int usableWidth = frameWidth - (padding * 2);
+        int itemListWidth = usableWidth * 2 / 5; 
+        int detailAreaWidth = usableWidth * 3 / 5 - padding; 
+
+        
+        int detailsStartX = listStartX + itemListWidth + padding;
+        int maxDetailWidth = Math.min(detailAreaWidth, frameX + frameWidth - detailsStartX - padding);
+
+        if (emily.shopInventory.isEmpty()) {
+            g2.setFont(baseFont.deriveFont(Font.PLAIN, 18F));
+            String noItemMsg = "Sorry, nothing in stock right now!";
+            g2.drawString(noItemMsg, getXForCenteredTextInFrame(noItemMsg, frameX, frameWidth),
+                    frameY + frameHeight / 2);
+        } else {
+            
+            int availableListHeight = frameHeight - gp.tileSize * 4;
+            int maxVisibleItems = availableListHeight / itemLineHeight;
+            int scrollOffset = 0;
+            if (storeCommandNum >= maxVisibleItems) {
+                scrollOffset = storeCommandNum - maxVisibleItems + 1;
+            }
+
+            for (int i = 0; i < emily.shopInventory.size(); i++) {
+                if (i < scrollOffset || i >= scrollOffset + maxVisibleItems) {
+                    continue;
+                }
+                OBJ_Item shopItem = emily.shopInventory.get(i);
+                String itemName = shopItem.name;
+                int itemPrice = shopItem.getBuyPrice();
+                String displayText = itemName + " - " + itemPrice + "G";
+
+                int currentY = listStartY + ((i - scrollOffset) * itemLineHeight);
+
+                if (i == storeCommandNum) {
+                    g2.setColor(Color.YELLOW);
+                    g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
+                    g2.drawString("> " + displayText, listStartX, currentY);
+
+                    
+                    
+                    int detailBackgroundHeight = gp.tileSize * 2 + 40; 
+                    g2.setColor(new Color(50, 50, 50, 150));
+                    g2.fillRoundRect(detailsStartX - 10, listStartY - 10,
+                            maxDetailWidth + 20, detailBackgroundHeight, 10, 10);
+                    g2.setColor(Color.WHITE);
+                    g2.drawRoundRect(detailsStartX - 10, listStartY - 10,
+                            maxDetailWidth + 20, detailBackgroundHeight, 10, 10);
+
+                    
+                    int imageSize = gp.tileSize; 
+                    if (shopItem.down1 != null) {
+                        g2.drawImage(shopItem.down1, detailsStartX, listStartY + 5, imageSize, imageSize, null);
+                    } else {
+                        
+                        g2.setColor(Color.GRAY);
+                        g2.fillRect(detailsStartX, listStartY + 5, imageSize, imageSize);
+                        g2.setColor(Color.WHITE);
+                        g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
+                        g2.drawString("No", detailsStartX + 5, listStartY + imageSize / 2);
+                        g2.drawString("Image", detailsStartX + 5, listStartY + imageSize / 2 + 12);
+                    }
+
+                    
+                    int textStartX = detailsStartX + imageSize + 15;
+                    int textStartY = listStartY + 20;
+                    int maxTextWidth = maxDetailWidth - imageSize - 25; 
+
+                    
+                    if (textStartX + maxTextWidth > frameX + frameWidth - padding) {
+                        maxTextWidth = frameX + frameWidth - padding - textStartX;
+                    }
+
+                    g2.setColor(Color.WHITE);
+                    g2.setFont(baseFont.deriveFont(Font.BOLD, 14F));
+
+                    
+                    String displayName = shopItem.name;
+                    FontMetrics fm = g2.getFontMetrics();
+                    if (fm.stringWidth(displayName) > maxTextWidth) {
+                        while (fm.stringWidth(displayName + "...") > maxTextWidth && displayName.length() > 1) {
+                            displayName = displayName.substring(0, displayName.length() - 1);
+                        }
+                        displayName += "...";
+                    }
+                    g2.drawString(displayName, textStartX, textStartY);
+
+                    g2.setFont(baseFont.deriveFont(Font.PLAIN, 12F));
+                    g2.setColor(Color.YELLOW);
+                    g2.drawString("Price: " + itemPrice + "G", textStartX, textStartY + 18);
+
+                    g2.setColor(Color.LIGHT_GRAY);
+                    g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
+                    String itemInfo = "";
+
+                    
+                    if (fm.stringWidth(itemInfo) > maxTextWidth) {
+                        while (fm.stringWidth(itemInfo + "...") > maxTextWidth && itemInfo.length() > 1) {
+                            itemInfo = itemInfo.substring(0, itemInfo.length() - 1);
+                        }
+                        itemInfo += "...";
+                    }
+                    g2.drawString(itemInfo, textStartX, textStartY + 36);
+
+                } else {
+                    g2.setColor(Color.WHITE);
+                    g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
+
+                    
+                    FontMetrics fm = g2.getFontMetrics();
+                    if (fm.stringWidth(displayText) > itemListWidth - 30) {
+                        while (fm.stringWidth(displayText + "...") > itemListWidth - 30 && displayText.length() > 1) {
+                            displayText = displayText.substring(0, displayText.length() - 1);
+                        }
+                        displayText += "...";
+                    }
+                    g2.drawString("  " + displayText, listStartX, currentY);
+                }
+            }
+        }
+
+        
+        g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
+        g2.setColor(Color.WHITE);
+        String instructions = "[Up/Down] Select | [Enter] Buy | [Esc] Exit";
+        g2.drawString(instructions, listStartX, frameY + frameHeight - padding);
     }
 }

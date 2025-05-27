@@ -16,6 +16,9 @@ public class OBJ_Misc extends OBJ_Item {
             case "Coal":
                 down1 = setup("/objects/coal");
                 break;
+            case "Proposal Ring":
+                down1 = setup("/objects/proposal_ring");
+                break;
         }
     }
 

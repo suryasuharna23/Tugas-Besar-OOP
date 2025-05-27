@@ -62,20 +62,9 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int eatState = 10;
     public final int sellState = 11;
     public final int cookingState = 12;
+    public final int buyingState = 13;
 
     public final int PLAYER_HOUSE_INDEX = 10;
-    public final int[] BED_TILE_INDICES = {
-            143, // single_bed_part1.png (mungkin bagian atas/bantal)
-            144, // single_bed_part2.png (bagian tengah)
-            145, // single_bed_part3.png (bagian tengah)
-            146, // single_bed_part4.png (bagian tengah)
-            // Anda bisa menambahkan lebih banyak jika perlu, misalnya:
-            // 147, // single_bed_part5.png
-            // 148, // single_bed_part6.png
-            // 149  // single_bed_part7.png
-            // Pilih tile yang paling masuk akal untuk pemain berdiri di atasnya untuk tidur.
-            // Biasanya 2-3 tile tengah sudah cukup.
-    };
 
     public Recipe selectedRecipeForCooking = null;
 
@@ -410,24 +399,24 @@ public class GamePanel extends  JPanel implements Runnable {
         System.out.println("[GamePanel] Daily resets completed.");
     }
 
-    public void resetCoreGameDataForNewGame() { // Ganti nama agar lebih jelas
+    public void resetCoreGameDataForNewGame() { 
         if (player != null) {
-            player.setDefaultValues(); // Ini akan mereset energi, inventaris dasar, gold, dll.
-            // Posisi worldX/Y akan diatur oleh loadMapbyIndex/setPositionForMapEntry
+            player.setDefaultValues(); 
+            
         }
 
-        entities.clear(); // Kosongkan entitas dari sesi game sebelumnya (jika ada)
-        npcs.clear();     // Kosongkan NPC juga
+        entities.clear(); 
+        npcs.clear();     
 
         if (gameClock != null) {
-            gameClock.resetTime(); // Mereset hari, musim, cuaca
+            gameClock.resetTime(); 
         }
 
-        // Reset elemen UI yang relevan dengan sesi game
-        if (ui != null) { // Tambahkan null check untuk ui
+        
+        if (ui != null) { 
             ui.currentDialogue = "";
-            ui.commandNumber = 0; // Reset command number umum
-            // ui.farmNameInput akan di-handle oleh state farmNameInputState sendiri
+            ui.commandNumber = 0; 
+            
         }
 
         System.out.println("Core game data has been reset for a new game session.");
