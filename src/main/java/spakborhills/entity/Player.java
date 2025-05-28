@@ -135,19 +135,16 @@ public class Player extends Entity{
 
 
     public String getLocation() {
-    // Jika menggunakan enum Location
     if (currentLocation != null) {
         return currentLocation.name().replace("_", " ");
     }
-    // Fallback
-    return "Unknown";
-}
+    return "Unknown";}
 
 
     public void setLocation(String locationName) {
         try {
-            String enumCompatibleName = locationName.toUpperCase().replace(" ", "_"); //
-            this.currentLocation = Location.valueOf(enumCompatibleName); //
+            String enumCompatibleName = locationName.toUpperCase().replace(" ", "_");
+            this.currentLocation = Location.valueOf(enumCompatibleName);
         } catch (IllegalArgumentException e) {
             System.err.println("Peringatan: Nama lokasi string tidak valid '" + locationName + "'. Lokasi tidak diubah.");
         }

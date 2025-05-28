@@ -401,7 +401,6 @@ public class GamePanel extends JPanel implements Runnable {
             }
 
             tileManager.loadMap(selectedMap);
-
             entities.clear();
             npcs.clear();
 

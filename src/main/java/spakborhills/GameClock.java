@@ -141,14 +141,12 @@ public class GameClock extends Thread {
         if (wasPaused) {
             resumeTime();
         }
-
         if (this.time != null) {
             this.time.resetToDefault();
             updateSeasonBasedOnDay(this.time.getDay()); 
         } else {
             currentSeason = Season.SPRING; 
         }
-
         if (this.weather != null) {
             this.weather.resetToDefault();
         }

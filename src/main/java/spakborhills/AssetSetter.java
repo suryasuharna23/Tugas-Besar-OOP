@@ -212,7 +212,6 @@ public class AssetSetter {
                                         System.out.println("  -> " + npcPersistentInstance.name + " is married to player. Placing in Player's House.");
                                 }
                         }
-
                         else  {
                                 if (npcPersistentInstance.name.equals("Abigail") && "Abigail's House".equalsIgnoreCase(currentMapName)) {
                                         shouldBeOnThisMap = true;

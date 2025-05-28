@@ -1497,14 +1497,10 @@ public class UI {
         g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
         g2.drawString("Your Gold: " + gp.player.gold + "G", frameX + gp.tileSize / 2,
                 (int) (frameY + gp.tileSize * 1.5f));
-
-
         int padding = 20;
         int listStartX = frameX + padding;
         int listStartY = (int) (frameY + gp.tileSize * 2.5f);
         int itemLineHeight = 22;
-
-
         int usableWidth = frameWidth - (padding * 2);
         int itemListWidth = usableWidth * 2 / 5;
         int detailAreaWidth = usableWidth * 3 / 5 - padding;

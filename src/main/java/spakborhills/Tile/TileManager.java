@@ -130,7 +130,6 @@ public class TileManager {
         } else if (mapNameOriginal.equalsIgnoreCase("Player's House")) { 
             this.currentMapAssetFolder = "player_house";
         } else {
-            
             String processedName = mapNameOriginal.toLowerCase()
                     .replaceAll("'s", "") 
                     .replace(" ", "_") 
@@ -139,7 +138,6 @@ public class TileManager {
             System.out.println("[TileManager.loadMap] Using generically derived asset folder for '" + mapNameOriginal
                     + "': [" + this.currentMapAssetFolder + "]");
         }
-
         if (this.currentMapAssetFolder == null) { 
             System.err
                     .println("[TileManager.loadMap] CRITICAL: currentMapAssetFolder is NULL after derivation for map: "

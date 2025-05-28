@@ -199,6 +199,7 @@ public class NPC extends Entity{
         }
         gp.gameState = gp.dialogueState;
     }
+
     public void getMarried() {
         facePlayer();
         if (!engaged) {
