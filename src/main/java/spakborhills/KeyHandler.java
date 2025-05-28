@@ -37,10 +37,11 @@ public class KeyHandler implements KeyListener {
     public void keyTyped(KeyEvent e) {
     }
 
+    @Override
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
-        if (gp.gameState == gp.titleState) {
 
+        if (gp.gameState == gp.titleState) {
             if (gp.ui.mapSelectionState == 0) {
                 if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                     gp.ui.commandNumber--;
@@ -51,29 +52,25 @@ public class KeyHandler implements KeyListener {
                     gp.ui.commandNumber++;
                     if (gp.ui.commandNumber > 2) {
                         gp.ui.commandNumber = 0;
-
                     }
                 } else if (code == KeyEvent.VK_ENTER) {
-                    
-                    if (gp.ui.commandNumber == 0) { 
+                    if (gp.ui.commandNumber == 0) {
                         gp.gameState = gp.playerNameInputState;
                         gp.ui.playerNameInput = "";
                         if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                             gp.gameClock.pauseTime();
                         }
-                    } else if (gp.ui.commandNumber == 1) { 
+                    } else if (gp.ui.commandNumber == 1) {
                         gp.ui.showMessage("Load Game (Not Implemented Yet)");
-                    } else if (gp.ui.commandNumber == 2) { 
+                    } else if (gp.ui.commandNumber == 2) {
                         System.exit(0);
                     }
                 }
-            }
-
-            else if (gp.ui.mapSelectionState == 1) { 
+            } else if (gp.ui.mapSelectionState == 1) {
                 if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                     gp.ui.commandNumber--;
                     if (gp.ui.commandNumber < 0) {
-                        gp.ui.commandNumber = gp.mapInfos.size() - 1; 
+                        gp.ui.commandNumber = gp.mapInfos.size() - 1;
                     }
                 } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
                     gp.ui.commandNumber++;
@@ -90,7 +87,7 @@ public class KeyHandler implements KeyListener {
                         }
                     }
                 } else if (code == KeyEvent.VK_ESCAPE) {
-                    gp.ui.mapSelectionState = 0; 
+                    gp.ui.mapSelectionState = 0;
                     gp.ui.commandNumber = 0;
                 }
             }
@@ -98,13 +95,13 @@ public class KeyHandler implements KeyListener {
 
         else if (gp.gameState == gp.playerNameInputState) {
             handlePlayerNameInput(code, e.getKeyChar());
-
         }
 
         else if (gp.gameState == gp.farmNameInputState) {
             handleFarmNameInput(code, e.getKeyChar());
+        }
 
-        } else if (gp.gameState == gp.interactionMenuState) {
+        else if (gp.gameState == gp.interactionMenuState) {
             handleNPCInteractionMenuInput(code);
         }
 
@@ -123,31 +120,29 @@ public class KeyHandler implements KeyListener {
                     gp.gameClock.pauseTime();
             } else if (code == KeyEvent.VK_ENTER) {
                 enterPressed = true;
-            } else if (code == KeyEvent.VK_M) { 
-                gp.gameState = gp.titleState; 
-                gp.ui.mapSelectionState = 1; 
-                gp.ui.commandNumber = gp.currentMapIndex != -1 ? gp.currentMapIndex : 0; 
-                
-
+            } else if (code == KeyEvent.VK_M) {
+                gp.gameState = gp.titleState;
+                gp.ui.mapSelectionState = 1;
+                gp.ui.commandNumber = gp.currentMapIndex != -1 ? gp.currentMapIndex : 0;
                 if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                     gp.gameClock.pauseTime();
                 }
-            } else if (code == KeyEvent.VK_K) { 
+            } else if (code == KeyEvent.VK_K) {
                 gp.player.startFishing();
-            } else if (code == KeyEvent.VK_E) { 
+            } else if (code == KeyEvent.VK_E) {
                 eatPressed = true;
-            } else if (code == KeyEvent.VK_R) { 
+            } else if (code == KeyEvent.VK_R) {
                 new TillingCommand(gp.player).execute(gp);
-            } else if (code == KeyEvent.VK_T) { 
+            } else if (code == KeyEvent.VK_T) {
                 new RecoverLandCommand(gp.player).execute(gp);
-            } else if (code == KeyEvent.VK_G) { 
+            } else if (code == KeyEvent.VK_G) {
                 new WateringCommand(gp.player).execute(gp);
-            } else if (code == KeyEvent.VK_F) { 
+            } else if (code == KeyEvent.VK_F) {
                 new PlantingCommand(gp.player).execute(gp);
-            } else if (code == KeyEvent.VK_I) { 
+            } else if (code == KeyEvent.VK_I) {
                 if (gp.player != null) {
                     gp.gameState = gp.inventoryState;
-                    gp.ui.inventoryCommandNum = 0; 
+                    gp.ui.inventoryCommandNum = 0;
                     System.out.println("DEBUG: KeyHandler - GameState changed to inventoryState via 'I'.");
                     if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                         gp.gameClock.pauseTime();
@@ -164,45 +159,74 @@ public class KeyHandler implements KeyListener {
             }
         }
 
-        
         else if (gp.gameState == gp.dialogueState) {
-            if (code == KeyEvent.VK_ENTER) {
+            
+            if (code == KeyEvent.VK_UP) {
+                
+                if (gp.ui.getDialogueCurrentPage() > 0) {
+                    gp.ui.setDialogueCurrentPage(gp.ui.getDialogueCurrentPage() - 1);
+                    return; 
+                }
+            } else if (code == KeyEvent.VK_DOWN) {
+                
+                int totalPages = (int) Math
+                        .ceil((double) gp.ui.getCurrentDialogueLines().size() / gp.ui.getDialogueLinesPerPage());
+                if (gp.ui.getDialogueCurrentPage() < totalPages - 1) {
+                    gp.ui.setDialogueCurrentPage(gp.ui.getDialogueCurrentPage() + 1);
+                    return; 
+                }
+            } else if (code == KeyEvent.VK_ENTER) {
+                
+                int totalPages = (int) Math
+                        .ceil((double) gp.ui.getCurrentDialogueLines().size() / gp.ui.getDialogueLinesPerPage());
+                if (gp.ui.getDialogueCurrentPage() < totalPages - 1) {
+                    
+                    gp.ui.setDialogueCurrentPage(gp.ui.getDialogueCurrentPage() + 1);
+                    return;
+                }
+
+                
                 System.out.println("[KeyHandler - dialogueState] ENTER pressed. CurrentDialogue: \""
                         + gp.ui.currentDialogue + "\", CurrentInteractingNPC: "
                         + (gp.currentInteractingNPC != null ? gp.currentInteractingNPC.name : "null"));
 
                 boolean isOneShotDialogue = false;
                 if (gp.ui.currentDialogue != null) {
-                    if (gp.ui.currentDialogue.contains("(HP:") || 
+                    if (gp.ui.currentDialogue.contains("(HP:") ||
                             gp.ui.currentDialogue.contains("Thank you") ||
                             gp.ui.currentDialogue.contains("Makasih") ||
                             gp.ui.currentDialogue.contains("sangat suka") ||
-                            (gp.currentInteractingNPC != null && (gp.ui.currentDialogue
-                                    .equals(((NPC) gp.currentInteractingNPC).proposalAcceptedDialogue) ||
-                                    gp.ui.currentDialogue.startsWith(
-                                            ((NPC) gp.currentInteractingNPC).proposalRejectedDialogue_LowHearts)
-                                    ||
-                                    gp.ui.currentDialogue.equals(((NPC) gp.currentInteractingNPC).marriageDialogue) ||
-                                    gp.ui.currentDialogue
-                                            .equals(((NPC) gp.currentInteractingNPC).alreadyMarriedDialogue)
-                                    ||
-                                    gp.ui.currentDialogue.equals(((NPC) gp.currentInteractingNPC).notEngagedDialogue) ||
-                                    gp.ui.currentDialogue
-                                            .equals(((NPC) gp.currentInteractingNPC).alreadyGiftedDialogue)))) {
+                            (gp.currentInteractingNPC != null && gp.currentInteractingNPC instanceof NPC &&
+                                    (gp.ui.currentDialogue
+                                            .equals(((NPC) gp.currentInteractingNPC).proposalAcceptedDialogue) ||
+                                            gp.ui.currentDialogue.startsWith(
+                                                    ((NPC) gp.currentInteractingNPC).proposalRejectedDialogue_LowHearts)
+                                            ||
+                                            gp.ui.currentDialogue
+                                                    .equals(((NPC) gp.currentInteractingNPC).marriageDialogue)
+                                            ||
+                                            gp.ui.currentDialogue
+                                                    .equals(((NPC) gp.currentInteractingNPC).alreadyMarriedDialogue)
+                                            ||
+                                            gp.ui.currentDialogue
+                                                    .equals(((NPC) gp.currentInteractingNPC).notEngagedDialogue)
+                                            ||
+                                            gp.ui.currentDialogue
+                                                    .equals(((NPC) gp.currentInteractingNPC).alreadyGiftedDialogue)))) {
                         isOneShotDialogue = true;
                     }
                 }
 
                 if (gp.currentInteractingNPC != null && isOneShotDialogue) {
                     System.out.println(
-                            "[KeyHandler - dialogueState] Detected one-shot NPC dialogue (likely gift reaction). Returning to interactionMenuState.");
+                            "[KeyHandler - dialogueState] Detected one-shot NPC dialogue. Returning to interactionMenuState.");
                     if (gp.currentInteractingNPC instanceof NPC) {
-                        ((NPC) gp.currentInteractingNPC).dialogueIndex = 0; 
+                        ((NPC) gp.currentInteractingNPC).dialogueIndex = 0;
                     }
-                    gp.gameState = gp.interactionMenuState; 
+                    gp.gameState = gp.interactionMenuState;
                 } else if (gp.currentInteractingNPC != null && gp.currentInteractingNPC instanceof NPC) {
                     NPC npc = (NPC) gp.currentInteractingNPC;
-                    
+
                     if (npc.dialogues != null && !npc.dialogues.isEmpty()) {
                         if (npc.dialogueIndex < npc.dialogues.size() - 1
                                 && npc.dialogues.contains(gp.ui.currentDialogue)) {
@@ -210,10 +234,12 @@ public class KeyHandler implements KeyListener {
                             gp.ui.currentDialogue = npc.dialogues.get(npc.dialogueIndex);
                             System.out.println(
                                     "[KeyHandler - dialogueState] Advanced NPC chat to: " + gp.ui.currentDialogue);
+                            
+                            gp.ui.resetDialoguePagination();
                         } else {
                             npc.dialogueIndex = 0;
                             System.out.println(
-                                    "[KeyHandler - dialogueState] End of NPC chat or unlisted dialogue. Returning to interactionMenuState.");
+                                    "[KeyHandler - dialogueState] End of NPC chat. Returning to interactionMenuState.");
                             gp.gameState = gp.interactionMenuState;
                         }
                     } else {
@@ -222,19 +248,22 @@ public class KeyHandler implements KeyListener {
                                 "[KeyHandler - dialogueState] NPC has no generic dialogues. Returning to interactionMenuState.");
                         gp.gameState = gp.interactionMenuState;
                     }
-                } else { 
+                } else {
                     System.out.println(
-                            "[KeyHandler - dialogueState] General dialogue or no NPC. Returning to playState.");
+                            "[KeyHandler - dialogueState] General dialogue. Returning to playState.");
                     gp.gameState = gp.playState;
                 }
 
-                if (gp.gameState != gp.dialogueState) { 
+                
+                if (gp.gameState != gp.dialogueState) {
                     if (gp.gameClock != null && gp.gameClock.isPaused()) {
                         gp.gameClock.resumeTime();
                     }
-                    gp.ui.currentDialogue = ""; 
+                    gp.ui.currentDialogue = "";
+                    gp.ui.resetDialoguePagination();
                 }
                 enterPressed = false;
+
             } else if (code == KeyEvent.VK_ESCAPE) {
                 System.out.println("[KeyHandler - dialogueState] ESC pressed. Returning to playState.");
                 gp.gameState = gp.playState;
@@ -242,6 +271,7 @@ public class KeyHandler implements KeyListener {
                     gp.gameClock.resumeTime();
                 }
                 gp.ui.currentDialogue = "";
+                gp.ui.resetDialoguePagination();
                 enterPressed = false;
             }
         }
@@ -262,7 +292,6 @@ public class KeyHandler implements KeyListener {
                 } else {
                     gp.ui.showMessage("Shipping bin closed.");
                 }
-
             } else if (code == KeyEvent.VK_ENTER) {
                 if (!gp.player.inventory.isEmpty() && gp.ui.commandNumber < gp.player.inventory.size()
                         && gp.ui.commandNumber >= 0) {
@@ -287,28 +316,25 @@ public class KeyHandler implements KeyListener {
                                 }
                             } else {
                                 gp.ui.showMessage(itemToShip.name + " cannot be sold.");
-
                             }
                         } else {
-
                             gp.ui.showMessage(itemEntityToShip.name + " is not a sellable item type.");
-
                         }
                     } else {
                         gp.ui.showMessage("Shipping bin is full (16 items max).");
-
                     }
                 } else if (gp.player.inventory.isEmpty()) {
                     gp.ui.showMessage("Inventory is empty. Nothing to ship.");
                 }
             }
-
             sellScreenControls(code);
         }
 
         else if (gp.gameState == gp.cookingState) {
             handleCookingInput(code);
-        } else if (gp.gameState == gp.buyingState) {
+        }
+
+        else if (gp.gameState == gp.buyingState) {
             handleBuyingInput(code);
         }
     }

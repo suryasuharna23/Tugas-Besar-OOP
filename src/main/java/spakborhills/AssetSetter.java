@@ -177,6 +177,10 @@ public class AssetSetter {
                         stove.worldY = gp.tileSize * 20;
                         gp.entities.add(stove);
 
+                        Entity tv = new OBJ_TV(gp);
+                        tv.worldX = gp.tileSize * 5;
+                        tv.worldY = gp.tileSize * 11;
+                        gp.entities.add(tv);
                 }
                 
         }

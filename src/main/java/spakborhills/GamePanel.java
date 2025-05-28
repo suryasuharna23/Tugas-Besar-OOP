@@ -5,7 +5,6 @@ import spakborhills.entity.Entity;
 import spakborhills.entity.NPC;
 import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
-import spakborhills.enums.EntityType;
 import spakborhills.environment.EnvironmentManager;
 import spakborhills.object.OBJ_Item;
 
@@ -40,7 +39,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public UI ui;
     Thread gameThread;
     public Time time;
-    private Weather weather;
+    public Weather weather;
     public GameClock gameClock;
 
 
@@ -294,65 +293,65 @@ public class GamePanel extends  JPanel implements Runnable {
         if (newMapIndex >= 0 && newMapIndex < mapInfos.size()) {
             this.previousMapIndex = this.currentMapIndex;
             this.currentMapIndex = newMapIndex;
-            MapInfo selectedMap = mapInfos.get(this.currentMapIndex); //
+            MapInfo selectedMap = mapInfos.get(this.currentMapIndex); 
 
-            // Set lokasi pemain berdasarkan nama peta dari MapInfo
+            
             try {
                 String enumCompatibleName = selectedMap.getMapName().toUpperCase().replace(" ", "_").replace("'", "");
-                player.setCurrentLocation(spakborhills.enums.Location.valueOf(enumCompatibleName)); //
+                player.setCurrentLocation(spakborhills.enums.Location.valueOf(enumCompatibleName)); 
             } catch (IllegalArgumentException e) {
                 System.err.println("Peringatan: Nama peta '" + selectedMap.getMapName() + "' tidak ditemukan di Enum Location. Menggunakan nama string.");
-                player.setLocation(selectedMap.getMapName()); // Menggunakan setter String di Player sebagai fallback //
+                player.setLocation(selectedMap.getMapName()); 
             }
 
-            System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to " + this.currentMapIndex + " (" + selectedMap.getMapName() + ")"); //
+            System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to " + this.currentMapIndex + " (" + selectedMap.getMapName() + ")"); 
 
             boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 6) ||
                     (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX);
 
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
-                if (player.tryDecreaseEnergy(15)) { //
-                    ui.showMessage("Travel tired you out. -15 Energy."); //
+                if (player.tryDecreaseEnergy(15)) { 
+                    ui.showMessage("Travel tired you out. -15 Energy."); 
                 }
             }
 
-            tileManager.loadMap(selectedMap); //
+            tileManager.loadMap(selectedMap); 
 
             entities.clear();
             npcs.clear();
 
-            // --- AWAL MODIFIKASI POSISI SPAWN ---
-            int targetX = this.tileSize * 20; // Default X
-            int targetY = this.tileSize * 29; // Default Y
-            String targetDir = "down";      // Default arah
+            
+            int targetX = this.tileSize * 20; 
+            int targetY = this.tileSize * 29; 
+            String targetDir = "down";      
 
             if (this.currentMapIndex == PLAYER_HOUSE_INDEX) {
-                targetX = this.tileSize * 10; // Sesuaikan dengan spawn point di rumah Anda
-                targetY = this.tileSize * 10; // Sesuaikan dengan spawn point di rumah Anda
+                targetX = this.tileSize * 10; 
+                targetY = this.tileSize * 10; 
                 targetDir = "down";
-            } else if (this.currentMapIndex == 6) { // Peta Farm
+            } else if (this.currentMapIndex == 6) { 
                 if (previousMapIndex == PLAYER_HOUSE_INDEX) {
-                    targetX = this.tileSize * 20; // Pintu Farm dari Rumah
+                    targetX = this.tileSize * 20; 
                     targetY = this.tileSize * 28;
                     targetDir = "up";
                 } else {
-                    targetX = this.tileSize * 25; // Spawn default Farm
+                    targetX = this.tileSize * 25; 
                     targetY = this.tileSize * 25;
                     targetDir = "down";
                 }
-            } else if (selectedMap.getMapName().equalsIgnoreCase("Ocean")) { // MODIFIKASI DI SINI: Gunakan nama peta
-                targetX = this.tileSize * 1; // Posisi X di kiri atas (tile kolom ke-1 dari kiri, index 1)
-                targetY = this.tileSize * 1; // Posisi Y di kiri atas (tile baris ke-1 dari atas, index 1)
-                targetDir = "down";          // Arah default
+            } else if (selectedMap.getMapName().equalsIgnoreCase("Ocean")) { 
+                targetX = this.tileSize * 1; 
+                targetY = this.tileSize * 1; 
+                targetDir = "down";          
                 System.out.println("[GamePanel] Player spawning in Ocean at tile (1,1) based on map name.");
             }
 
-            player.setPositionForMapEntry(targetX, targetY, targetDir); //
+            player.setPositionForMapEntry(targetX, targetY, targetDir); 
 
-            assetSetter.setObject(selectedMap.getMapName()); //
-            assetSetter.setNPC(selectedMap.getMapName());    //
+            assetSetter.setObject(selectedMap.getMapName()); 
+            assetSetter.setNPC(selectedMap.getMapName());    
 
-            System.out.println("[GamePanel] Map loaded: " + selectedMap.getMapName()); //
+            System.out.println("[GamePanel] Map loaded: " + selectedMap.getMapName()); 
             gameState = playState;
         } else {
             System.err.println("[GamePanel] Invalid map index: " + newMapIndex + ". Cannot load map.");
