@@ -129,20 +129,22 @@ public class UI {
             drawLocationHUD(g2);
             drawEnergyBar(g2);
             drawPlayerGold();
-            if (messageOn) {
-                g2.setFont(g2.getFont().deriveFont(20F));
-                g2.setColor(Color.YELLOW);
-                int messageX = gp.tileSize / 2;
-                int messageY = gp.tileSize * 2;
-                g2.drawString(message, messageX, messageY);
+            // Original message drawing during playState is now fully handled by drawTimedMessage
+            // if (messageOn) {
+            //     g2.setFont(g2.getFont().deriveFont(20F));
+            //     g2.setColor(Color.YELLOW);
+            //     int messageX = gp.tileSize / 2;
+            //     int messageY = gp.tileSize * 2;
+            //     g2.drawString(message, messageX, messageY);
 
-                messageCounter++;
-                if (messageCounter > 120) {
-                    messageCounter = 0;
-                    messageOn = false;
-                    message = "";
-                }
-            }
+            //     messageCounter++;
+            //     if (messageCounter > 120) {
+            //         messageCounter = 0;
+            //         messageOn = false;
+            //         message = "";
+            //     }
+            // }
+            drawTimedMessage(g2); // Call drawTimedMessage here as well if you want it in playState too
         } else if (gp.gameState == gp.pauseState) {
             drawPauseScreen();
         } else if (gp.gameState == gp.dialogueState) {
@@ -160,30 +162,30 @@ public class UI {
             drawTimedMessage(g2);
         } else if (gp.gameState == gp.buyingState){
             drawBuyingScreen();
-        }   else if (gp.gameState == gp.fishingMinigameState) { 
+        }   else if (gp.gameState == gp.fishingMinigameState) {
             drawFishingMinigameScreen(g2);
         } else if (gp.gameState == gp.endGameState) {
             drawEndGameStatisticsScreen(g2);
         }
     }
 
-    
+
     public void drawFishingMinigameScreen(Graphics2D g2) {
-        
+
         int frameX = gp.tileSize * 3;
-        int frameY = gp.screenHeight / 2 - gp.tileSize * 3; 
+        int frameY = gp.screenHeight / 2 - gp.tileSize * 3;
         int frameWidth = gp.screenWidth - (gp.tileSize * 6);
-        int frameHeight = gp.tileSize * 6; 
+        int frameHeight = gp.tileSize * 6;
         drawSubWindow(frameX, frameY, frameWidth, frameHeight);
 
         g2.setColor(Color.white);
         Font baseFont = pressStart != null ? pressStart : new Font("Arial", Font.PLAIN, 12);
-        int currentTextY = frameY + gp.tileSize; 
+        int currentTextY = frameY + gp.tileSize;
 
-        
-        g2.setFont(baseFont.deriveFont(Font.PLAIN, 14F)); 
+
+        g2.setFont(baseFont.deriveFont(Font.PLAIN, 14F));
         if (gp.player.fishingInfoMessage != null && !gp.player.fishingInfoMessage.isEmpty()) {
-            
+
             List<String> infoLines = wrapText(gp.player.fishingInfoMessage, frameWidth - gp.tileSize, g2.getFontMetrics());
             for (String line : infoLines) {
                 int lineX = getXForCenteredTextInFrame(line, frameX, frameWidth);
@@ -191,12 +193,12 @@ public class UI {
                 currentTextY += g2.getFontMetrics().getHeight() + 2;
             }
         }
-        currentTextY += gp.tileSize / 2; 
+        currentTextY += gp.tileSize / 2;
 
-        
-        g2.setFont(baseFont.deriveFont(Font.BOLD, 16F)); 
+
+        g2.setFont(baseFont.deriveFont(Font.BOLD, 16F));
         String displayInput = gp.player.fishingPlayerInput;
-        if (System.currentTimeMillis() % 1000 < 500) { 
+        if (System.currentTimeMillis() % 1000 < 500) {
             displayInput += "_";
         } else {
             displayInput += " ";
@@ -205,29 +207,29 @@ public class UI {
         g2.drawString(displayInput, inputX, currentTextY);
         currentTextY += gp.tileSize;
 
-        
-        g2.setFont(baseFont.deriveFont(Font.ITALIC, 14F)); 
+
+        g2.setFont(baseFont.deriveFont(Font.ITALIC, 14F));
         if (gp.player.fishingFeedbackMessage != null && !gp.player.fishingFeedbackMessage.isEmpty()) {
             int feedbackX = getXForCenteredTextInFrame(gp.player.fishingFeedbackMessage, frameX, frameWidth);
             g2.drawString(gp.player.fishingFeedbackMessage, feedbackX, currentTextY);
         }
         currentTextY += gp.tileSize / 2;
 
-        
+
         g2.setFont(baseFont.deriveFont(Font.PLAIN, 12F));
         int attemptsLeft = gp.player.fishingMaxTry - gp.player.fishingCurrentAttempts;
         String attemptsText = "Percobaan tersisa: " + attemptsLeft + "/" + gp.player.fishingMaxTry;
-        int attemptsX = frameX + gp.tileSize / 2; 
+        int attemptsX = frameX + gp.tileSize / 2;
         g2.drawString(attemptsText, attemptsX, frameY + frameHeight - gp.tileSize + 15 );
 
-        
+
         g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
         String instructions = "[0-9] Angka | [Enter] Tebak | [Backspace] Hapus | [Esc] Menyerah";
         int instructionX = getXForCenteredTextInFrame(instructions, frameX, frameWidth);
         g2.drawString(instructions, instructionX, frameY + frameHeight - gp.tileSize / 2 );
     }
 
-    
+
     private List<String> wrapText(String text, int maxWidth, FontMetrics fm) {
         List<String> lines = new ArrayList<>();
         if (text == null || text.isEmpty()) {
@@ -242,11 +244,11 @@ public class UI {
                 }
                 currentLine.append(word);
             } else {
-                if (currentLine.length() > 0) { 
+                if (currentLine.length() > 0) {
                     lines.add(currentLine.toString());
                     currentLine = new StringBuilder(word);
-                } else { 
-                    lines.add(word); 
+                } else {
+                    lines.add(word);
                     currentLine = new StringBuilder();
                 }
             }
@@ -579,7 +581,7 @@ public class UI {
         int lineHeight = fm.getHeight() + 3;
         int currentY = startY + fm.getAscent();
 
-        
+
         if (gp.currentInteractingNPC != null && gp.currentInteractingNPC.name != null
                 && !gp.currentInteractingNPC.name.isEmpty()) {
             Font currentFont = g2.getFont();
@@ -591,26 +593,26 @@ public class UI {
         }
 
         if (currentDialogue != null && !currentDialogue.isEmpty()) {
-            
+
             if (currentDialogueLines.isEmpty() || !currentDialogue.equals(getLastProcessedDialogue())) {
                 processDialogueIntoLines(currentDialogue, maxTextWidth, fm);
-                dialogueCurrentPage = 0; 
+                dialogueCurrentPage = 0;
             }
 
-            
+
             int availableHeight = maxHeight - currentY;
-            int maxDisplayableLines = availableHeight / lineHeight - 1; 
+            int maxDisplayableLines = availableHeight / lineHeight - 1;
             dialogueLinesPerPage = Math.max(1, maxDisplayableLines);
 
-            
+
             int totalPages = (int) Math.ceil((double) currentDialogueLines.size() / dialogueLinesPerPage);
             int startLineIndex = dialogueCurrentPage * dialogueLinesPerPage;
             int endLineIndex = Math.min(startLineIndex + dialogueLinesPerPage, currentDialogueLines.size());
 
-            
+
             for (int i = startLineIndex; i < endLineIndex; i++) {
                 String line = currentDialogueLines.get(i);
-                if (currentY + fm.getDescent() > maxHeight - lineHeight * 2) { 
+                if (currentY + fm.getDescent() > maxHeight - lineHeight * 2) {
                     break;
                 }
 
@@ -627,17 +629,17 @@ public class UI {
                 currentY += lineHeight;
             }
 
-            
+
             g2.setFont(pressStart.deriveFont(Font.PLAIN, 12F));
             g2.setColor(Color.LIGHT_GRAY);
             if (totalPages > 1) {
-                
+
                 String pageInfo = "Page " + (dialogueCurrentPage + 1) + "/" + totalPages;
                 int pageInfoX = dialogueContentX;
-                int pageInfoY = y + height - textPadding - 25; 
+                int pageInfoY = y + height - textPadding - 25;
                 g2.drawString(pageInfo, pageInfoX, pageInfoY);
 
-                
+
                 String navHint = "";
                 if (dialogueCurrentPage > 0 && dialogueCurrentPage < totalPages - 1) {
                     navHint = "[↑] Prev | [↓] Next | [ENTER] OK";
@@ -649,16 +651,16 @@ public class UI {
 
                 if (!navHint.isEmpty()) {
                     FontMetrics hintFm = g2.getFontMetrics();
-                    int maxHintWidth = width - pageInfo.length() * 8 - textPadding * 2; 
-                                                                                             
+                    int maxHintWidth = width - pageInfo.length() * 8 - textPadding * 2;
 
-                    
+
+
                     if (hintFm.stringWidth(navHint) > maxHintWidth) {
                         int navHintX = dialogueContentX;
-                        int navHintY = pageInfoY + 15; 
+                        int navHintY = pageInfoY + 15;
                         g2.drawString(navHint, navHintX, navHintY);
                     } else {
-                        
+
                         int navHintX = pageInfoX + hintFm.stringWidth(pageInfo) + 20;
                         g2.drawString(navHint, navHintX, pageInfoY);
                     }
@@ -677,7 +679,7 @@ public class UI {
 
     private void processDialogueIntoLines(String dialogue, int maxTextWidth, FontMetrics fm) {
         currentDialogueLines.clear();
-        this.lastProcessedDialogue = dialogue; 
+        this.lastProcessedDialogue = dialogue;
         String[] paragraphs = dialogue.split("\\n");
 
         for (String paragraph : paragraphs) {
@@ -702,7 +704,7 @@ public class UI {
                         currentDialogueLines.add(currentLine.toString());
                         currentLine = new StringBuilder(word);
                     } else {
-                        
+
                         String longWord = word;
                         while (fm.stringWidth(longWord) > maxTextWidth && longWord.length() > 1) {
                             int cutPoint = longWord.length() - 1;
@@ -728,7 +730,7 @@ public class UI {
         }
     }
 
-    
+
     private String lastProcessedDialogue = "";
 
     private String getLastProcessedDialogue() {
@@ -898,7 +900,7 @@ public class UI {
                 g2.setColor(Color.white);
                 int itemInfoY = frameY + frameHeight + gp.tileSize / 2;
                 g2.drawString("Item: " + item.getName(), slotStartX, itemInfoY);
-                if (item.isEdible() && item instanceof spakborhills.interfaces.Edible) {
+                if (item.isEdible() && item instanceof Edible) {
                     g2.drawString("Tekan 'E' untuk Makan", slotStartX, itemInfoY + 20);
                 }
             }
@@ -938,7 +940,7 @@ public class UI {
             return;
         NPC npc = (NPC) gp.currentInteractingNPC;
 
-        
+
         List<String> options = new ArrayList<>();
         options.add("Chat");
         options.add("Give Gift");
@@ -954,24 +956,24 @@ public class UI {
         }
         options.add("Leave");
 
-        
+
         int frameX = gp.tileSize * 2;
         int frameY = gp.screenHeight / 2 - gp.tileSize * 2;
-        int frameWidth = gp.tileSize * 6; 
+        int frameWidth = gp.tileSize * 6;
 
-        
+
         int titleHeight = gp.tileSize;
         int optionHeight = gp.tileSize * options.size();
         int padding = gp.tileSize / 2;
         int frameHeight = titleHeight + optionHeight + padding * 2;
 
-        
+
         if (frameY + frameHeight > gp.screenHeight) {
             frameY = gp.screenHeight - frameHeight - gp.tileSize / 2;
         }
         if (frameY < gp.tileSize / 2) {
             frameY = gp.tileSize / 2;
-            
+
             int maxHeight = gp.screenHeight - gp.tileSize;
             if (frameHeight > maxHeight) {
                 frameHeight = maxHeight;
@@ -981,26 +983,26 @@ public class UI {
         drawSubWindow(frameX, frameY, frameWidth, frameHeight);
 
         g2.setColor(Color.white);
-        g2.setFont(pressStart.deriveFont(Font.PLAIN, 18F)); 
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 18F));
 
-        
+
         String title = npc.name;
         int titleX = getXForCenteredTextInFrame(title, frameX, frameWidth);
         int titleY = frameY + gp.tileSize / 2 + 15;
         g2.drawString(title, titleX, titleY);
 
-        
+
         int textX = frameX + gp.tileSize / 2;
         int textY = titleY + gp.tileSize / 2 + 10;
         int lineSpacing = (frameHeight - titleHeight - padding * 2) / options.size();
-        lineSpacing = Math.max(lineSpacing, 25); 
+        lineSpacing = Math.max(lineSpacing, 25);
 
         for (int i = 0; i < options.size(); i++) {
             int currentY = textY + (i * lineSpacing);
 
-            
+
             if (currentY > frameY + frameHeight - gp.tileSize / 2) {
-                break; 
+                break;
             }
 
             if (i == npcMenuCommandNum) {
@@ -1012,7 +1014,7 @@ public class UI {
             }
         }
 
-        
+
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 10F));
         g2.setColor(Color.LIGHT_GRAY);
     }
@@ -1120,98 +1122,125 @@ public class UI {
 
     private void drawTimedMessage(Graphics2D g2) {
         if (messageOn && this.message != null && !this.message.isEmpty()) {
-            Font messageFont = silkScreen.deriveFont(Font.PLAIN, 16F);
+            // Untuk mengatur ukuran font, ubah nilai timedMessageFontSize di deklarasi variabel kelas UI
+            // Jika font silkScreen hanya memiliki karakter uppercase, maka pesan akan tampil uppercase.
+            float timedMessageFontSize = 15F;
+            Font messageFont = (silkScreen != null) ? silkScreen.deriveFont(Font.PLAIN, timedMessageFontSize) : new Font("Arial", Font.PLAIN, (int) timedMessageFontSize);
             g2.setFont(messageFont);
             FontMetrics fm = g2.getFontMetrics(messageFont);
 
-            int padding = 15;
-            int messageAreaX = padding;
-            int messageAreaY = gp.tileSize * 2 + 10;
-            int maxWidth = gp.screenWidth / 2;
-            int messageAreaWidth = maxWidth - (padding * 2);
+            int textPadding = 15; // Padding antara teks dan garis hitam tipis
+            int innerLinePadding = 3; // Jarak antara garis hitam tipis dan border coklat luar
+            int outerBorderThickness = 4; // Ketebalan border coklat luar
 
-            int lineHeight = fm.getHeight() + 4;
+            int maxContentWidth = gp.screenWidth - (gp.tileSize * 6) - (textPadding * 2) - (innerLinePadding * 2) - (outerBorderThickness * 2);
+
+
+            // --- Text Wrapping Logic ---
             List<String> lines = new ArrayList<>();
-
             String[] paragraphs = this.message.split("\\n");
-
             for (String paragraph : paragraphs) {
                 if (paragraph.trim().isEmpty()) {
                     lines.add("");
                     continue;
                 }
-
                 String[] words = paragraph.split(" ");
                 StringBuilder currentLine = new StringBuilder();
-
                 for (String word : words) {
-                    String testLine = currentLine.length() > 0 ? currentLine + " " + word : word;
-
-                    if (fm.stringWidth(testLine) <= messageAreaWidth) {
-                        if (currentLine.length() > 0) {
-                            currentLine.append(" ");
-                        }
+                    String testLine = currentLine.length() > 0 ? currentLine.toString() + " " + word : word;
+                    if (fm.stringWidth(testLine) <= maxContentWidth) {
+                        if (currentLine.length() > 0) currentLine.append(" ");
                         currentLine.append(word);
                     } else {
-                        if (currentLine.length() > 0) {
-                            lines.add(currentLine.toString());
-                            currentLine = new StringBuilder(word);
-                        } else {
-                            String longWord = word;
-                            while (fm.stringWidth(longWord) > messageAreaWidth && longWord.length() > 1) {
-                                int cutPoint = longWord.length() - 1;
-                                while (cutPoint > 0
-                                        && fm.stringWidth(longWord.substring(0, cutPoint) + "-") > messageAreaWidth) {
-                                    cutPoint--;
-                                }
-                                if (cutPoint > 0) {
-                                    lines.add(longWord.substring(0, cutPoint) + "-");
-                                    longWord = longWord.substring(cutPoint);
-                                } else {
-                                    break;
-                                }
-                            }
-                            currentLine = new StringBuilder(longWord);
+                        if (currentLine.length() > 0) lines.add(currentLine.toString());
+                        currentLine = new StringBuilder(word);
+                        while (fm.stringWidth(currentLine.toString()) > maxContentWidth && currentLine.length() > 1) {
+                            String part = currentLine.substring(0, currentLine.length() -1 );
+                            lines.add(part + "-");
+                            currentLine = new StringBuilder(currentLine.substring(currentLine.length()-1));
+                            if(fm.stringWidth(currentLine.toString()) <= maxContentWidth) break;
                         }
                     }
                 }
-
-                if (currentLine.length() > 0) {
-                    lines.add(currentLine.toString());
-                }
+                if (currentLine.length() > 0) lines.add(currentLine.toString());
             }
+            // --- End Text Wrapping Logic ---
 
-            int maxLines = 5;
+            int maxLinesToDisplay = 7;
             List<String> displayLines = lines;
-            if (lines.size() > maxLines) {
-                displayLines = lines.subList(0, maxLines - 1);
-                displayLines.add("...(continued)");
+            if (lines.size() > maxLinesToDisplay) {
+                displayLines = lines.subList(0, maxLinesToDisplay - 1);
+                displayLines.add("...(pesan terlalu panjang)");
             }
 
-            int backgroundWidth = messageAreaWidth + (padding * 2);
-            int backgroundHeight = displayLines.size() * lineHeight + (padding * 2);
-            int backgroundX = messageAreaX - padding;
-            int backgroundY = messageAreaY - padding - fm.getAscent();
+            int lineHeight = fm.getHeight() + 4;
+            int actualContentWidth = 0;
+            for (String line : displayLines) {
+                actualContentWidth = Math.max(actualContentWidth, fm.stringWidth(line));
+            }
+            actualContentWidth = Math.min(actualContentWidth, maxContentWidth);
 
-            g2.setColor(new Color(0, 0, 0, 180));
-            g2.fillRoundRect(backgroundX, backgroundY, backgroundWidth, backgroundHeight, 10, 10);
+            // Dimensi untuk area teks utama (latar coklat terang)
+            int mainContentBoxWidth = actualContentWidth + (textPadding * 2);
+            int mainContentBoxHeight = displayLines.size() * lineHeight + (textPadding * 2) - (displayLines.isEmpty() ? 0 : 4);
 
-            g2.setColor(new Color(255, 255, 0, 200));
-            g2.setStroke(new BasicStroke(2));
-            g2.drawRoundRect(backgroundX, backgroundY, backgroundWidth, backgroundHeight, 10, 10);
-            g2.setStroke(new BasicStroke(1));
+            // Dimensi untuk area termasuk garis hitam tipis
+            int blackLineAreaWidth = mainContentBoxWidth + (innerLinePadding * 2);
+            int blackLineAreaHeight = mainContentBoxHeight + (innerLinePadding * 2);
 
-            g2.setColor(Color.YELLOW);
-            int currentMessageY = messageAreaY;
+            // Dimensi untuk keseluruhan box termasuk border coklat luar
+            int totalBoxWidth = blackLineAreaWidth + (outerBorderThickness * 2);
+            int totalBoxHeight = blackLineAreaHeight + (outerBorderThickness * 2);
+
+            // Posisi untuk keseluruhan box (tengah layar, lebih ke atas lagi)
+            int totalBoxX = (gp.screenWidth - totalBoxWidth) / 2;
+            int totalBoxY = (gp.screenHeight / 3) - (totalBoxHeight / 2) - gp.tileSize; // Naikkan lagi sedikit
+            if (totalBoxY < gp.tileSize / 2 ) totalBoxY = gp.tileSize / 2;
+
+
+            // Posisi turunan
+            int blackLineAreaX = totalBoxX + outerBorderThickness;
+            int blackLineAreaY = totalBoxY + outerBorderThickness;
+
+            int mainContentBoxX = blackLineAreaX + innerLinePadding;
+            int mainContentBoxY = blackLineAreaY + innerLinePadding;
+
+            // Warna-warna
+            Color stardewOuterBorder = new Color(101, 67, 33); // Coklat tua untuk border luar
+            Color stardewThinBlackLine = Color.BLACK;
+            Color stardewMainBackground = new Color(245, 222, 179); // Warna coklat terang (Wheat)
+            Color stardewTextColor = Color.BLACK;
+
+            // 1. Gambar border luar paling tebal (coklat tua)
+            g2.setColor(stardewOuterBorder);
+            g2.fillRoundRect(totalBoxX, totalBoxY, totalBoxWidth, totalBoxHeight, 10, 10);
+
+            // 2. Gambar latar belakang untuk area garis hitam (sebenarnya ini adalah latar utama yg sedikit lebih kecil dari border luar)
+            // Tidak perlu digambar terpisah jika strukturnya fill, karena langkah 3 akan menimpanya.
+            // Cukup pastikan mainContentBox digambar di atasnya.
+
+            // 3. Gambar latar belakang utama pesan (coklat terang)
+            g2.setColor(stardewMainBackground);
+            g2.fillRoundRect(mainContentBoxX, mainContentBoxY, mainContentBoxWidth, mainContentBoxHeight, 6, 6);
+
+            // 4. Gambar garis hitam tipis di sekeliling latar belakang utama pesan
+            g2.setColor(stardewThinBlackLine);
+            g2.setStroke(new BasicStroke(1)); // Garis tipis 1px
+            g2.drawRoundRect(mainContentBoxX -1, mainContentBoxY -1, mainContentBoxWidth +2, mainContentBoxHeight +2, 7, 7); // Sedikit offset agar garis pas
+
+            g2.setStroke(new BasicStroke(1)); // Reset stroke
+
+            // 5. Gambar teks
+            g2.setColor(stardewTextColor);
+            int currentTextY = mainContentBoxY + textPadding + fm.getAscent();
             for (String line : displayLines) {
                 if (!line.trim().isEmpty()) {
-                    g2.setColor(Color.BLACK);
-                    g2.drawString(line, messageAreaX + 1, currentMessageY + 1);
-                    g2.setColor(Color.YELLOW);
-                    g2.drawString(line, messageAreaX, currentMessageY);
+                    int textX = mainContentBoxX + textPadding;
+                    g2.drawString(line, textX, currentTextY);
                 }
-                currentMessageY += lineHeight;
+                currentTextY += lineHeight;
             }
+
             messageCounter++;
             if (messageCounter > 180) {
                 messageCounter = 0;
@@ -1421,7 +1450,7 @@ public class UI {
     public void drawLocationHUD(Graphics2D g2) {
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 20F));
 
-        
+
         String currentLocation = "Unknown";
 
         if (gp.player != null) {
@@ -1429,7 +1458,7 @@ public class UI {
             if (playerLocation != null && !playerLocation.isEmpty() && !playerLocation.equals("Unknown")) {
                 currentLocation = playerLocation;
             } else {
-                
+
                 if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
                     currentLocation = gp.mapInfos.get(gp.currentMapIndex).getMapName();
                 }
@@ -1622,15 +1651,15 @@ public class UI {
         String instructions = "[Up/Down] Select | [Enter] Buy | [Esc] Exit";
         g2.drawString(instructions, listStartX, frameY + frameHeight - padding);
     }
-    
-    
+
+
     public void resetDialoguePagination() {
         currentDialogueLines.clear();
         dialogueCurrentPage = 0;
         lastProcessedDialogue = "";
     }
 
-    
+
     public List<String> getCurrentDialogueLines() {
         return currentDialogueLines;
     }
@@ -1650,187 +1679,187 @@ public class UI {
 
 
     public void drawEndGameStatisticsScreen(Graphics2D g2) {
-    
-    drawSharedBackground(g2);
-    g2.setColor(new Color(0, 0, 0, 230)); 
-    g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-    g2.setFont(pressStart.deriveFont(Font.BOLD, 24F));
-    g2.setColor(Color.WHITE);
-    String title = "End Game Statistics";
-    int titleX = getXForCenteredText(title);
-    int titleY = gp.tileSize;
-    g2.drawString(title, titleX, titleY);
+        drawSharedBackground(g2);
+        g2.setColor(new Color(0, 0, 0, 230));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-    
-    Font headerFont = pressStart.deriveFont(Font.BOLD, 12F);
-    Font statTextFont = pressStart.deriveFont(Font.PLAIN, 8F);
-    Font npcNameFont = pressStart.deriveFont(Font.BOLD, 9F);
-    int lineHeight = 15;
-    int sectionSpacing = gp.tileSize / 4;
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 24F));
+        g2.setColor(Color.WHITE);
+        String title = "End Game Statistics";
+        int titleX = getXForCenteredText(title);
+        int titleY = gp.tileSize;
+        g2.drawString(title, titleX, titleY);
 
-    int contentStartY = titleY + g2.getFontMetrics().getHeight() + gp.tileSize / 3;
-    int paddingHorizontal = gp.tileSize / 3;
 
-    int totalUsableWidth = gp.screenWidth - (paddingHorizontal * 2);
-    int columnWidth = (totalUsableWidth - (paddingHorizontal * 2)) / 3; 
+        Font headerFont = pressStart.deriveFont(Font.BOLD, 12F);
+        Font statTextFont = pressStart.deriveFont(Font.PLAIN, 8F);
+        Font npcNameFont = pressStart.deriveFont(Font.BOLD, 9F);
+        int lineHeight = 15;
+        int sectionSpacing = gp.tileSize / 4;
 
-    
-    class StatDrawer {
-        private int currentY;
-        private int startX;
-        private final Graphics2D g;
-        private final Font hFont;
-        private final Font tFont;
-        private final int lht;
-        private final int lhs;
+        int contentStartY = titleY + g2.getFontMetrics().getHeight() + gp.tileSize / 3;
+        int paddingHorizontal = gp.tileSize / 3;
 
-        public StatDrawer(Graphics2D g, int startX, int startY, Font headerFont, Font textFont, int lineHeightText, int lineHeightSection) {
-            this.g = g;
-            this.startX = startX;
-            this.currentY = startY;
-            this.hFont = headerFont;
-            this.tFont = textFont;
-            this.lht = lineHeightText;
-            this.lhs = lineHeightSection;
-        }
+        int totalUsableWidth = gp.screenWidth - (paddingHorizontal * 2);
+        int columnWidth = (totalUsableWidth - (paddingHorizontal * 2)) / 3;
 
-        public void drawStat(String label, String value) {
-            g.setFont(tFont);
-            g.setColor(Color.LIGHT_GRAY);
-            int labelWidth = g.getFontMetrics(tFont).stringWidth(label + ": ");
-            if (startX + labelWidth + g.getFontMetrics(tFont).stringWidth(value) > startX + columnWidth - 5) {
-                g.drawString(label + ":", startX, currentY);
+
+        class StatDrawer {
+            private int currentY;
+            private int startX;
+            private final Graphics2D g;
+            private final Font hFont;
+            private final Font tFont;
+            private final int lht;
+            private final int lhs;
+
+            public StatDrawer(Graphics2D g, int startX, int startY, Font headerFont, Font textFont, int lineHeightText, int lineHeightSection) {
+                this.g = g;
+                this.startX = startX;
+                this.currentY = startY;
+                this.hFont = headerFont;
+                this.tFont = textFont;
+                this.lht = lineHeightText;
+                this.lhs = lineHeightSection;
+            }
+
+            public void drawStat(String label, String value) {
+                g.setFont(tFont);
+                g.setColor(Color.LIGHT_GRAY);
+                int labelWidth = g.getFontMetrics(tFont).stringWidth(label + ": ");
+                if (startX + labelWidth + g.getFontMetrics(tFont).stringWidth(value) > startX + columnWidth - 5) {
+                    g.drawString(label + ":", startX, currentY);
+                    currentY += lht;
+                    g.setColor(Color.WHITE);
+                    g.drawString(value, startX + 10, currentY);
+                } else {
+                    g.drawString(label + ":", startX, currentY);
+                    g.setColor(Color.WHITE);
+                    g.drawString(value, startX + labelWidth + 2, currentY);
+                }
                 currentY += lht;
-                g.setColor(Color.WHITE);
-                g.drawString(value, startX + 10, currentY);
-            } else {
-                g.drawString(label + ":", startX, currentY);
-                g.setColor(Color.WHITE);
-                g.drawString(value, startX + labelWidth + 2, currentY);
             }
-            currentY += lht;
-        }
 
-        public void drawStat(String label, long value) {
-            drawStat(label, String.valueOf(value));
-        }
-
-        public void drawHeader(String header) {
-            currentY += lhs;
-            g.setFont(hFont);
-            g.setColor(new Color(255, 215, 0)); 
-            g.drawString(header, startX, currentY);
-            currentY += (int)(lht * 1.2);
-            g.setColor(Color.WHITE);
-        }
-
-        public int getCurrentY() { return currentY; }
-        public void advanceY(double multiplier) { currentY += (int)(lht * multiplier); }
-        public void setCurrentY(int y) { this.currentY = y; }
-        public void setStartX(int x) { this.startX = x; }
-    }
-
-    
-    int statStartXCol1 = paddingHorizontal;
-    StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont, lineHeight, sectionSpacing);
-
-    statsDrawer.drawHeader("~ General ~");
-    if (gp.gameClock != null && gp.gameClock.getTime() != null && gp.player != null) {
-        statsDrawer.drawStat("Days Played", gp.gameClock.getTime().getDay());
-    } else {
-        statsDrawer.drawStat("Days Played", "N/A");
-    }
-
-    statsDrawer.drawHeader("~ Financial ~");
-    if (gp.player != null) {
-        statsDrawer.drawStat("Total Income", gp.player.totalIncome + "G");
-        statsDrawer.drawStat("Total Expenditure", gp.player.totalExpenditure + "G");
-        statsDrawer.drawStat("Net Worth", gp.player.gold + "G");
-
-        statsDrawer.advanceY(0.2);
-        for (Season season : Season.values()) {
-            long income = gp.player.seasonalIncome.getOrDefault(season, 0L);
-            long expenditure = gp.player.seasonalExpenditure.getOrDefault(season, 0L);
-            int timesPlayed = gp.player.seasonPlayed.getOrDefault(season, 0);
-
-            float avgIncome = (timesPlayed > 0) ? (float) income / timesPlayed : 0;
-            float avgExpenditure = (timesPlayed > 0) ? (float) expenditure / timesPlayed : 0;
-
-            Font italicFont = statTextFont.deriveFont(Font.ITALIC, 8F);
-            g2.setFont(italicFont);
-            statsDrawer.drawStat(String.format("%s Inc (x%d)", season.name().substring(0,3), timesPlayed), String.format("%.0fG", avgIncome));
-            statsDrawer.drawStat(String.format("%s Exp (x%d)", season.name().substring(0,3), timesPlayed), String.format("%.0fG", avgExpenditure));
-        }
-    } else {
-        statsDrawer.drawStat("Financial Data", "N/A");
-    }
-
-    
-    int statStartXCol2 = statStartXCol1 + columnWidth + paddingHorizontal;
-    statsDrawer.setStartX(statStartXCol2);
-    statsDrawer.setCurrentY(contentStartY);
-
-    statsDrawer.drawHeader("~ Agricultural ~");
-    if (gp.player != null) {
-        statsDrawer.drawStat("Crops Harvested", gp.player.totalHarvested);
-    } else {
-        statsDrawer.drawStat("Crops Harvested", "N/A");
-    }
-
-    statsDrawer.drawHeader("~ Fishing ~");
-    if (gp.player != null) {
-        statsDrawer.drawStat("Total Fish", gp.player.totalFishCaught);
-        statsDrawer.drawStat("  Common", gp.player.totalCommonFishCaught);
-        statsDrawer.drawStat("  Regular", gp.player.totalRegularFishCaught);
-        statsDrawer.drawStat("  Legendary", gp.player.totalLegendaryFishCaught);
-    } else {
-        statsDrawer.drawStat("Fishing Data", "N/A");
-    }
-
-    
-    int statStartXCol3 = statStartXCol2 + columnWidth + paddingHorizontal;
-    statsDrawer.setStartX(statStartXCol3);
-    statsDrawer.setCurrentY(contentStartY);
-
-    statsDrawer.drawHeader("~ NPC Relationships ~");
-    if (gp.allNpcsInWorld == null || gp.allNpcsInWorld.isEmpty()) {
-        statsDrawer.drawStat("No NPCs met", "");
-    } else {
-        boolean npcDataAvailable = false;
-        for (NPC npc : gp.allNpcsInWorld) {
-            if (npc == null || gp.player == null) continue;
-            npcDataAvailable = true;
-
-            g2.setFont(npcNameFont);
-            g2.setColor(new Color(173, 216, 230)); 
-            g2.drawString(npc.name, statStartXCol3, statsDrawer.getCurrentY());
-            statsDrawer.advanceY(0.95);
-
-            statsDrawer.drawStat(" Hearts", npc.currentHeartPoints + "/" + npc.maxHeartPoints);
-            statsDrawer.drawStat(" Chats", gp.player.npcChatFrequency.getOrDefault(npc.name, 0));
-            statsDrawer.drawStat(" Gifts", gp.player.npcGiftFrequency.getOrDefault(npc.name, 0));
-
-            if (npc.isMarriageCandidate) {
-                String marriageStatus = "Single";
-                if (npc.marriedToPlayer) marriageStatus = "Married to You";
-                else if (npc.engaged) marriageStatus = "Engaged";
-                statsDrawer.drawStat(" Status", marriageStatus);
+            public void drawStat(String label, long value) {
+                drawStat(label, String.valueOf(value));
             }
-            statsDrawer.advanceY(0.3);
-        }
-        
-        if (!npcDataAvailable) {
-            statsDrawer.drawStat("No valid NPC data", "");
-        }
-    }
 
-    
-    int exitY = gp.screenHeight - 25;
-    String exitMessage = "Press ENTER to Continue Playing | Press ESC to Return to Menu";
-    g2.setFont(pressStart.deriveFont(Font.PLAIN, 9F));
-    int exitX = getXForCenteredText(exitMessage);
-    g2.setColor(new Color(255, 255, 255, 180));
-    g2.drawString(exitMessage, exitX, exitY);
-}
+            public void drawHeader(String header) {
+                currentY += lhs;
+                g.setFont(hFont);
+                g.setColor(new Color(255, 215, 0));
+                g.drawString(header, startX, currentY);
+                currentY += (int)(lht * 1.2);
+                g.setColor(Color.WHITE);
+            }
+
+            public int getCurrentY() { return currentY; }
+            public void advanceY(double multiplier) { currentY += (int)(lht * multiplier); }
+            public void setCurrentY(int y) { this.currentY = y; }
+            public void setStartX(int x) { this.startX = x; }
+        }
+
+
+        int statStartXCol1 = paddingHorizontal;
+        StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont, lineHeight, sectionSpacing);
+
+        statsDrawer.drawHeader("~ General ~");
+        if (gp.gameClock != null && gp.gameClock.getTime() != null && gp.player != null) {
+            statsDrawer.drawStat("Days Played", gp.gameClock.getTime().getDay());
+        } else {
+            statsDrawer.drawStat("Days Played", "N/A");
+        }
+
+        statsDrawer.drawHeader("~ Financial ~");
+        if (gp.player != null) {
+            statsDrawer.drawStat("Total Income", gp.player.totalIncome + "G");
+            statsDrawer.drawStat("Total Expenditure", gp.player.totalExpenditure + "G");
+            statsDrawer.drawStat("Net Worth", gp.player.gold + "G");
+
+            statsDrawer.advanceY(0.2);
+            for (Season season : Season.values()) {
+                long income = gp.player.seasonalIncome.getOrDefault(season, 0L);
+                long expenditure = gp.player.seasonalExpenditure.getOrDefault(season, 0L);
+                int timesPlayed = gp.player.seasonPlayed.getOrDefault(season, 0);
+
+                float avgIncome = (timesPlayed > 0) ? (float) income / timesPlayed : 0;
+                float avgExpenditure = (timesPlayed > 0) ? (float) expenditure / timesPlayed : 0;
+
+                Font italicFont = statTextFont.deriveFont(Font.ITALIC, 8F);
+                g2.setFont(italicFont);
+                statsDrawer.drawStat(String.format("%s Inc (x%d)", season.name().substring(0,3), timesPlayed), String.format("%.0fG", avgIncome));
+                statsDrawer.drawStat(String.format("%s Exp (x%d)", season.name().substring(0,3), timesPlayed), String.format("%.0fG", avgExpenditure));
+            }
+        } else {
+            statsDrawer.drawStat("Financial Data", "N/A");
+        }
+
+
+        int statStartXCol2 = statStartXCol1 + columnWidth + paddingHorizontal;
+        statsDrawer.setStartX(statStartXCol2);
+        statsDrawer.setCurrentY(contentStartY);
+
+        statsDrawer.drawHeader("~ Agricultural ~");
+        if (gp.player != null) {
+            statsDrawer.drawStat("Crops Harvested", gp.player.totalHarvested);
+        } else {
+            statsDrawer.drawStat("Crops Harvested", "N/A");
+        }
+
+        statsDrawer.drawHeader("~ Fishing ~");
+        if (gp.player != null) {
+            statsDrawer.drawStat("Total Fish", gp.player.totalFishCaught);
+            statsDrawer.drawStat("  Common", gp.player.totalCommonFishCaught);
+            statsDrawer.drawStat("  Regular", gp.player.totalRegularFishCaught);
+            statsDrawer.drawStat("  Legendary", gp.player.totalLegendaryFishCaught);
+        } else {
+            statsDrawer.drawStat("Fishing Data", "N/A");
+        }
+
+
+        int statStartXCol3 = statStartXCol2 + columnWidth + paddingHorizontal;
+        statsDrawer.setStartX(statStartXCol3);
+        statsDrawer.setCurrentY(contentStartY);
+
+        statsDrawer.drawHeader("~ NPC Relationships ~");
+        if (gp.allNpcsInWorld == null || gp.allNpcsInWorld.isEmpty()) {
+            statsDrawer.drawStat("No NPCs met", "");
+        } else {
+            boolean npcDataAvailable = false;
+            for (NPC npc : gp.allNpcsInWorld) {
+                if (npc == null || gp.player == null) continue;
+                npcDataAvailable = true;
+
+                g2.setFont(npcNameFont);
+                g2.setColor(new Color(173, 216, 230));
+                g2.drawString(npc.name, statStartXCol3, statsDrawer.getCurrentY());
+                statsDrawer.advanceY(0.95);
+
+                statsDrawer.drawStat(" Hearts", npc.currentHeartPoints + "/" + npc.maxHeartPoints);
+                statsDrawer.drawStat(" Chats", gp.player.npcChatFrequency.getOrDefault(npc.name, 0));
+                statsDrawer.drawStat(" Gifts", gp.player.npcGiftFrequency.getOrDefault(npc.name, 0));
+
+                if (npc.isMarriageCandidate) {
+                    String marriageStatus = "Single";
+                    if (npc.marriedToPlayer) marriageStatus = "Married to You";
+                    else if (npc.engaged) marriageStatus = "Engaged";
+                    statsDrawer.drawStat(" Status", marriageStatus);
+                }
+                statsDrawer.advanceY(0.3);
+            }
+
+            if (!npcDataAvailable) {
+                statsDrawer.drawStat("No valid NPC data", "");
+            }
+        }
+
+
+        int exitY = gp.screenHeight - 25;
+        String exitMessage = "Press ENTER to Continue Playing | Press ESC to Return to Menu";
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 9F));
+        int exitX = getXForCenteredText(exitMessage);
+        g2.setColor(new Color(255, 255, 255, 180));
+        g2.drawString(exitMessage, exitX, exitY);
+    }
 }
