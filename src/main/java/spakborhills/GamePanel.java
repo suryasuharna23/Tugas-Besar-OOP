@@ -64,7 +64,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int sellState = 11;
     public final int cookingState = 12;
     public final int buyingState = 13;
-    public final int fishingMinigameState = 13;
+    public final int fishingMinigameState = 14;
 
     public final int PLAYER_HOUSE_INDEX = 10;
 
