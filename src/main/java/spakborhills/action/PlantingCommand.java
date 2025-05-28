@@ -2,7 +2,10 @@ package spakborhills.action;
 
 import spakborhills.GamePanel;
 import spakborhills.entity.Player;
+import spakborhills.enums.Season;
 import spakborhills.enums.TileState;
+import spakborhills.object.OBJ_Seed;
+import spakborhills.entity.Entity;
 
 public class PlantingCommand implements Command {
     private final Player player;
@@ -13,11 +16,28 @@ public class PlantingCommand implements Command {
 
     @Override
     public void execute(GamePanel gp) {
+        Entity equipped = player.getEquippedItem();
+
+        // Validasi: harus seed
+        if (!(equipped instanceof OBJ_Seed)) {
+            System.out.println("Anda harus memegang benih untuk menanam.");
+            return;
+        }
+
+        OBJ_Seed seed = (OBJ_Seed) equipped;
+
+        // Validasi musim
+        Season currentSeason = gp.gameClock.getCurrentSeason(); // sesuaikan jika kamu simpan musim di tempat lain
+        if (seed.getSeason() != currentSeason) {
+            System.out.println("Benih ini hanya bisa ditanam pada musim " + seed.getSeason() + ".");
+            return;
+        }
+
+        // Hitung posisi tile di depan player
         int tileSize = gp.tileSize;
         int playerCol = (player.worldX + player.solidArea.x) / tileSize;
         int playerRow = (player.worldY + player.solidArea.y) / tileSize;
 
-        // Hitung posisi tile di depan player
         switch (player.direction) {
             case "up" -> playerRow--;
             case "down" -> playerRow++;
@@ -25,33 +45,37 @@ public class PlantingCommand implements Command {
             case "right" -> playerCol++;
         }
 
-        // Validasi batas map
+        // Validasi map
         if (playerCol < 0 || playerCol >= gp.maxWorldCol || playerRow < 0 || playerRow >= gp.maxWorldRow)
             return;
 
-        // Ambil index tile
         int tileIndex = gp.tileManager.mapTileNum[playerCol][playerRow];
 
-        // Jika tile adalah SOIL maka bisa ditanami
         if (tileIndex == getTileIndexFromState(TileState.SOIL)) {
             boolean success = player.tryDecreaseEnergy(5);
             if (!success) return;
 
-            gp.tileManager.mapTileNum[playerCol][playerRow] = 55; // Asumsikan 6 = tile dengan benih
+            // Ubah tile jadi PLANTED
+            gp.tileManager.mapTileNum[playerCol][playerRow] = getTileIndexFromState(TileState.PLANTED);
             gp.gameClock.getTime().advanceTime(5);
 
-            System.out.println("Benih berhasil ditanam.");
+            // Catat penanaman
+            System.out.println("Benih " + seed.getName() + " berhasil ditanam.");
+
+            // Kurangi jumlah seed dari inventory
+            player.consumeItemFromInventory(seed);
+
         } else {
-            System.out.println("Tile ini bukan SOIL, tidak bisa ditanami.");
+            System.out.println("Tile ini tidak bisa ditanami (bukan SOIL).");
         }
     }
 
     private int getTileIndexFromState(TileState state) {
         return switch (state) {
-            case LAND -> 14;             // Sesuaikan dengan index land.png
-            case SOIL -> 76;             // Sesuaikan dengan index soil.png
-            case PLANTED -> 55;          // Sesuaikan dengan index planted.png
-            case WATERED_PLANT -> 80;  // sesuaikan index SOIL
+            case LAND -> 14;
+            case SOIL -> 76;
+            case PLANTED -> 55;
+            case WATERED_PLANT -> 80;
         };
     }
 }

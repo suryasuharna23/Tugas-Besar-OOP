@@ -22,7 +22,7 @@ public class OBJ_Seed extends OBJ_Item {
         this.dayToHarvest = dayToHarvest;
         this.countWater = countWater;
 
-        if (this.name.equals("Parsnip")) {
+        if (this.name.equals("Parsnip seeds")) {
             this.dayToHarvest = 1;
             this.buyPrice = 20;
             this.sellPrice = 10;
@@ -32,7 +32,7 @@ public class OBJ_Seed extends OBJ_Item {
             } else {
                 this.countWater = 1;
             }
-        } else if (this.name.equals("Cauliflower")) {
+        } else if (this.name.equals("Cauliflower seeds")) {
             this.dayToHarvest = 5;
             this.buyPrice = 80;
             this.sellPrice = 40;
@@ -42,7 +42,7 @@ public class OBJ_Seed extends OBJ_Item {
             } else {
                 this.countWater = 1;
             }
-        } else if (this.name.equals("Potato")) {
+        } else if (this.name.equals("Potato seeds")) {
             this.dayToHarvest = 3;
             this.buyPrice = 50;
             this.sellPrice = 25;
@@ -52,7 +52,7 @@ public class OBJ_Seed extends OBJ_Item {
             } else {
                 this.countWater = 1;
             }
-        } else if (this.name.equals("Wheat")) {
+        } else if (this.name.equals("Wheat seeds")) {
             if (this.season == Season.SPRING || this.season == Season.FALL) {
                 this.dayToHarvest = 1;
                 this.buyPrice = 60;
@@ -64,7 +64,7 @@ public class OBJ_Seed extends OBJ_Item {
                     this.countWater = 1;
                 }
             }
-        } else if (this.name.equals("Blueberry")) {
+        } else if (this.name.equals("Blueberry seeds")) {
             this.dayToHarvest = 7;
             this.buyPrice = 80;
             this.sellPrice = 40;
@@ -74,7 +74,7 @@ public class OBJ_Seed extends OBJ_Item {
             } else {
                 this.countWater = 1;
             }
-        } else if (this.name.equals("Tomato")) {
+        } else if (this.name.equals("Tomato seeds")) {
             this.dayToHarvest = 3;
             this.buyPrice = 50;
             this.sellPrice = 25;
@@ -84,7 +84,7 @@ public class OBJ_Seed extends OBJ_Item {
             } else {
                 this.countWater = 1;
             }
-        } else if (this.name.equals("Hot Pepper")) {
+        } else if (this.name.equals("Hot Pepper seeds")) {
             this.dayToHarvest = 1;
             this.buyPrice = 40;
             this.sellPrice = 20;
@@ -94,7 +94,7 @@ public class OBJ_Seed extends OBJ_Item {
             } else {
                 this.countWater = 1;
             }
-        } else if (this.name.equals("Melon")) {
+        } else if (this.name.equals("Melon seeds")) {
             this.dayToHarvest = 4;
             this.buyPrice = 80;
             this.sellPrice = 40;
@@ -104,7 +104,7 @@ public class OBJ_Seed extends OBJ_Item {
             } else {
                 this.countWater = 1;
             }
-        } else if (this.name.equals("Cranberry")) {
+        } else if (this.name.equals("Cranberry seeds")) {
             this.dayToHarvest = 2;
             this.buyPrice = 100;
             this.sellPrice = 50;
@@ -114,7 +114,7 @@ public class OBJ_Seed extends OBJ_Item {
             } else {
                 this.countWater = 1;
             }
-        } else if (this.name.equals("Pumpkin")) {
+        } else if (this.name.equals("Pumpkin seeds")) {
             this.dayToHarvest = 7;
             this.buyPrice = 150;
             this.sellPrice = 75;
@@ -124,7 +124,7 @@ public class OBJ_Seed extends OBJ_Item {
             } else {
                 this.countWater = 1;
             }
-        } else if (this.name.equals("Grape")) {
+        } else if (this.name.equals("Grape seeds")) {
             this.dayToHarvest = 3;
             this.buyPrice = 60;
             this.sellPrice = 30;
@@ -181,4 +181,7 @@ public class OBJ_Seed extends OBJ_Item {
         return false;
     }
 
+    public Season getSeason() {
+        return season;
+    }
 }
