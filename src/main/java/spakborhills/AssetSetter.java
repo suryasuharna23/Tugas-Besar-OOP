@@ -147,24 +147,17 @@ public class AssetSetter {
 
                 
                 if ("Farm".equalsIgnoreCase(currentMapName)) {
-                        Entity key1 = new OBJ_Key(gp);
-                        key1.worldX = gp.tileSize * 23;
-                        key1.worldY = gp.tileSize * 40;
-                        gp.entities.add(key1);
-
-                        Entity chestOnFarm = new OBJ_Chest(gp); 
-                        chestOnFarm.worldX = gp.tileSize * 22;
-                        chestOnFarm.worldY = gp.tileSize * 30;
-                        gp.entities.add(chestOnFarm);
-
                         Entity shippingBin = new OBJ_ShippingBin(gp);
                         shippingBin.worldX = gp.tileSize * 25;
                         shippingBin.worldY = gp.tileSize * 15;
                         gp.entities.add(shippingBin);
 
-                        chest1.worldX = gp.tileSize * 22;
-                        chest1.worldY = gp.tileSize * 30;
-                        gp.entities.add(chest1);
+                        Entity house = new OBJ_House(gp);
+                        house.worldX = gp.tileSize * 23;
+                        house.worldY = gp.tileSize * 21;
+                        gp.entities.add(house);
+
+
                 } else if ("Player's House".equalsIgnoreCase(currentMapName)) {
                         Entity playerSingleBed = new OBJ_Bed(gp);
                         playerSingleBed.worldX = gp.tileSize * 5;
@@ -180,6 +173,12 @@ public class AssetSetter {
                         tv.worldX = gp.tileSize * 5;
                         tv.worldY = gp.tileSize * 11;
                         gp.entities.add(tv);
+
+                        Entity exitDoor = new OBJ_Door(gp);
+                        exitDoor.worldX = gp.tileSize * 23; // Posisi pintu keluar
+                        exitDoor.worldY = gp.tileSize * 33; // Near bottom of house
+                        gp.entities.add(exitDoor);
+
                 }
                 
         }

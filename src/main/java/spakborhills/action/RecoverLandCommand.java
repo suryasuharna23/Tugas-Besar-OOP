@@ -3,6 +3,9 @@ package spakborhills.action;
 import spakborhills.GamePanel;
 import spakborhills.entity.Player;
 import spakborhills.enums.TileState;
+import spakborhills.object.OBJ_Equipment;
+import spakborhills.object.OBJ_Item;
+import spakborhills.entity.Entity;
 
 public class RecoverLandCommand implements Command {
 
@@ -24,6 +27,11 @@ public class RecoverLandCommand implements Command {
             case "down" -> playerRow++;
             case "left" -> playerCol--;
             case "right" -> playerCol++;
+        }
+
+        if (!player.isHoldingTool("Pickaxe equipment")) {
+            System.out.println("Anda harus memegang Pickaxe.");
+            return;
         }
 
         // Validasi batas

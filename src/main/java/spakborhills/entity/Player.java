@@ -1027,4 +1027,10 @@ public class Player extends Entity{
     public void addToInventory(Entity item) { //
         this.inventory.add(item);
     }
+
+    public boolean isHoldingTool(String keyword) {
+        Entity equipped = getEquippedItem();
+        return (equipped instanceof OBJ_Equipment) &&
+                ((OBJ_Equipment) equipped).getName().toLowerCase().contains(keyword.toLowerCase());
+    }
 }
