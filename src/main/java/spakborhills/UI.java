@@ -153,7 +153,99 @@ public class UI {
             drawTimedMessage(g2);
         } else if (gp.gameState == gp.buyingState){
             drawBuyingScreen();
+        }   else if (gp.gameState == gp.fishingMinigameState) { // <-- BLOK BARU
+            drawFishingMinigameScreen(g2);
         }
+    }
+
+    // Tambahkan metode baru di kelas UI.java
+    public void drawFishingMinigameScreen(Graphics2D g2) {
+        // 1. Gambar window latar belakang (mirip drawDialogueScreen atau drawSubWindow)
+        int frameX = gp.tileSize * 3;
+        int frameY = gp.screenHeight / 2 - gp.tileSize * 3; // Posisikan di tengah agak ke atas
+        int frameWidth = gp.screenWidth - (gp.tileSize * 6);
+        int frameHeight = gp.tileSize * 6; // Cukup untuk beberapa baris teks
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+
+        g2.setColor(Color.white);
+        Font baseFont = pressStart != null ? pressStart : new Font("Arial", Font.PLAIN, 12);
+        int currentTextY = frameY + gp.tileSize; // Y awal untuk teks di dalam window
+
+        // 2. Tampilkan Informasi Minigame (dari Player)
+        g2.setFont(baseFont.deriveFont(Font.PLAIN, 14F)); // Ukuran font untuk info
+        if (gp.player.fishingInfoMessage != null && !gp.player.fishingInfoMessage.isEmpty()) {
+            // Word wrapping sederhana untuk fishingInfoMessage
+            List<String> infoLines = wrapText(gp.player.fishingInfoMessage, frameWidth - gp.tileSize, g2.getFontMetrics());
+            for (String line : infoLines) {
+                int lineX = getXForCenteredTextInFrame(line, frameX, frameWidth);
+                g2.drawString(line, lineX, currentTextY);
+                currentTextY += g2.getFontMetrics().getHeight() + 2;
+            }
+        }
+        currentTextY += gp.tileSize / 2; // Spasi sebelum input
+
+        // 3. Tampilkan Input Pemain Saat Ini (dari Player)
+        g2.setFont(baseFont.deriveFont(Font.BOLD, 16F)); // Ukuran font untuk input
+        String displayInput = gp.player.fishingPlayerInput;
+        if (System.currentTimeMillis() % 1000 < 500) { // Kursor berkedip
+            displayInput += "_";
+        } else {
+            displayInput += " ";
+        }
+        int inputX = getXForCenteredTextInFrame(displayInput, frameX, frameWidth);
+        g2.drawString(displayInput, inputX, currentTextY);
+        currentTextY += gp.tileSize;
+
+        // 4. Tampilkan Feedback (dari Player)
+        g2.setFont(baseFont.deriveFont(Font.ITALIC, 14F)); // Ukuran font untuk feedback
+        if (gp.player.fishingFeedbackMessage != null && !gp.player.fishingFeedbackMessage.isEmpty()) {
+            int feedbackX = getXForCenteredTextInFrame(gp.player.fishingFeedbackMessage, frameX, frameWidth);
+            g2.drawString(gp.player.fishingFeedbackMessage, feedbackX, currentTextY);
+        }
+        currentTextY += gp.tileSize / 2;
+
+        // 5. Tampilkan Sisa Percobaan
+        g2.setFont(baseFont.deriveFont(Font.PLAIN, 12F));
+        int attemptsLeft = gp.player.fishingMaxTry - gp.player.fishingCurrentAttempts;
+        String attemptsText = "Percobaan tersisa: " + attemptsLeft + "/" + gp.player.fishingMaxTry;
+        int attemptsX = frameX + gp.tileSize / 2; // Rata kiri
+        g2.drawString(attemptsText, attemptsX, frameY + frameHeight - gp.tileSize + 15 );
+
+        // 6. Instruksi
+        g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
+        String instructions = "[0-9] Angka | [Enter] Tebak | [Backspace] Hapus | [Esc] Menyerah";
+        int instructionX = getXForCenteredTextInFrame(instructions, frameX, frameWidth);
+        g2.drawString(instructions, instructionX, frameY + frameHeight - gp.tileSize / 2 );
+    }
+
+    // Helper method untuk word wrapping (bisa ditaruh di UI.java)
+    private List<String> wrapText(String text, int maxWidth, FontMetrics fm) {
+        List<String> lines = new ArrayList<>();
+        if (text == null || text.isEmpty()) {
+            return lines;
+        }
+        String[] words = text.split(" ");
+        StringBuilder currentLine = new StringBuilder();
+        for (String word : words) {
+            if (fm.stringWidth(currentLine.toString() + word) < maxWidth) {
+                if (currentLine.length() > 0) {
+                    currentLine.append(" ");
+                }
+                currentLine.append(word);
+            } else {
+                if (currentLine.length() > 0) { // Pastikan ada sesuatu di baris sebelum menambahkan
+                    lines.add(currentLine.toString());
+                    currentLine = new StringBuilder(word);
+                } else { // Jika satu kata saja sudah terlalu panjang
+                    lines.add(word); // Tambahkan apa adanya (mungkin perlu pemotongan lebih lanjut)
+                    currentLine = new StringBuilder();
+                }
+            }
+        }
+        if (currentLine.length() > 0) {
+            lines.add(currentLine.toString());
+        }
+        return lines;
     }
 
     public void drawSharedBackground(Graphics2D g2) {
@@ -1253,7 +1345,7 @@ public class UI {
             System.out.println("DEBUG: UI.startSelfDialogue - GameClock or Time is null, cannot pause.");
         }
     }
-    
+
     public void drawBuyingScreen() {
         if (!(gp.currentInteractingNPC instanceof NPC_EMILY))
             return;
@@ -1275,18 +1367,18 @@ public class UI {
         g2.drawString("Your Gold: " + gp.player.gold + "G", frameX + gp.tileSize / 2,
                 (int) (frameY + gp.tileSize * 1.5f));
 
-        
+
         int padding = 20;
         int listStartX = frameX + padding;
         int listStartY = (int) (frameY + gp.tileSize * 2.5f);
         int itemLineHeight = 22;
 
-        
-        int usableWidth = frameWidth - (padding * 2);
-        int itemListWidth = usableWidth * 2 / 5; 
-        int detailAreaWidth = usableWidth * 3 / 5 - padding; 
 
-        
+        int usableWidth = frameWidth - (padding * 2);
+        int itemListWidth = usableWidth * 2 / 5;
+        int detailAreaWidth = usableWidth * 3 / 5 - padding;
+
+
         int detailsStartX = listStartX + itemListWidth + padding;
         int maxDetailWidth = Math.min(detailAreaWidth, frameX + frameWidth - detailsStartX - padding);
 
@@ -1296,7 +1388,7 @@ public class UI {
             g2.drawString(noItemMsg, getXForCenteredTextInFrame(noItemMsg, frameX, frameWidth),
                     frameY + frameHeight / 2);
         } else {
-            
+
             int availableListHeight = frameHeight - gp.tileSize * 4;
             int maxVisibleItems = availableListHeight / itemLineHeight;
             int scrollOffset = 0;
@@ -1320,9 +1412,9 @@ public class UI {
                     g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
                     g2.drawString("> " + displayText, listStartX, currentY);
 
-                    
-                    
-                    int detailBackgroundHeight = gp.tileSize * 2 + 40; 
+
+
+                    int detailBackgroundHeight = gp.tileSize * 2 + 40;
                     g2.setColor(new Color(50, 50, 50, 150));
                     g2.fillRoundRect(detailsStartX - 10, listStartY - 10,
                             maxDetailWidth + 20, detailBackgroundHeight, 10, 10);
@@ -1330,12 +1422,12 @@ public class UI {
                     g2.drawRoundRect(detailsStartX - 10, listStartY - 10,
                             maxDetailWidth + 20, detailBackgroundHeight, 10, 10);
 
-                    
-                    int imageSize = gp.tileSize; 
+
+                    int imageSize = gp.tileSize;
                     if (shopItem.down1 != null) {
                         g2.drawImage(shopItem.down1, detailsStartX, listStartY + 5, imageSize, imageSize, null);
                     } else {
-                        
+
                         g2.setColor(Color.GRAY);
                         g2.fillRect(detailsStartX, listStartY + 5, imageSize, imageSize);
                         g2.setColor(Color.WHITE);
@@ -1344,12 +1436,12 @@ public class UI {
                         g2.drawString("Image", detailsStartX + 5, listStartY + imageSize / 2 + 12);
                     }
 
-                    
+
                     int textStartX = detailsStartX + imageSize + 15;
                     int textStartY = listStartY + 20;
-                    int maxTextWidth = maxDetailWidth - imageSize - 25; 
+                    int maxTextWidth = maxDetailWidth - imageSize - 25;
 
-                    
+
                     if (textStartX + maxTextWidth > frameX + frameWidth - padding) {
                         maxTextWidth = frameX + frameWidth - padding - textStartX;
                     }
@@ -1357,7 +1449,7 @@ public class UI {
                     g2.setColor(Color.WHITE);
                     g2.setFont(baseFont.deriveFont(Font.BOLD, 14F));
 
-                    
+
                     String displayName = shopItem.name;
                     FontMetrics fm = g2.getFontMetrics();
                     if (fm.stringWidth(displayName) > maxTextWidth) {
@@ -1376,7 +1468,7 @@ public class UI {
                     g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
                     String itemInfo = "";
 
-                    
+
                     if (fm.stringWidth(itemInfo) > maxTextWidth) {
                         while (fm.stringWidth(itemInfo + "...") > maxTextWidth && itemInfo.length() > 1) {
                             itemInfo = itemInfo.substring(0, itemInfo.length() - 1);
@@ -1389,7 +1481,7 @@ public class UI {
                     g2.setColor(Color.WHITE);
                     g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
 
-                    
+
                     FontMetrics fm = g2.getFontMetrics();
                     if (fm.stringWidth(displayText) > itemListWidth - 30) {
                         while (fm.stringWidth(displayText + "...") > itemListWidth - 30 && displayText.length() > 1) {
@@ -1402,7 +1494,7 @@ public class UI {
             }
         }
 
-        
+
         g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
         g2.setColor(Color.WHITE);
         String instructions = "[Up/Down] Select | [Enter] Buy | [Esc] Exit";
