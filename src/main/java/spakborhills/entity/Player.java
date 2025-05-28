@@ -15,19 +15,18 @@ import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.enums.Location; // Pastikan Location dari spakborhills.enums
 import spakborhills.interfaces.Edible;
+// Sudah ada di spakborhills.object.*
 import spakborhills.object.*;
 import spakborhills.Tile.*; // Mungkin tidak diperlukan jika tidak ada interaksi Tile langsung di sini
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+// import java.util.List; // Sudah ada
 import java.util.*;
 import java.util.List; // Pastikan import List ada
 // import spakborhills.enums.Location; // Hapus jika sudah diimport dari atas
 import spakborhills.enums.FishType;
-import spakborhills.object.OBJ_Fish; // Sudah ada di spakborhills.object.*
 import spakborhills.enums.ItemType; // Sudah ada di spakborhills.enums
-// import java.util.List; // Sudah ada
-import java.util.Random;
 import spakborhills.enums.ItemType;
 import java.util.List;
 
@@ -133,35 +132,21 @@ public class Player extends Entity{
         right2 = setup("/player/boy_right_2");
     }
 
-    // Metode getLocation() yang mengembalikan String (untuk kompatibilitas jika masih digunakan)
-    // Sebaiknya gunakan getLocationName() atau getCurrentLocation().name()
+
     public String getLocation() {
         if (currentLocation != null) {
-            // Mengganti underscore dengan spasi dan membuat huruf kapital di awal kata
-            // Contoh: MOUNTAIN_LAKE menjadi Mountain Lake
-            String name = currentLocation.name();
-            String[] parts = name.split("_");
-            StringBuilder formattedName = new StringBuilder();
-            for (String part : parts) {
-                formattedName.append(part.substring(0, 1).toUpperCase())
-                        .append(part.substring(1).toLowerCase())
-                        .append(" ");
-            }
-            return formattedName.toString().trim();
-        }
-        return "Unknown Location"; // Fallback
+        return currentLocation.name().replace("_", " ");
+    }
+    return "Unknown";
     }
 
 
     public void setLocation(String locationName) {
-        // Konversi dari String ke Enum Location
-        // Ini mungkin perlu penanganan error yang lebih baik jika string tidak cocok
         try {
             String enumCompatibleName = locationName.toUpperCase().replace(" ", "_");
             this.currentLocation = Location.valueOf(enumCompatibleName);
         } catch (IllegalArgumentException e) {
             System.err.println("Peringatan: Nama lokasi string tidak valid '" + locationName + "'. Lokasi tidak diubah.");
-            // Biarkan currentLocation apa adanya atau set ke default jika perlu
         }
     }
 
@@ -198,7 +183,6 @@ public class Player extends Entity{
 
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Pumpkin", false, 150, 75, 1,7,Season.FALL, Weather.RAINY)); //
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Cranberry", false,100, 50, 1,2,Season.FALL, Weather.RAINY)); //
-        // ... item awal lainnya
     }
     private void initializeRecipeStatus() {
         recipeUnlockStatus.clear();

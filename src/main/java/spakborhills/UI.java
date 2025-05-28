@@ -1417,7 +1417,23 @@ public class UI {
 
     public void drawLocationHUD(Graphics2D g2) {
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 20F));
-        String locationText = "Location: " + gp.player.getLocation();
+
+        
+        String currentLocation = "Unknown";
+
+        if (gp.player != null) {
+            String playerLocation = gp.player.getLocation();
+            if (playerLocation != null && !playerLocation.isEmpty() && !playerLocation.equals("Unknown")) {
+                currentLocation = playerLocation;
+            } else {
+                
+                if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
+                    currentLocation = gp.mapInfos.get(gp.currentMapIndex).getMapName();
+                }
+            }
+        }
+
+        String locationText = "Location: " + currentLocation;
 
         int textWidth = g2.getFontMetrics().stringWidth(locationText);
         int padding = 10;
