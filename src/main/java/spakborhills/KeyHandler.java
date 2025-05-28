@@ -65,7 +65,8 @@ public class KeyHandler implements KeyListener {
                         System.exit(0);
                     }
                 }
-            } else if (gp.ui.mapSelectionState == 1) {
+            }
+            else if (gp.ui.mapSelectionState == 1) {
                 if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                     gp.ui.commandNumber--;
                     if (gp.ui.commandNumber < 0) {
@@ -93,6 +94,52 @@ public class KeyHandler implements KeyListener {
         else if (gp.gameState == gp.playerNameInputState) {
             handlePlayerNameInput(code, e.getKeyChar());
         }
+
+        else if (gp.gameState == gp.endGameState) {
+            System.out.println("[KeyHandler] DEBUG - In endGameState, key pressed: " + code);
+            System.out.println("[KeyHandler] DEBUG - endGameState constant value: " + gp.endGameState);
+            System.out.println("[KeyHandler] DEBUG - Current gameState value: " + gp.gameState);
+            System.out.println("[KeyHandler] DEBUG - enterPressed status: " + enterPressed);
+
+            if (code == KeyEvent.VK_ENTER) {
+                System.out.println("[KeyHandler] DEBUG - ENTER key detected in endGameState");
+
+
+                enterPressed = false;
+
+
+                if (gp.previousGameState != -1) {
+                    System.out.println("[KeyHandler] DEBUG - Returning to previousGameState: " + gp.previousGameState);
+                    gp.gameState = gp.previousGameState;
+                    if (gp.gameClock != null && gp.gameClock.isPaused()) {
+                        gp.gameClock.resumeTime();
+                        System.out.println("[KeyHandler] DEBUG - GameClock resumed");
+                    }
+                } else {
+
+                    System.out.println("[KeyHandler] DEBUG - Fallback to playState");
+                    gp.gameState = gp.playState;
+                    if (gp.gameClock != null && gp.gameClock.isPaused()) {
+                        gp.gameClock.resumeTime();
+                        System.out.println("[KeyHandler] DEBUG - GameClock resumed (fallback)");
+                    }
+                }
+
+                System.out.println("[KeyHandler] DEBUG - New gameState after ENTER: " + gp.gameState);
+
+            } else if (code == KeyEvent.VK_ESCAPE) {
+                System.out.println("[KeyHandler] DEBUG - ESC key detected in endGameState");
+
+                gp.gameState = gp.titleState;
+                gp.ui.mapSelectionState = 0;
+                gp.ui.commandNumber = 0;
+                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
+                    gp.gameClock.pauseTime();
+                }
+                System.out.println("[KeyHandler] ESC pressed in endGameState. Returning to titleState.");
+            }
+        }
+
         else if (gp.gameState == gp.farmNameInputState) {
             handleFarmNameInput(code, e.getKeyChar());
         }
@@ -137,6 +184,14 @@ public class KeyHandler implements KeyListener {
                     if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                         gp.gameClock.pauseTime();
                     }
+                }
+            }
+            else if (code == KeyEvent.VK_U) {
+                System.out.println("[KeyHandler] TEST - Force triggering endgame");
+                gp.previousGameState = gp.gameState;
+                gp.gameState = gp.endGameState;
+                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
+                    gp.gameClock.pauseTime();
                 }
             }
         }

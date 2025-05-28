@@ -5,6 +5,7 @@ import spakborhills.cooking.RecipeManager;
 import spakborhills.entity.Entity;
 import spakborhills.entity.NPC;
 import spakborhills.entity.NPC_EMILY;
+import spakborhills.enums.Season;
 import spakborhills.interfaces.Edible;
 import spakborhills.object.OBJ_Item;
 
@@ -161,6 +162,8 @@ public class UI {
             drawBuyingScreen();
         }   else if (gp.gameState == gp.fishingMinigameState) { 
             drawFishingMinigameScreen(g2);
+        } else if (gp.gameState == gp.endGameState) {
+            drawEndGameStatisticsScreen(g2);
         }
     }
 
@@ -1643,4 +1646,191 @@ public class UI {
     public int getDialogueLinesPerPage() {
         return dialogueLinesPerPage;
     }
+
+
+
+    public void drawEndGameStatisticsScreen(Graphics2D g2) {
+    
+    drawSharedBackground(g2);
+    g2.setColor(new Color(0, 0, 0, 230)); 
+    g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+    g2.setFont(pressStart.deriveFont(Font.BOLD, 24F));
+    g2.setColor(Color.WHITE);
+    String title = "End Game Statistics";
+    int titleX = getXForCenteredText(title);
+    int titleY = gp.tileSize;
+    g2.drawString(title, titleX, titleY);
+
+    
+    Font headerFont = pressStart.deriveFont(Font.BOLD, 12F);
+    Font statTextFont = pressStart.deriveFont(Font.PLAIN, 8F);
+    Font npcNameFont = pressStart.deriveFont(Font.BOLD, 9F);
+    int lineHeight = 15;
+    int sectionSpacing = gp.tileSize / 4;
+
+    int contentStartY = titleY + g2.getFontMetrics().getHeight() + gp.tileSize / 3;
+    int paddingHorizontal = gp.tileSize / 3;
+
+    int totalUsableWidth = gp.screenWidth - (paddingHorizontal * 2);
+    int columnWidth = (totalUsableWidth - (paddingHorizontal * 2)) / 3; 
+
+    
+    class StatDrawer {
+        private int currentY;
+        private int startX;
+        private final Graphics2D g;
+        private final Font hFont;
+        private final Font tFont;
+        private final int lht;
+        private final int lhs;
+
+        public StatDrawer(Graphics2D g, int startX, int startY, Font headerFont, Font textFont, int lineHeightText, int lineHeightSection) {
+            this.g = g;
+            this.startX = startX;
+            this.currentY = startY;
+            this.hFont = headerFont;
+            this.tFont = textFont;
+            this.lht = lineHeightText;
+            this.lhs = lineHeightSection;
+        }
+
+        public void drawStat(String label, String value) {
+            g.setFont(tFont);
+            g.setColor(Color.LIGHT_GRAY);
+            int labelWidth = g.getFontMetrics(tFont).stringWidth(label + ": ");
+            if (startX + labelWidth + g.getFontMetrics(tFont).stringWidth(value) > startX + columnWidth - 5) {
+                g.drawString(label + ":", startX, currentY);
+                currentY += lht;
+                g.setColor(Color.WHITE);
+                g.drawString(value, startX + 10, currentY);
+            } else {
+                g.drawString(label + ":", startX, currentY);
+                g.setColor(Color.WHITE);
+                g.drawString(value, startX + labelWidth + 2, currentY);
+            }
+            currentY += lht;
+        }
+
+        public void drawStat(String label, long value) {
+            drawStat(label, String.valueOf(value));
+        }
+
+        public void drawHeader(String header) {
+            currentY += lhs;
+            g.setFont(hFont);
+            g.setColor(new Color(255, 215, 0)); 
+            g.drawString(header, startX, currentY);
+            currentY += (int)(lht * 1.2);
+            g.setColor(Color.WHITE);
+        }
+
+        public int getCurrentY() { return currentY; }
+        public void advanceY(double multiplier) { currentY += (int)(lht * multiplier); }
+        public void setCurrentY(int y) { this.currentY = y; }
+        public void setStartX(int x) { this.startX = x; }
+    }
+
+    
+    int statStartXCol1 = paddingHorizontal;
+    StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont, lineHeight, sectionSpacing);
+
+    statsDrawer.drawHeader("~ General ~");
+    if (gp.gameClock != null && gp.gameClock.getTime() != null && gp.player != null) {
+        statsDrawer.drawStat("Days Played", gp.gameClock.getTime().getDay());
+    } else {
+        statsDrawer.drawStat("Days Played", "N/A");
+    }
+
+    statsDrawer.drawHeader("~ Financial ~");
+    if (gp.player != null) {
+        statsDrawer.drawStat("Total Income", gp.player.totalIncome + "G");
+        statsDrawer.drawStat("Total Expenditure", gp.player.totalExpenditure + "G");
+        statsDrawer.drawStat("Net Worth", gp.player.gold + "G");
+
+        statsDrawer.advanceY(0.2);
+        for (Season season : Season.values()) {
+            long income = gp.player.seasonalIncome.getOrDefault(season, 0L);
+            long expenditure = gp.player.seasonalExpenditure.getOrDefault(season, 0L);
+            int timesPlayed = gp.player.seasonPlayed.getOrDefault(season, 0);
+
+            float avgIncome = (timesPlayed > 0) ? (float) income / timesPlayed : 0;
+            float avgExpenditure = (timesPlayed > 0) ? (float) expenditure / timesPlayed : 0;
+
+            Font italicFont = statTextFont.deriveFont(Font.ITALIC, 8F);
+            g2.setFont(italicFont);
+            statsDrawer.drawStat(String.format("%s Inc (x%d)", season.name().substring(0,3), timesPlayed), String.format("%.0fG", avgIncome));
+            statsDrawer.drawStat(String.format("%s Exp (x%d)", season.name().substring(0,3), timesPlayed), String.format("%.0fG", avgExpenditure));
+        }
+    } else {
+        statsDrawer.drawStat("Financial Data", "N/A");
+    }
+
+    
+    int statStartXCol2 = statStartXCol1 + columnWidth + paddingHorizontal;
+    statsDrawer.setStartX(statStartXCol2);
+    statsDrawer.setCurrentY(contentStartY);
+
+    statsDrawer.drawHeader("~ Agricultural ~");
+    if (gp.player != null) {
+        statsDrawer.drawStat("Crops Harvested", gp.player.totalHarvested);
+    } else {
+        statsDrawer.drawStat("Crops Harvested", "N/A");
+    }
+
+    statsDrawer.drawHeader("~ Fishing ~");
+    if (gp.player != null) {
+        statsDrawer.drawStat("Total Fish", gp.player.totalFishCaught);
+        statsDrawer.drawStat("  Common", gp.player.totalCommonFishCaught);
+        statsDrawer.drawStat("  Regular", gp.player.totalRegularFishCaught);
+        statsDrawer.drawStat("  Legendary", gp.player.totalLegendaryFishCaught);
+    } else {
+        statsDrawer.drawStat("Fishing Data", "N/A");
+    }
+
+    
+    int statStartXCol3 = statStartXCol2 + columnWidth + paddingHorizontal;
+    statsDrawer.setStartX(statStartXCol3);
+    statsDrawer.setCurrentY(contentStartY);
+
+    statsDrawer.drawHeader("~ NPC Relationships ~");
+    if (gp.allNpcsInWorld == null || gp.allNpcsInWorld.isEmpty()) {
+        statsDrawer.drawStat("No NPCs met", "");
+    } else {
+        boolean npcDataAvailable = false;
+        for (NPC npc : gp.allNpcsInWorld) {
+            if (npc == null || gp.player == null) continue;
+            npcDataAvailable = true;
+
+            g2.setFont(npcNameFont);
+            g2.setColor(new Color(173, 216, 230)); 
+            g2.drawString(npc.name, statStartXCol3, statsDrawer.getCurrentY());
+            statsDrawer.advanceY(0.95);
+
+            statsDrawer.drawStat(" Hearts", npc.currentHeartPoints + "/" + npc.maxHeartPoints);
+            statsDrawer.drawStat(" Chats", gp.player.npcChatFrequency.getOrDefault(npc.name, 0));
+            statsDrawer.drawStat(" Gifts", gp.player.npcGiftFrequency.getOrDefault(npc.name, 0));
+
+            if (npc.isMarriageCandidate) {
+                String marriageStatus = "Single";
+                if (npc.marriedToPlayer) marriageStatus = "Married to You";
+                else if (npc.engaged) marriageStatus = "Engaged";
+                statsDrawer.drawStat(" Status", marriageStatus);
+            }
+            statsDrawer.advanceY(0.3);
+        }
+        
+        if (!npcDataAvailable) {
+            statsDrawer.drawStat("No valid NPC data", "");
+        }
+    }
+
+    
+    int exitY = gp.screenHeight - 25;
+    String exitMessage = "Press ENTER to Continue Playing | Press ESC to Return to Menu";
+    g2.setFont(pressStart.deriveFont(Font.PLAIN, 9F));
+    int exitX = getXForCenteredText(exitMessage);
+    g2.setColor(new Color(255, 255, 255, 180));
+    g2.drawString(exitMessage, exitX, exitY);
+}
 }
