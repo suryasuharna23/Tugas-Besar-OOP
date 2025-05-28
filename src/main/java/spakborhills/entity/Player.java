@@ -47,9 +47,17 @@ public class Player extends Entity{
     public ArrayList<Entity> itemsInShippingBinToday = new ArrayList<>();
     public boolean hasUsedShippingBinToday = false;
     public int goldFromShipping = 0;
+    public long totalHarvested = 0;
+    public long totalIncome = 0;
+    public long totalExpenditure = 0;
+    public Map<Season, Long> seasonalIncome = new HashMap<>();
+    public Map<Season, Long> seasonalExpenditure = new HashMap<>();
+    public Map<Season, Integer> seasonPlayed = new HashMap<>();
 
 
-
+    // NPC interaction tracking
+    public Map<String, Integer> npcChatFrequency = new HashMap<>();
+    public Map<String, Integer> npcGiftFrequency = new HashMap<>();
 
     public Map<String, Boolean> recipeUnlockStatus = new HashMap<>();
     public ArrayList<ActiveCookingProcess> activeCookingProcesses = new ArrayList<>();
@@ -165,24 +173,13 @@ public class Player extends Entity{
         this.isCurrentlySleeping = false;
         gold = 500;
         initializeRecipeStatus();
-        addItemToInventory(new OBJ_Misc(gp, ItemType.MISC, "Proposal Ring", false, 0, 0));
-        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Pumpkin", false, 150, 75, 1,7,Season.FALL, Weather.RAINY));
-        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Cranberry", false,100, 50, 1,2,Season.FALL, Weather.RAINY));
-        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Melon", false,80, 40, 1,4,Season.FALL, Weather.RAINY));
-        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Hot Pepper", false, 40, 20, 1,1,Season.FALL, Weather.RAINY));
-        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
-        addItemToInventory(new OBJ_Food(gp, ItemType.FOOD, "Fish n' Chips", true, 150, 135, 50));
-
+        
+        // DEFAULT EQUIPMENT
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
-        addItemToInventory(new OBJ_Misc(gp,ItemType.MISC, "Coal", false, 0, 0));
-        addItemToInventory(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
-        addItemToInventory(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
-
-        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Pumpkin", false, 150, 75, 1,7,Season.FALL, Weather.RAINY)); //
-        inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Cranberry", false,100, 50, 1,2,Season.FALL, Weather.RAINY)); //
+        addItemToInventory(new OBJ_Misc(gp, ItemType.MISC, "Proposal Ring", false, 1500, 750));
     }
     private void initializeRecipeStatus() {
         recipeUnlockStatus.clear();
