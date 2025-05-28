@@ -14,6 +14,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+
 public class GamePanel extends JPanel implements Runnable {
     private static final int OCEAN_MAP_INDEX = 9;
     final int originalTileSize = 16;
@@ -86,7 +87,15 @@ public class GamePanel extends JPanel implements Runnable {
     public int farmMapMaxCols = 0;
     public int farmMapMaxRows = 0;
     public final int FARM_MAP_INDEX = 6;
+    
+    public static class SimpleFarmLayout {
+        public int houseX = 23; // Fixed position untuk house
+        public int houseY = 21; // Fixed position untuk house
+        public int shippingBinX = 25; // Fixed position untuk shipping bin
+        public int shippingBinY = 15; // Fixed position untuk shipping bin
+    }
 
+    public SimpleFarmLayout currentFarmLayout = new SimpleFarmLayout();
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
         this.setBackground(Color.black);
@@ -602,4 +611,5 @@ public class GamePanel extends JPanel implements Runnable {
         se.setFile(i);
         se.play();
     }
+    
 }
