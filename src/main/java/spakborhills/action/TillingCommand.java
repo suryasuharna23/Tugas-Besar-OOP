@@ -3,6 +3,9 @@ package spakborhills.action;
 import spakborhills.GamePanel;
 import spakborhills.entity.Player;
 import spakborhills.enums.TileState;
+import spakborhills.object.OBJ_Equipment;
+import spakborhills.object.OBJ_Item;
+import spakborhills.entity.Entity;
 
 public class TillingCommand implements Command {
     private final Player player;
@@ -26,19 +29,12 @@ public class TillingCommand implements Command {
             case "right" -> playerCol++;
         }
 
-        // Validasi batas map
-        if (playerCol < 0 || playerCol >= gp.maxWorldCol || playerRow < 0 || playerRow >= gp.maxWorldRow)
-            return;
-
-        // [DISABLED] Validasi alat Hoe untuk uji coba
-        /*
-        if (!hasHoeEquippedOrInInventory()) {
-            System.out.println("Anda membutuhkan Hoe untuk membajak tanah.");
+        if (!player.isHoldingTool("Hoe equipment")) {
+            System.out.println("Anda harus memegang Hoe.");
             return;
         }
-        */
 
-        // Ambil tile depan
+
         int tileIndex = gp.tileManager.mapTileNum[playerCol][playerRow];
 
         if (tileIndex == getTileIndexFromState(TileState.LAND)) {

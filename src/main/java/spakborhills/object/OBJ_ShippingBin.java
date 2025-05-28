@@ -16,6 +16,17 @@ public class OBJ_ShippingBin extends Entity {
         name = "Shipping Bin";
         down1 = setup("/objects/shipping_bin");
         collision = true;
+        int tilesWide = 3;
+        int tilesHigh = 2;
+
+        this.imageWidth = tilesWide * gp.tileSize;
+        this.imageHeight = tilesHigh * gp.tileSize;
+        solidArea.x = 0;
+        solidArea.y = 0;
+        solidArea.width = this.imageWidth;
+        solidArea.height = this.imageHeight;
+        solidAreaDefaultX = solidArea.x;
+        solidAreaDefaultY = solidArea.y;
     }
 
     public void interact() {

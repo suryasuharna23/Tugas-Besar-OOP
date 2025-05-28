@@ -1,13 +1,13 @@
 package spakborhills.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
 import spakborhills.object.OBJ_Item;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class NPC extends Entity{
     public int maxHeartPoints = 150;
@@ -18,6 +18,7 @@ public class NPC extends Entity{
     public boolean marriedToPlayer = false;
     public int actionLockCounter = 0;
     public int actionLockInterval = 120;
+    public int proposalDay = -1;
 
 
     
@@ -31,6 +32,7 @@ public class NPC extends Entity{
     public String alreadyGiftedDialogue = "You've already given me something today, thank you!";
     public String notEngagedDialogue = "Kamu saja belum melamar aku!";
     public String marriageDialogue = "Ini hari terbahagia dalam hidupku. Aku akan menemanimu seumur hidupku. (Ceritanya nikah)";
+    public String proposalRejectedDialogue_TooSoon = "Cepet banget.. besok aja ya?";
 
     public NPC(GamePanel gp){
         super(gp);
@@ -87,30 +89,30 @@ public class NPC extends Entity{
     }
     public void receiveGift(Entity itemEntity, Player player) {
         System.out.println("[NPC.receiveGift] START for " + this.name + ". Item: "
-                + (itemEntity != null ? itemEntity.name : "null")); // DEBUG
+                + (itemEntity != null ? itemEntity.name : "null")); 
         facePlayer();
 
         if (hasReceivedGiftToday) {
-            System.out.println("[NPC.receiveGift] Already received gift today."); // DEBUG
+            System.out.println("[NPC.receiveGift] Already received gift today."); 
             gp.ui.currentDialogue = alreadyGiftedDialogue;
-            System.out.println("[NPC.receiveGift] Dialogue set to: " + gp.ui.currentDialogue); // DEBUG
+            System.out.println("[NPC.receiveGift] Dialogue set to: " + gp.ui.currentDialogue); 
             gp.gameState = gp.dialogueState;
-            System.out.println("[NPC.receiveGift] gameState set to dialogueState (already gifted)."); // DEBUG
+            System.out.println("[NPC.receiveGift] gameState set to dialogueState (already gifted)."); 
             return;
         }
 
         if (!(itemEntity instanceof OBJ_Item)) {
-            System.out.println("[NPC.receiveGift] Item is not OBJ_Item."); // DEBUG
+            System.out.println("[NPC.receiveGift] Item is not OBJ_Item."); 
             gp.ui.currentDialogue = this.name + ": I'm not sure what this is.";
-            System.out.println("[NPC.receiveGift] Dialogue set to: " + gp.ui.currentDialogue); // DEBUG
+            System.out.println("[NPC.receiveGift] Dialogue set to: " + gp.ui.currentDialogue); 
             gp.gameState = gp.dialogueState;
-            System.out.println("[NPC.receiveGift] gameState set to dialogueState (not OBJ_Item)."); // DEBUG
+            System.out.println("[NPC.receiveGift] gameState set to dialogueState (not OBJ_Item)."); 
             return;
         }
         OBJ_Item giftedItem = (OBJ_Item) itemEntity;
         String giftedItemBaseName = giftedItem.baseName;
         ItemType giftedItemType = giftedItem.getType();
-        System.out.println("[NPC.receiveGift] Processing gift: " + giftedItemBaseName + ", Type: " + giftedItemType); // DEBUG
+        System.out.println("[NPC.receiveGift] Processing gift: " + giftedItemBaseName + ", Type: " + giftedItemType); 
 
         boolean giftProcessedLogically = false;
 
@@ -118,7 +120,7 @@ public class NPC extends Entity{
             addHeartPoints(25);
             gp.ui.currentDialogue = this.name + ": Oh, seeds! I love these! Thank you so much! (HP: "
                     + this.currentHeartPoints + ")";
-            System.out.println("[NPC.receiveGift] Emily loved seeds. Dialogue: " + gp.ui.currentDialogue); // DEBUG
+            System.out.println("[NPC.receiveGift] Emily loved seeds. Dialogue: " + gp.ui.currentDialogue); 
             giftProcessedLogically = true;
         } else if (lovedGiftsName.contains(giftedItemBaseName)) {
             addHeartPoints(25);
@@ -126,27 +128,27 @@ public class NPC extends Entity{
                     ? "Wahh, buat aku? Makasih banyak yaa! Aku sangat suka ini! (HP: " + this.currentHeartPoints + ")"
                     : this.name + ": This is amazing! Thank you! (HP: " + this.currentHeartPoints + ")";
             gp.ui.currentDialogue = reaction;
-            System.out.println("[NPC.receiveGift] Loved gift. Dialogue: " + gp.ui.currentDialogue); // DEBUG
+            System.out.println("[NPC.receiveGift] Loved gift. Dialogue: " + gp.ui.currentDialogue); 
             giftProcessedLogically = true;
         }
-        // ... ADD SIMILAR PRINT STATEMENTS FOR liked, hated, neutral, etc. ...
-        else { // Default to neutral if no other condition met (ensure this path is clear)
+        
+        else { 
             addHeartPoints(0);
             gp.ui.currentDialogue = this.giftReactionDialogue + " (HP: " + this.currentHeartPoints + ")";
-            System.out.println("[NPC.receiveGift] Neutral gift. Dialogue: " + gp.ui.currentDialogue); // DEBUG
-            giftProcessedLogically = true; // Still processed, even if neutral
+            System.out.println("[NPC.receiveGift] Neutral gift. Dialogue: " + gp.ui.currentDialogue); 
+            giftProcessedLogically = true; 
         }
 
-        if (giftProcessedLogically) { // Ensures item is consumed only if a reaction path was taken
+        if (giftProcessedLogically) { 
             this.hasReceivedGiftToday = true;
 
             giftedItem.quantity--;
             if (giftedItem.quantity <= 0) {
                 player.inventory.remove(giftedItem);
-                System.out.println("[NPC.receiveGift] Removed item from inventory: " + giftedItemBaseName); // DEBUG
+                System.out.println("[NPC.receiveGift] Removed item from inventory: " + giftedItemBaseName); 
             } else {
                 System.out.println("[NPC.receiveGift] Decremented quantity for: " + giftedItemBaseName + ", new qty: "
-                        + giftedItem.quantity); // DEBUG
+                        + giftedItem.quantity); 
             }
 
             if (gp.ui.inventoryCommandNum >= player.inventory.size() && !player.inventory.isEmpty()) {
@@ -158,20 +160,13 @@ public class NPC extends Entity{
             gp.gameClock.getTime().advanceTime(10);
             gp.player.tryDecreaseEnergy(5);
 
-            System.out.println("[NPC.receiveGift] FINAL DIALOGUE to be shown: " + gp.ui.currentDialogue); // DEBUG
+            System.out.println("[NPC.receiveGift] FINAL DIALOGUE to be shown: " + gp.ui.currentDialogue); 
             gp.gameState = gp.dialogueState;
-            System.out.println("[NPC.receiveGift] END. gameState set to dialogueState."); // DEBUG
+            System.out.println("[NPC.receiveGift] END. gameState set to dialogueState."); 
         } else {
-            // This case should ideally not be reached if all paths set
-            // giftProcessedLogically = true
-            // Or if there's a case where a gift isn't "accepted" (e.g. trying to gift
-            // non-giftable item type)
             System.out.println(
-                    "[NPC.receiveGift] Gift was not logically processed (no preference match or other issue). No state change."); // DEBUG
-            // You might want to set a default "I can't accept this" dialogue here and set
-            // to dialogueState
-            // For now, it will fall through and likely return to interactionMenuState via
-            // KeyHandler if not handled.
+                    "[NPC.receiveGift] Gift was not logically processed (no preference match or other issue). No state change."); 
+
         }
     }
 
@@ -195,15 +190,16 @@ public class NPC extends Entity{
             if (hasProposalItem) {
                 gp.ui.currentDialogue = proposalAcceptedDialogue;
                 this.engaged = true;
+                this.proposalDay = gp.gameClock.getTime().getDay();
                 gp.player.tryDecreaseEnergy(10);
                 gp.gameClock.getTime().advanceTime(60);
-                
             } else {
                 gp.ui.currentDialogue = "You need a special item to propose...";
             }
         }
         gp.gameState = gp.dialogueState;
     }
+
     public void getMarried() {
         facePlayer();
         if (!engaged) {
@@ -211,7 +207,10 @@ public class NPC extends Entity{
             gp.gameState = gp.dialogueState; 
         } else if (marriedToPlayer || gp.player.isMarried()) {
             gp.ui.currentDialogue = alreadyMarriedDialogue;
-            gp.gameState = gp.dialogueState; 
+            gp.gameState = gp.dialogueState;
+        } else if (gp.gameClock.getTime().getDay() <= this.proposalDay) { 
+            gp.ui.currentDialogue = proposalRejectedDialogue_TooSoon;
+            gp.gameState = gp.dialogueState;
         } else {
             this.marriedToPlayer = true;
             this.engaged = false; 
@@ -220,7 +219,8 @@ public class NPC extends Entity{
             boolean energySpent = gp.player.tryDecreaseEnergy(80); 
             gp.ui.currentDialogue = marriageDialogue;             
             gp.player.justGotMarried = true; 
-            gp.gameState = gp.dialogueState; 
+            gp.gameState = gp.dialogueState;
+
         }
     }
     public void facePlayer() {

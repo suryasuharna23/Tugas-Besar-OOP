@@ -1453,14 +1453,25 @@ public class UI {
 
         String currentLocation = "Unknown";
 
+        // DEBUG: Print semua informasi yang tersedia
+        System.out.println("[UI] DEBUG - drawLocationHUD called");
+        System.out.println("[UI] DEBUG - currentMapIndex: " + gp.currentMapIndex);
+
         if (gp.player != null) {
             String playerLocation = gp.player.getLocation();
+            System.out.println("[UI] DEBUG - player.getLocation(): '" + playerLocation + "'");
+
             if (playerLocation != null && !playerLocation.isEmpty() && !playerLocation.equals("Unknown")) {
                 currentLocation = playerLocation;
             } else {
+                // Fallback: gunakan map name dari current map index
 
                 if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
-                    currentLocation = gp.mapInfos.get(gp.currentMapIndex).getMapName();
+                    String mapName = gp.mapInfos.get(gp.currentMapIndex).getMapName();
+                    System.out.println("[UI] DEBUG - fallback mapName: '" + mapName + "'");
+                    if (mapName != null && !mapName.isEmpty()) {
+                        currentLocation = mapName;
+                    }
                 }
             }
         }
@@ -1517,14 +1528,10 @@ public class UI {
         g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
         g2.drawString("Your Gold: " + gp.player.gold + "G", frameX + gp.tileSize / 2,
                 (int) (frameY + gp.tileSize * 1.5f));
-
-
         int padding = 20;
         int listStartX = frameX + padding;
         int listStartY = (int) (frameY + gp.tileSize * 2.5f);
         int itemLineHeight = 22;
-
-
         int usableWidth = frameWidth - (padding * 2);
         int itemListWidth = usableWidth * 2 / 5;
         int detailAreaWidth = usableWidth * 3 / 5 - padding;

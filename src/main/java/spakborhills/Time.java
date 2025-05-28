@@ -1,4 +1,4 @@
-// File: spakborhills/Time.java
+
 package spakborhills;
 
 public class Time {
@@ -7,7 +7,7 @@ public class Time {
     private int minute;
     private boolean newDay;
 
-    // Nilai awal default
+    
     private static final int DEFAULT_START_DAY = 1;
     private static final int DEFAULT_START_HOUR = 6;
     private static final int DEFAULT_START_MINUTE = 0;
@@ -27,6 +27,16 @@ public class Time {
     public void advanceTime(int minutes) {
         this.newDay = false;
         this.minute += minutes;
+
+        while (this.minute < 0) {
+            this.minute += 60;
+            this.hour--;
+            if (this.hour < 0) {
+                this.hour = 23;
+                
+            }
+        }
+        
         while (this.minute >= 60) {
             this.minute -= 60;
             this.hour++;
@@ -36,6 +46,7 @@ public class Time {
             }
         }
     }
+
 
     public boolean isNewDay() {
         return newDay;
@@ -55,14 +66,15 @@ public class Time {
         }
         this.hour = newHour;
         this.minute = newMinute;
-        this.newDay = false; // Setelah waktu di-set manual, anggap bukan transisi hari alami via advanceTime()
+        this.newDay = false; 
         System.out.println("[Time] Clock explicitly set to: Day " + this.day + ", " + getFormattedTime());
     }
+
     public void forceStartNewDay() {
-        this.day++; // Langsung increment hari
-        this.hour = DEFAULT_START_HOUR; // Atur ke jam 6 pagi
-        this.minute = DEFAULT_START_MINUTE; // Atur ke menit 0
-        this.newDay = false; // Pastikan flag newDay direset
+        this.day++; 
+        this.hour = DEFAULT_START_HOUR; 
+        this.minute = DEFAULT_START_MINUTE; 
+        this.newDay = false; 
         System.out.println("[Time] Forced to start new day: Day " + this.day + ", " + getFormattedTime());
     }
 

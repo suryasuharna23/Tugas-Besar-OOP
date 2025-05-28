@@ -39,7 +39,6 @@ public class KeyHandler implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
-
         if (gp.gameState == gp.titleState) {
             if (gp.ui.mapSelectionState == 0) {
                 if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
