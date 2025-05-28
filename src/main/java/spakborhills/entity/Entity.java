@@ -29,6 +29,7 @@ import java.util.Objects;
         public ArrayList<String> dialogues = new ArrayList<>();
         public int dialogueIndex = 0;
         public EntityType type;
+        public String marriageDialogue;
         protected Season currentSeason;
         protected int currentHour;
         protected Weather currentWeather;

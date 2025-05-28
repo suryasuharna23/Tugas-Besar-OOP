@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 public class GamePanel extends  JPanel implements Runnable {
+    private static final int OCEAN_MAP_INDEX = 25;
     final int originalTileSize = 16;
     final int scale = 3;
     public final int tileSize = originalTileSize * scale;
@@ -60,6 +61,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int eatState = 10;
     public final int sellState = 11;
     public final int cookingState = 12;
+    public final int fishingMinigameState = 13;
 
     public final int PLAYER_HOUSE_INDEX = 10;
     public final int[] BED_TILE_INDICES = {
@@ -288,58 +290,77 @@ public class GamePanel extends  JPanel implements Runnable {
         mapInfos.add(new MapInfo("Player's House", "/maps/player_house_data.txt", "/maps/player_house.txt"));
     }
 
-    public void loadMapbyIndex(int newMapIndex){
+    public void loadMapbyIndex(int newMapIndex) {
         if (newMapIndex >= 0 && newMapIndex < mapInfos.size()) {
             this.previousMapIndex = this.currentMapIndex;
             this.currentMapIndex = newMapIndex;
-            MapInfo selectedMap = mapInfos.get(this.currentMapIndex);
-            player.setLocation(selectedMap.getMapName());
+            MapInfo selectedMap = mapInfos.get(this.currentMapIndex); //
 
-            System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to " + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
+            // Set lokasi pemain berdasarkan nama peta dari MapInfo
+            try {
+                String enumCompatibleName = selectedMap.getMapName().toUpperCase().replace(" ", "_").replace("'", "");
+                player.setCurrentLocation(spakborhills.enums.Location.valueOf(enumCompatibleName)); //
+            } catch (IllegalArgumentException e) {
+                System.err.println("Peringatan: Nama peta '" + selectedMap.getMapName() + "' tidak ditemukan di Enum Location. Menggunakan nama string.");
+                player.setLocation(selectedMap.getMapName()); // Menggunakan setter String di Player sebagai fallback //
+            }
+
+            System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to " + this.currentMapIndex + " (" + selectedMap.getMapName() + ")"); //
 
             boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 6) ||
                     (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX);
 
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
-                if (player.tryDecreaseEnergy(15)) {
-                    ui.showMessage("Travel tired you out. -15 Energy.");
-                    System.out.println("[GamePanel] Energy decreased by 15 for map travel.");
-                } else {
-                    System.out.println("[GamePanel] Player tried to travel with insufficient energy (may have passed out).");
+                if (player.tryDecreaseEnergy(15)) { //
+                    ui.showMessage("Travel tired you out. -15 Energy."); //
                 }
             }
 
-            tileManager.loadMap(selectedMap);
+            tileManager.loadMap(selectedMap); //
 
             entities.clear();
             npcs.clear();
 
-            int targetX = this.tileSize * 20;
-            int targetY = this.tileSize * 29;
-            String targetDir = "down";
+            // --- AWAL MODIFIKASI POSISI SPAWN ---
+            int targetX = this.tileSize * 20; // Default X
+            int targetY = this.tileSize * 29; // Default Y
+            String targetDir = "down";      // Default arah
 
             if (this.currentMapIndex == PLAYER_HOUSE_INDEX) {
-                targetX = this.tileSize * 20;
-                targetY = this.tileSize * 29;
+                targetX = this.tileSize * 10; // Sesuaikan dengan spawn point di rumah Anda
+                targetY = this.tileSize * 10; // Sesuaikan dengan spawn point di rumah Anda
                 targetDir = "down";
-
-            } else if (this.currentMapIndex == 6) {
-                targetDir = "up";
+            } else if (this.currentMapIndex == 6) { // Peta Farm
+                if (previousMapIndex == PLAYER_HOUSE_INDEX) {
+                    targetX = this.tileSize * 20; // Pintu Farm dari Rumah
+                    targetY = this.tileSize * 28;
+                    targetDir = "up";
+                } else {
+                    targetX = this.tileSize * 25; // Spawn default Farm
+                    targetY = this.tileSize * 25;
+                    targetDir = "down";
+                }
+            } else if (selectedMap.getMapName().equalsIgnoreCase("Ocean")) { // MODIFIKASI DI SINI: Gunakan nama peta
+                targetX = this.tileSize * 1; // Posisi X di kiri atas (tile kolom ke-1 dari kiri, index 1)
+                targetY = this.tileSize * 1; // Posisi Y di kiri atas (tile baris ke-1 dari atas, index 1)
+                targetDir = "down";          // Arah default
+                System.out.println("[GamePanel] Player spawning in Ocean at tile (1,1) based on map name.");
             }
+            // Tambahkan else if untuk spawn point peta lain jika perlu
+            // --- AKHIR MODIFIKASI POSISI SPAWN ---
 
-            player.setPositionForMapEntry(targetX, targetY, targetDir);
+            player.setPositionForMapEntry(targetX, targetY, targetDir); //
 
-            assetSetter.setObject(mapInfos.get(currentMapIndex).getMapName());
-            assetSetter.setNPC(mapInfos.get(currentMapIndex).getMapName());
+            assetSetter.setObject(selectedMap.getMapName()); //
+            assetSetter.setNPC(selectedMap.getMapName());    //
 
-            System.out.println("[GamePanel] Map loaded: " + selectedMap.getMapName());
+            System.out.println("[GamePanel] Map loaded: " + selectedMap.getMapName()); //
             gameState = playState;
         } else {
             System.err.println("[GamePanel] Invalid map index: " + newMapIndex + ". Cannot load map.");
             gameState = titleState;
         }
     }
-
 
     public void handleEndOfWeddingEvent() {
         System.out.println("[GamePanel] Wedding event concluded. Skipping time to 22:00.");
