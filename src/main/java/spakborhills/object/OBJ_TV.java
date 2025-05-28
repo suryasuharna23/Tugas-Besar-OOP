@@ -49,6 +49,8 @@ public class OBJ_TV extends Entity {
     }
 
     private String getWeatherReport() {
+
+        gp.currentInteractingNPC = null;
         String currentWeather = "Unknown";
         String weatherIcon = "";
         String weatherDescription = "";
@@ -109,7 +111,6 @@ public class OBJ_TV extends Entity {
         if (weather == null) {
             return "Have a great day!";
         }
-
         String weatherName = weather.getWeatherName();
         switch (weatherName) {
             case "SUNNY":
