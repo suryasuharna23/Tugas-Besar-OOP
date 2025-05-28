@@ -15,9 +15,9 @@ import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.enums.Location; // Pastikan Location dari spakborhills.enums
 import spakborhills.interfaces.Edible;
-// Sudah ada di spakborhills.object.*
 import spakborhills.object.*;
-import spakborhills.Tile.*; // Mungkin tidak diperlukan jika tidak ada interaksi Tile langsung di sini
+import spakborhills.Tile.*;
+import spakborhills.enums.FishType; //
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -29,6 +29,7 @@ import spakborhills.enums.FishType;
 import spakborhills.enums.ItemType; // Sudah ada di spakborhills.enums
 import spakborhills.enums.ItemType;
 import java.util.List;
+import java.util.Random; //
 
 
 public class Player extends Entity{
@@ -37,11 +38,9 @@ public class Player extends Entity{
     public final int screenY;
     private String farmName;
     public int currentEnergy;
-    // private String location; // Digantikan dengan currentLocation Enum
 
     public ArrayList<Entity> inventory = new ArrayList<>();
     public int currentEquippedItemIndex = -1;
-
 
     public int gold;
     public ArrayList<Entity> itemsInShippingBinToday = new ArrayList<>();
@@ -62,7 +61,6 @@ public class Player extends Entity{
     public Map<String, Boolean> recipeUnlockStatus = new HashMap<>();
     public ArrayList<ActiveCookingProcess> activeCookingProcesses = new ArrayList<>();
 
-
     public int totalFishCaught = 0;
     public int totalCommonFishCaught = 0;
     public int totalRegularFishCaught = 0;
@@ -71,8 +69,6 @@ public class Player extends Entity{
     public boolean hasFishedPufferfish = false;
     public boolean hasFishedLegend = false;
     public boolean hasObtainedHotPepper = false;
-
-
 
     public NPC partner;
     public boolean justGotMarried = false;
@@ -84,7 +80,6 @@ public class Player extends Entity{
     public static final int ENERGY_REFILL_AT_ZERO = 10;
     private boolean isCurrentlySleeping = false;
 
-    // LOCATION
     private Location currentLocation; // Menggunakan Enum Location
     private boolean playerIsActuallyFishing = false;
 
@@ -94,13 +89,11 @@ public class Player extends Entity{
     public void setCurrentLocation(Location currentLocation) {
         this.currentLocation = currentLocation;
     }
-    // Overload atau metode baru untuk mendapatkan nama string jika masih diperlukan di tempat lain
     public String getLocationName() {
         return (this.currentLocation != null) ? this.currentLocation.name().replace("_", " ") : "Unknown";
     }
 
 
-    // FISHING
     public OBJ_Fish fishToCatchInMinigame;
     private int fishingAnswerNumber;
     private int fishingGuessRange;
@@ -143,16 +136,24 @@ public class Player extends Entity{
 
     public String getLocation() {
         if (currentLocation != null) {
-        return currentLocation.name().replace("_", " ");
-    }
-    return "Unknown";
+            String name = currentLocation.name(); //
+            String[] parts = name.split("_"); //
+            StringBuilder formattedName = new StringBuilder(); //
+            for (String part : parts) { //
+                formattedName.append(part.substring(0, 1).toUpperCase()) //
+                        .append(part.substring(1).toLowerCase()) //
+                        .append(" "); //
+            }
+            return formattedName.toString().trim(); //
+        }
+        return "Unknown Location"; //
     }
 
 
     public void setLocation(String locationName) {
         try {
-            String enumCompatibleName = locationName.toUpperCase().replace(" ", "_");
-            this.currentLocation = Location.valueOf(enumCompatibleName);
+            String enumCompatibleName = locationName.toUpperCase().replace(" ", "_"); //
+            this.currentLocation = Location.valueOf(enumCompatibleName); //
         } catch (IllegalArgumentException e) {
             System.err.println("Peringatan: Nama lokasi string tidak valid '" + locationName + "'. Lokasi tidak diubah.");
         }
@@ -164,8 +165,8 @@ public class Player extends Entity{
         this.fishingPlayerInput = "";
         this.fishingInfoMessage = "";
         this.fishingFeedbackMessage = "";
-        worldX = gp.tileSize * 21; // Nilai default, akan di-override saat load map
-        worldY = gp.tileSize * 26; // Nilai default
+        worldX = gp.tileSize * 21;
+        worldY = gp.tileSize * 26;
         speed = 4;
         direction = "down";
         type = EntityType.PLAYER; //
@@ -173,7 +174,7 @@ public class Player extends Entity{
         this.isCurrentlySleeping = false;
         gold = 500;
         initializeRecipeStatus();
-        
+
         // DEFAULT EQUIPMENT
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
@@ -190,23 +191,23 @@ public class Player extends Entity{
     public void checkAndUnlockRecipes() {
         if (gp.gameState == gp.titleState) return;
 
-        for (Recipe recipe : RecipeManager.getAllRecipes()) {
+        for (Recipe recipe : RecipeManager.getAllRecipes()) { //
             if (Boolean.FALSE.equals(recipeUnlockStatus.get(recipe.recipeId))) {
                 boolean unlocked = false;
                 switch (recipe.unlockMechanismKey) { //
-                    case "FISH_COUNT_10":
+                    case "FISH_COUNT_10": //
                         if (totalFishCaught >= 10) unlocked = true;
                         break;
-                    case "FISH_SPECIFIC_PUFFERFISH":
+                    case "FISH_SPECIFIC_PUFFERFISH": //
                         if (hasFishedPufferfish) unlocked = true;
                         break;
-                    case "HARVEST_ANY_FIRST":
+                    case "HARVEST_ANY_FIRST": //
                         if (!firstHarvestByName.isEmpty() && firstHarvestByName.containsValue(true)) unlocked = true;
                         break;
-                    case "OBTAIN_HOT_PEPPER":
+                    case "OBTAIN_HOT_PEPPER": //
                         if (hasObtainedHotPepper) unlocked = true;
                         break;
-                    case "FISH_SPECIFIC_LEGEND":
+                    case "FISH_SPECIFIC_LEGEND": //
                         if (hasFishedLegend) unlocked = true;
                         break;
 
@@ -292,21 +293,18 @@ public class Player extends Entity{
 
     }
 
-    /**
- * Memindahkan player ke rumahnya di samping tempat tidur
- */
-private void teleportToPlayerHouse() {
-    int houseX = gp.tileSize * 7;
-    int houseY = gp.tileSize * 6;
+    private void teleportToPlayerHouse() {
+        int houseX = gp.tileSize * 7;
+        int houseY = gp.tileSize * 6;
 
-    if (gp.currentMapIndex != gp.PLAYER_HOUSE_INDEX) {
-        gp.loadMapbyIndex(10);
+        if (gp.currentMapIndex != gp.PLAYER_HOUSE_INDEX) { //
+            gp.loadMapbyIndex(10); // Asumsi index 10 adalah Player's House dari initializeMapInfos di GamePanel
+        }
+        this.worldX = houseX;
+        this.worldY = houseY;
+        this.direction = "down";
+
     }
-    this.worldX = houseX;
-    this.worldY = houseY;
-    this.direction = "down";
-
-}
 
     public boolean isMarried() {
         return married;
@@ -339,7 +337,7 @@ private void teleportToPlayerHouse() {
             updateSprite();
         }
 
-        if (gp.keyH.inventoryPressed) {
+        if (gp.keyH.inventoryPressed) { //
             gp.keyH.inventoryPressed = false;
             if (gp.gameState == gp.playState) {
                 gp.gameState = gp.inventoryState;
@@ -349,17 +347,17 @@ private void teleportToPlayerHouse() {
         }
 
         if (gp.gameState == gp.playState) {
-            updateActiveCookingProcesses();
+            updateActiveCookingProcesses(); //
             checkAndUnlockRecipes();
 
-            if (this.keyH != null && this.keyH.eatPressed) {
+            if (this.keyH != null && this.keyH.eatPressed) { //
                 System.out.println("DEBUG: Player.update (playState) - eatPressed is true.");
                 Entity equippedItem = getEquippedItem();
                 if (equippedItem != null) {
                     System.out.println("DEBUG: Player.update - Equipped item: " + equippedItem.name + " | Class: " + equippedItem.getClass().getSimpleName());
-                    if (equippedItem instanceof Edible) {
+                    if (equippedItem instanceof Edible) { //
                         System.out.println("DEBUG: Player.update - Equipped item IS Edible. Creating EatCommand.");
-                        Command eatAction = new EatCommand(this, (Edible) equippedItem);
+                        Command eatAction = new EatCommand(this, (Edible) equippedItem); //
                         eatAction.execute(gp);
                     } else {
                         if (gp.ui != null) gp.ui.showMessage(equippedItem.name + " is not edible.");
@@ -372,7 +370,7 @@ private void teleportToPlayerHouse() {
 
 
 
-            if (this.keyH != null && this.keyH.enterPressed && !(keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed)) {
+            if (this.keyH != null && this.keyH.enterPressed && !(keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed)) { //
                 checkCollisionAndMove();
 
             }
@@ -401,7 +399,7 @@ private void teleportToPlayerHouse() {
                 if (cookedFood != null) {
                     for (int i = 0; i < process.foodQuantityToProduce; i++) {
 
-                        addItemToInventory(FoodFactory.createFood(gp, process.foodNameToProduce));
+                        addItemToInventory(FoodFactory.createFood(gp, process.foodNameToProduce)); //
                     }
                     gp.ui.showMessage(process.foodNameToProduce + " is ready!");
                 } else {
@@ -424,20 +422,11 @@ private void teleportToPlayerHouse() {
 
     private void checkCollisionAndMove() {
         collisionON = false;
-        gp.collisionChecker.checkTile(this);
+        gp.collisionChecker.checkTile(this); //
+        int entityIndex = gp.collisionChecker.checkEntity(this, gp.entities); //
 
-
-
-
-
-
-
-        int entityIndex = gp.collisionChecker.checkEntity(this, gp.entities);
-
-        if (gp.keyH.enterPressed) {
+        if (gp.keyH.enterPressed) { //
             boolean interactionHandled = false;
-
-
             if (entityIndex != 999) {
                 Entity interactedEntity = gp.entities.get(entityIndex);
                 if (interactedEntity instanceof NPC) { //
@@ -446,8 +435,8 @@ private void teleportToPlayerHouse() {
                     gp.currentInteractingNPC = npc;
                     npc.openInteractionMenu();
                     interactionHandled = true;
-                } else if (interactedEntity.type == EntityType.INTERACTIVE_OBJECT) {
-                    interactedEntity.interact();
+                } else if (interactedEntity.type == EntityType.INTERACTIVE_OBJECT) { //
+                    interactedEntity.interact(); //
                     interactionHandled = true;
                 } else if (interactedEntity.type == EntityType.PICKUP_ITEM) { //
                     gp.ui.showMessage("Kamu mengambil " + interactedEntity.name + "!");
@@ -456,9 +445,8 @@ private void teleportToPlayerHouse() {
                     interactionHandled = true;
                 }
             }
-            gp.keyH.enterPressed = false;
+            gp.keyH.enterPressed = false; //
         }
-
 
         if (!collisionON) {
             if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
@@ -486,54 +474,54 @@ private void teleportToPlayerHouse() {
         gp.keyH.enterPressed = false; //
     }
     public boolean addItemToInventory(Entity itemToAdd) {
-        if (!(itemToAdd instanceof OBJ_Item newItem)) {
-            if (inventory.size() < 20) {
-                inventory.add(itemToAdd);
-                if (gp.ui != null) gp.ui.showMessage("Kamu mendapatkan: " + itemToAdd.name);
-                return true;
+        if (!(itemToAdd instanceof OBJ_Item newItem)) { //
+            if (inventory.size() < 20) { //
+                inventory.add(itemToAdd); //
+                if (gp.ui != null) gp.ui.showMessage("Kamu mendapatkan: " + itemToAdd.name); //
+                return true; //
             } else {
-                if (gp.ui != null) gp.ui.showMessage("Inventaris penuh!");
-                return false;
+                if (gp.ui != null) gp.ui.showMessage("Inventaris penuh!"); //
+                return false; //
             }
         }
 
 
 
-        for (Entity existingEntity : inventory) {
-            if (existingEntity instanceof OBJ_Item existingItem) {
+        for (Entity existingEntity : inventory) { //
+            if (existingEntity instanceof OBJ_Item existingItem) { //
 
-                if (newItem instanceof OBJ_Item) {
-                    OBJ_Item newItemAsObjItem = (OBJ_Item) newItem;
-                    if (existingItem.name.equals(newItemAsObjItem.name) &&
-                            existingItem.getType() == newItemAsObjItem.getType()) {
+                if (newItem instanceof OBJ_Item) { //
+                    OBJ_Item newItemAsObjItem = (OBJ_Item) newItem; //
+                    if (existingItem.name.equals(newItemAsObjItem.name) && //
+                            existingItem.getType() == newItemAsObjItem.getType()) { //
 
-                        existingItem.quantity += newItemAsObjItem.quantity;
-                        return true;
+                        existingItem.quantity += newItemAsObjItem.quantity; //
+                        return true; //
                     }
                 }
             }
         }
 
 
-        if (inventory.size() < 20) {
-            inventory.add(newItem);
-            if (gp.ui != null) gp.ui.showMessage("Kamu mendapatkan: " + newItem.name + (newItem.quantity > 1 ? " x" + newItem.quantity : ""));
-            return true;
+        if (inventory.size() < 20) { //
+            inventory.add(newItem); //
+            if (gp.ui != null) gp.ui.showMessage("Kamu mendapatkan: " + newItem.name + (newItem.quantity > 1 ? " x" + newItem.quantity : "")); //
+            return true; //
         } else {
-            if (gp.ui != null) gp.ui.showMessage("Inventaris penuh! Tidak dapat menambahkan " + newItem.name);
-            return false;
+            if (gp.ui != null) gp.ui.showMessage("Inventaris penuh! Tidak dapat menambahkan " + newItem.name); //
+            return false; //
         }
     }
 
-    public void removeItemFromInventory(int itemIndex){ // Diubah untuk menerima indeks
-        if (itemIndex >= 0 && itemIndex < inventory.size()) {
-            inventory.remove(itemIndex);
+    public void removeItemFromInventory(int itemIndex){ //
+        if (itemIndex >= 0 && itemIndex < inventory.size()) { //
+            inventory.remove(itemIndex); //
         }
     }
 
     public Entity getEquippedItem(){
-        if (currentEquippedItemIndex >= 0 && currentEquippedItemIndex < inventory.size()){ // Tambah pengecekan batas atas
-            return inventory.get(currentEquippedItemIndex);
+        if (currentEquippedItemIndex >= 0 && currentEquippedItemIndex < inventory.size()){ //
+            return inventory.get(currentEquippedItemIndex); //
         }
         return null;
     }
@@ -543,68 +531,67 @@ private void teleportToPlayerHouse() {
             return;
         }
 
-        int itemIndex = gp.ui.inventoryCommandNum;
+        int itemIndex = gp.ui.inventoryCommandNum; //
 
         if (itemIndex >= 0 && itemIndex < inventory.size()) {
-            Entity selectedItem = inventory.get(itemIndex);
+            Entity selectedItem = inventory.get(itemIndex); //
 
 
 
-            boolean itemWasConsumed = selectedItem.use(this);
+            boolean itemWasConsumed = selectedItem.use(this); //
 
             if (itemWasConsumed) {
-                removeItemFromInventory(itemIndex);
-                if (gp.ui.inventoryCommandNum >= inventory.size() && !inventory.isEmpty()) {
-                    gp.ui.inventoryCommandNum = inventory.size() - 1;
-                } else if (inventory.isEmpty()) {
-                    gp.ui.inventoryCommandNum = 0;
+                removeItemFromInventory(itemIndex); //
+                if (gp.ui.inventoryCommandNum >= inventory.size() && !inventory.isEmpty()) { //
+                    gp.ui.inventoryCommandNum = inventory.size() - 1; //
+                } else if (inventory.isEmpty()) { //
+                    gp.ui.inventoryCommandNum = 0; //
                 }
             }
         } else {
-            gp.ui.showMessage("Tidak ada item yang dipilih.");
+            gp.ui.showMessage("Tidak ada item yang dipilih."); //
         }
     }
 
 
-    public boolean buyItem(OBJ_Item itemToBuy, String recipeIdToUnlockIfApplicable) {
-        if (itemToBuy == null) {
-            gp.ui.showMessage("Item tidak valid.");
-            return false;
+    public boolean buyItem(OBJ_Item itemToBuy, String recipeIdToUnlockIfApplicable) { //
+        if (itemToBuy == null) { //
+            gp.ui.showMessage("Item tidak valid."); //
+            return false; //
         }
 
-        int price = itemToBuy.getBuyPrice();
-        if (gold >= price) {
-            gold -= price;
+        int price = itemToBuy.getBuyPrice(); //
+        if (gold >= price) { //
+            gold -= price; //
 
-            if (itemToBuy instanceof OBJ_Recipe) {
+            if (itemToBuy instanceof OBJ_Recipe) { //
 
-                if (recipeIdToUnlockIfApplicable != null
-                        && recipeUnlockStatus.containsKey(recipeIdToUnlockIfApplicable)) {
-                    recipeUnlockStatus.put(recipeIdToUnlockIfApplicable, true);
-                    gp.ui.showMessage(
-                            "Kamu membeli dan mempelajari resep: " + itemToBuy.name.replace("Recipe: ", "") + "!");
+                if (recipeIdToUnlockIfApplicable != null && recipeUnlockStatus.containsKey(recipeIdToUnlockIfApplicable)) { //
+                    recipeUnlockStatus.put(recipeIdToUnlockIfApplicable, true); //
+                    gp.ui.showMessage( //
+                            "Kamu membeli dan mempelajari resep: " + itemToBuy.name.replace("Recipe: ", "") + "!"); //
                 } else {
-                    gp.ui.showMessage("Kamu membeli resep: " + itemToBuy.name.replace("Recipe: ", "")
-                            + ", tapi ada masalah saat mempelajarinya.");
+                    gp.ui.showMessage("Kamu membeli resep: " + itemToBuy.name.replace("Recipe: ", "") //
+                            + ", tapi ada masalah saat mempelajarinya."); //
                 }
             } else {
 
-                OBJ_Item purchasedItemInstance = null;
-                if (itemToBuy instanceof OBJ_Seed) {
-                    OBJ_Seed seedTemplate = (OBJ_Seed) itemToBuy;
-                    purchasedItemInstance = new OBJ_Seed(gp, seedTemplate.getType(),
-                            seedTemplate.name.replace(" seeds", ""), seedTemplate.isEdible(),
-                            seedTemplate.getBuyPrice(), seedTemplate.getSellPrice(),
-                            1, 1, Season.SPRING, Weather.SUNNY);
-                    purchasedItemInstance = itemToBuy;
+                OBJ_Item purchasedItemInstance = null; //
+                if (itemToBuy instanceof OBJ_Seed) { //
+                    OBJ_Seed seedTemplate = (OBJ_Seed) itemToBuy; //
+                    purchasedItemInstance = new OBJ_Seed(gp, seedTemplate.getType(), //
+                            seedTemplate.name.replace(" seeds", ""), seedTemplate.isEdible(), //
+                            seedTemplate.getBuyPrice(), seedTemplate.getSellPrice(), //
+                            1, 1, Season.SPRING, Weather.SUNNY); //
+                    purchasedItemInstance = itemToBuy; //
 
-                } else if (itemToBuy instanceof OBJ_Food) {
-                    OBJ_Food foodTemplate = (OBJ_Food) itemToBuy;
-                    purchasedItemInstance = FoodFactory.createFood(gp, foodTemplate.name.replace(" food", ""));
+                } else if (itemToBuy instanceof OBJ_Food) { //
+                    OBJ_Food foodTemplate = (OBJ_Food) itemToBuy; //
+                    purchasedItemInstance = FoodFactory.createFood(gp, foodTemplate.name.replace(" food", "")); //
                 }
-                if (purchasedItemInstance != null) {
-                    addItemToInventory(purchasedItemInstance);
-                    gp.ui.showMessage("Kamu membeli: " + purchasedItemInstance.name + " seharga " + price + "G.");
+                if (purchasedItemInstance != null) { //
+                    addItemToInventory(purchasedItemInstance); //
+                    gp.ui.showMessage("Kamu membeli: " + purchasedItemInstance.name + " seharga " + price + "G."); //
                 } else {
                     OBJ_Item genericItem = new OBJ_Item(gp, itemToBuy.getType(),
                             itemToBuy.name.replace(" " + itemToBuy.getType().name().toLowerCase(), ""),
@@ -715,9 +702,6 @@ private void teleportToPlayerHouse() {
         }
     }
 
-    // Metode helper untuk mendapatkan daftar ID tile air berdasarkan nama peta
-    // Anda HARUS MENGISI INI DENGAN ID TILE AIR YANG BENAR untuk setiap peta
-    // berdasarkan file *_data.txt dan verifikasi visual aset Anda.
     private List<Integer> getFishableWaterTileIdsForMap(String mapName) {
         List<Integer> waterTileIds = new ArrayList<>();
         if ("Mountain Lake".equalsIgnoreCase(mapName)) {
@@ -742,8 +726,9 @@ private void teleportToPlayerHouse() {
                     306, 333, 335, 339, 351, 28, 30, 31, 0
             ));
         } else if ("Ocean".equalsIgnoreCase(mapName)) {
-            // GANTI DENGAN ID TILE AIR AKTUAL UNTUK OCEAN!
-            // waterTileIds.addAll(Arrays.asList(...));
+            waterTileIds.addAll(Arrays.asList(
+            143, 992, 32, 58, 96, 235, 267, 171, 203, 331, 504, 547, 548, 565, 549, 575, 551, 552, 572, 573, 570, 553, 554, 574, 314, 61, 93, 330, 221, 256
+            ));
         } else if ("Pond".equalsIgnoreCase(mapName)) {
             // GANTI DENGAN ID TILE AIR AKTUAL UNTUK POND!
             // waterTileIds.addAll(Arrays.asList(...));
@@ -752,156 +737,164 @@ private void teleportToPlayerHouse() {
         return waterTileIds;
     }
     public void startFishing() {
-        // 1. Cek Kepemilikan Fishing Rod
+        System.out.println("\n[DEBUG Player.startFishing] === MEMULAI PROSES MEMANCING ===");
+        // this.playerIsActuallyFishing = true; // Dipindahkan ke bawah setelah pengecekan awal
+
+        System.out.println("[DEBUG Player.startFishing] Mengecek apakah sudah dalam proses memancing...");
+        if (this.playerIsActuallyFishing) {
+            System.out.println("[DEBUG Player.startFishing] INFO: Pemain sudah dalam proses memancing. Permintaan baru diabaikan.");
+            gp.ui.showMessage("Sedang memancing, tunggu proses selesai.");
+            return;
+        }
+        System.out.println("[DEBUG Player.startFishing] Belum dalam proses memancing, melanjutkan.");
+
+        System.out.println("[DEBUG Player.startFishing] Mengecek kepemilikan Fishing Rod...");
         boolean hasFishingRod = false;
         for (Entity item : inventory) {
             if (item instanceof OBJ_Equipment && item.name != null && item.name.startsWith("Fishing Rod")) { //
                 hasFishingRod = true;
+                System.out.println("[DEBUG Player.startFishing] Fishing Rod ditemukan di inventaris.");
                 break;
             }
         }
         if (!hasFishingRod) {
             gp.ui.showMessage("Kamu membutuhkan Fishing Rod untuk memancing!");
-            System.out.println("[PLAYER.startFishing()] INFO: Pemain tidak memiliki Fishing Rod.");
+            System.out.println("[DEBUG Player.startFishing] ERROR: Pemain tidak memiliki Fishing Rod. Proses dihentikan.");
             return;
         }
 
-        // 2. Cek Tile di Depan Pemain
-        String playerCurrentLocationString = getLocation(); // Nama peta saat ini
+        String playerCurrentLocationString = getLocation(); //
+        System.out.println("[DEBUG Player.startFishing] Lokasi pemain saat ini (String): '" + playerCurrentLocationString + "'");
 
+        System.out.println("[DEBUG Player.startFishing] Menentukan tile di depan pemain...");
         int tileInFrontX = worldX;
         int tileInFrontY = worldY;
         int playerSolidAreaCenterX = solidArea.x + solidArea.width / 2;
         int playerSolidAreaCenterY = solidArea.y + solidArea.height / 2;
-        int interactionReach = gp.tileSize / 2 + 1; // Jarak interaksi di depan pemain
+        int interactionReach = gp.tileSize / 2 + 1; // Jarak interaksi sedikit lebih jauh dari setengah tile
 
         switch (direction) {
             case "up":
-                tileInFrontY = worldY + playerSolidAreaCenterY - interactionReach;
+                tileInFrontY = worldY + playerSolidAreaCenterY - interactionReach; // Lebih ke atas dari pusat solidArea
                 tileInFrontX = worldX + playerSolidAreaCenterX;
                 break;
             case "down":
-                tileInFrontY = worldY + playerSolidAreaCenterY + interactionReach;
+                tileInFrontY = worldY + playerSolidAreaCenterY + interactionReach; // Lebih ke bawah dari pusat solidArea
                 tileInFrontX = worldX + playerSolidAreaCenterX;
                 break;
             case "left":
-                tileInFrontX = worldX + playerSolidAreaCenterX - interactionReach;
+                tileInFrontX = worldX + playerSolidAreaCenterX - interactionReach; // Lebih ke kiri dari pusat solidArea
                 tileInFrontY = worldY + playerSolidAreaCenterY;
                 break;
             case "right":
-                tileInFrontX = worldX + playerSolidAreaCenterX + interactionReach;
+                tileInFrontX = worldX + playerSolidAreaCenterX + interactionReach; // Lebih ke kanan dari pusat solidArea
                 tileInFrontY = worldY + playerSolidAreaCenterY;
                 break;
         }
+        System.out.println("[DEBUG Player.startFishing] Koordinat mentah tile di depan: X=" + tileInFrontX + ", Y=" + tileInFrontY);
 
         int tileInFrontCol = tileInFrontX / gp.tileSize;
         int tileInFrontRow = tileInFrontY / gp.tileSize;
+        System.out.println("[DEBUG Player.startFishing] Kolom tile di depan: " + tileInFrontCol + ", Baris tile di depan: " + tileInFrontRow);
 
         if (tileInFrontCol < 0 || tileInFrontCol >= gp.maxWorldCol ||
                 tileInFrontRow < 0 || tileInFrontRow >= gp.maxWorldRow) {
-            gp.ui.showMessage("Kamu tidak menghadap ke area yang valid.");
-            System.out.println("[PLAYER.startFishing()] ERROR: Tile di depan pemain di luar batas peta.");
+            gp.ui.showMessage("Kamu tidak menghadap ke area yang valid di peta.");
+            System.out.println("[DEBUG Player.startFishing] ERROR: Tile di depan pemain (" + tileInFrontCol + "," + tileInFrontRow + ") di luar batas peta (" + gp.maxWorldCol + "," + gp.maxWorldRow + "). Proses dihentikan.");
             return;
         }
 
         int tileNumInFront = gp.tileManager.mapTileNum[tileInFrontCol][tileInFrontRow]; //
+        System.out.println("[DEBUG Player.startFishing] Nomor Tile di depan pemain: " + tileNumInFront);
+
         boolean isTileInFrontFishableWater = false;
+        List<Integer> fishableWaterIds = getFishableWaterTileIdsForMap(playerCurrentLocationString); //
+        System.out.println("[DEBUG Player.startFishing] Daftar ID tile air untuk lokasi '" + playerCurrentLocationString + "': " + fishableWaterIds);
+
 
         if (tileNumInFront >= 0 && tileNumInFront < gp.tileManager.tile.length && gp.tileManager.tile[tileNumInFront] != null) { //
-            List<Integer> fishableWaterIds = getFishableWaterTileIdsForMap(playerCurrentLocationString);
-
-            // Logika untuk menentukan apakah tile di depan adalah air yang bisa dipancing:
-            // Opsi 1: Tile harus ada di daftar fishableWaterIds DAN memiliki collision true.
-            // (Ini mengasumsikan Anda sudah mengatur collision=true untuk semua tile air yang bisa dipancing di file *_data.txt)
+            // Pindahkan pemanggilan getFishableWaterTileIdsForMap ke sini jika belum dipanggil
             if (gp.tileManager.tile[tileNumInFront].collision && fishableWaterIds.contains(tileNumInFront)) { //
                 isTileInFrontFishableWater = true;
+                System.out.println("[DEBUG Player.startFishing] Tile di depan (" + tileNumInFront + ") adalah air yang bisa dipancing (collision=true dan ada di daftar ID).");
+            } else {
+                System.out.println("[DEBUG Player.startFishing] Tile di depan (" + tileNumInFront + ") BUKAN air yang bisa dipancing. Collision: " + gp.tileManager.tile[tileNumInFront].collision + ", Ada di daftar ID: " + fishableWaterIds.contains(tileNumInFront));
             }
-            // Opsi 2 (Jika beberapa tile air utama fishableWaterIds memiliki collision=false, seperti diskusi kita tentang 932 di Mountain Lake):
-            // Anda mungkin perlu logika yang lebih fleksibel di sini, misalnya:
-            // if (fishableWaterIds.contains(tileNumInFront)) {
-            //     // Cek khusus jika tile ini adalah salah satu yang non-colliding tapi tetap bisa dipancing
-            //     if (playerCurrentLocationString.equals("Mountain Lake") &&
-            //         (tileNumInFront == 932 || tileNumInFront == 905 || tileNumInFront == 528 /*... lainnya non-colliding*/)) {
-            //         isTileInFrontFishableWater = true; // Bisa dipancing meskipun collision false
-            //     } else if (gp.tileManager.tile[tileNumInFront].collision) {
-            //         isTileInFrontFishableWater = true; // Untuk tile air lain yang collision true
-            //     }
-            // }
-            // Untuk sekarang, kita gunakan Opsi 1 (membutuhkan collision true). Sesuaikan jika perlu.
+        } else {
+            System.out.println("[DEBUG Player.startFishing] Tile di depan (" + tileNumInFront + ") tidak valid (null atau di luar batas array tile).");
         }
+
 
         if (!isTileInFrontFishableWater) {
             gp.ui.showMessage("Kamu harus menghadap air untuk memancing!");
-            System.out.println("[PLAYER.startFishing()] INFO: Pemain tidak menghadap tile air yang bisa dipancing. TileNum: " + tileNumInFront + " di Peta: " + playerCurrentLocationString);
+            System.out.println("[DEBUG Player.startFishing] INFO: Pemain tidak menghadap tile air yang bisa dipancing. TileNum: " + tileNumInFront + " di Peta: " + playerCurrentLocationString + ". Proses dihentikan.");
             return;
         }
-        System.out.println("[PLAYER.startFishing()] INFO: Pemain menghadap tile air yang valid (TileNum: " + tileNumInFront + ", Col: " + tileInFrontCol + ", Row: " + tileInFrontRow + ").");
+        System.out.println("[DEBUG Player.startFishing] INFO: Pemain menghadap tile air yang valid (TileNum: " + tileNumInFront + ", Col: " + tileInFrontCol + ", Row: " + tileInFrontRow + ").");
 
-        // 3. Pengecekan Kondisi Lainnya (Musim, Cuaca, Jam, Lokasi Peta, Energi)
         Season currentSeasonForFishing = gp.gameClock.getCurrentSeason(); //
         Weather currentWeatherForFishing = gp.gameClock.getCurrentWeather(); //
         int currentHourForFishing = gp.gameClock.getTime().getHour(); //
 
         System.out.println("--------------------------------------------------");
-        System.out.println("[PLAYER.startFishing()] Memulai proses memancing...");
-        System.out.println("[PLAYER.startFishing()] Player.getLocation() (String): '" + playerCurrentLocationString + "'");
-        System.out.println("[PLAYER.startFishing()] Musim saat ini: " + currentSeasonForFishing);
-        System.out.println("[PLAYER.startFishing()] Cuaca saat ini: " + currentWeatherForFishing);
-        System.out.println("[PLAYER.startFishing()] Jam saat ini: " + currentHourForFishing);
+        System.out.println("[DEBUG Player.startFishing] Memulai proses memancing aktual...");
+        System.out.println("[DEBUG Player.startFishing] Lokasi Pemain (String): '" + playerCurrentLocationString + "'"); //
+        System.out.println("[DEBUG Player.startFishing] Musim saat ini: " + currentSeasonForFishing); //
+        System.out.println("[DEBUG Player.startFishing] Cuaca saat ini: " + currentWeatherForFishing); //
+        System.out.println("[DEBUG Player.startFishing] Jam saat ini: " + currentHourForFishing); //
         System.out.println("--------------------------------------------------");
-        if (this.playerIsActuallyFishing) {
-            System.out.println("[PLAYER.startFishing()] INFO: Pemain sudah dalam proses memancing. Permintaan baru diabaikan.");
-            gp.ui.showMessage("Sedang memancing, tunggu proses selesai.");
-            return;
-        }
 
-        // Pengecekan apakah peta saat ini adalah lokasi memancing yang diizinkan secara umum
+
         boolean isValidFishingMap = (playerCurrentLocationString != null &&
-                (playerCurrentLocationString.equalsIgnoreCase("Pond") // Gunakan equalsIgnoreCase untuk fleksibilitas
-                        || playerCurrentLocationString.equalsIgnoreCase("Mountain Lake")
-                        || playerCurrentLocationString.equalsIgnoreCase("Forest River")
-                        || playerCurrentLocationString.equalsIgnoreCase("Ocean")));
+                (playerCurrentLocationString.equalsIgnoreCase("Pond") //
+                        || playerCurrentLocationString.equalsIgnoreCase("Mountain Lake") //
+                        || playerCurrentLocationString.equalsIgnoreCase("Forest River") //
+                        || playerCurrentLocationString.equalsIgnoreCase("Ocean"))); //
 
+        System.out.println("[DEBUG Player.startFishing] Validitas lokasi peta '" + playerCurrentLocationString + "' untuk memancing: " + isValidFishingMap); //
         if (!isValidFishingMap) {
-            System.out.println("[PLAYER.startFishing()] ERROR: Peta '" + playerCurrentLocationString + "' bukan lokasi memancing yang valid!");
+            System.out.println("[DEBUG Player.startFishing] ERROR: Peta '" + playerCurrentLocationString + "' bukan lokasi memancing yang valid! Proses dihentikan.");
             gp.ui.showMessage("Kamu tidak bisa memancing di sini!");
             return;
         }
-        System.out.println("[PLAYER.startFishing()] INFO: Validitas lokasi peta '" + playerCurrentLocationString + "' untuk memancing: " + isValidFishingMap);
 
-
+        System.out.println("[DEBUG Player.startFishing] Mengecek energi pemain...");
         if (!tryDecreaseEnergy(5)) {
-            System.out.println("[PLAYER.startFishing()] INFO: Energi tidak cukup atau pemain pingsan. Memancing dibatalkan.");
+            System.out.println("[DEBUG Player.startFishing] INFO: Energi tidak cukup ("+ currentEnergy +") atau pemain pingsan. Memancing dibatalkan.");
             return;
         }
+        System.out.println("[DEBUG Player.startFishing] Energi cukup ("+ currentEnergy +"). Melanjutkan.");
 
+        System.out.println("[DEBUG Player.startFishing] Menjeda GameClock.");
         gp.gameClock.pauseTime(); //
-        this.playerIsActuallyFishing = true;
+        this.playerIsActuallyFishing = true; // Flag bahwa pemain sedang aktif memancing
+        System.out.println("[DEBUG Player.startFishing] playerIsActuallyFishing diatur ke true.");
 
-        // 4. Mendapatkan Ikan yang Tersedia & Memulai Minigame
+
         List<OBJ_Fish> availableFish = new ArrayList<>(); //
-        // ... (Sisa kode untuk mengisi availableFish dan memulai minigame tetap sama)
-        System.out.println("[PLAYER.startFishing()] INFO: Mencari ikan... Jumlah total entitas di gp.entities: " + gp.entities.size());
-        for (Entity entity : gp.entities) {
-            if (entity instanceof OBJ_Fish) {
-                OBJ_Fish fish = (OBJ_Fish) entity;
-                if (fish.isAvailable(currentSeasonForFishing, currentWeatherForFishing, currentHourForFishing, playerCurrentLocationString)) {
-                    availableFish.add(fish);
-                    System.out.println("    +++ [IKAN TERSEDIA]: " + fish.getFishName()
-                            + " (Lokasi Cocok: " + fish.getLocations().contains(playerCurrentLocationString) + ")");
-                } else {
-                    return;
+        System.out.println("[DEBUG Player.startFishing] INFO: Mencari ikan... Jumlah total entitas di gp.entities: " + gp.entities.size()); //
+        for (Entity entity : gp.entities) { //
+            if (entity instanceof OBJ_Fish) { //
+                OBJ_Fish fish = (OBJ_Fish) entity; //
+                boolean isAvailableNow = fish.isAvailable(currentSeasonForFishing, currentWeatherForFishing, currentHourForFishing, playerCurrentLocationString);
+                System.out.println("    [DEBUG Player.startFishing] Mengecek ikan: " + fish.getFishName() + " | Lokasi: " + fish.getLocations() + " | Musim: " + fish.getSeasons() + " | Cuaca: " + fish.getWeathers() + " | Jam: " + fish.getStartHour() + "-" + fish.getEndHour() + " | Tersedia: " + isAvailableNow);
+                if (isAvailableNow) { //
+                    availableFish.add(fish); //
+                    System.out.println("        +++ [IKAN TERSEDIA DITAMBAHKAN]: " + fish.getFishName() //
+                            + " (Lokasi Cocok: " + fish.getLocations().contains(playerCurrentLocationString) + ")"); //
                 }
             }
         }
         System.out.println("--------------------------------------------------");
-        System.out.println("[PLAYER.startFishing()] INFO: Jumlah ikan yang tersedia di list 'availableFish': " + availableFish.size());
+        System.out.println("[DEBUG Player.startFishing] INFO: Jumlah ikan yang tersedia di list 'availableFish': " + availableFish.size()); //
         System.out.println("--------------------------------------------------");
 
         if (availableFish.isEmpty()) {
-            System.out.println("[PLAYER.startFishing()] INFO: Tidak ada ikan yang memenuhi syarat. Proses memancing dihentikan.");
+            System.out.println("[DEBUG Player.startFishing] INFO: Tidak ada ikan yang memenuhi syarat. Proses memancing dihentikan.");
             gp.ui.showMessage("Tidak ada ikan yang tersedia saat ini.");
-            this.playerIsActuallyFishing = false;
+            this.playerIsActuallyFishing = false; // Reset flag
+            System.out.println("[DEBUG Player.startFishing] playerIsActuallyFishing diatur ke false karena tidak ada ikan.");
+            System.out.println("[DEBUG Player.startFishing] Melanjutkan GameClock karena tidak ada ikan.");
             gp.gameClock.resumeTime(); //
             return;
         }
@@ -911,60 +904,70 @@ private void teleportToPlayerHouse() {
         System.out.println("[PLAYER.startFishing()] INFO: Ikan target untuk minigame: " + this.fishToCatchInMinigame.getFishName()); //
 
         switch (this.fishToCatchInMinigame.getFishType()) { //
-            case REGULAR: this.fishingGuessRange = 100; this.fishingMaxTry = 10; break;
-            case LEGENDARY: this.fishingGuessRange = 500; this.fishingMaxTry = 7; break;
-            default: /* COMMON */ this.fishingGuessRange = 10; this.fishingMaxTry = 10; break;
+            case REGULAR: this.fishingGuessRange = 100; this.fishingMaxTry = 10; break; //
+            case LEGENDARY: this.fishingGuessRange = 500; this.fishingMaxTry = 7; break; //
+            default: /* COMMON */ this.fishingGuessRange = 10; this.fishingMaxTry = 10; break; //
         }
+        System.out.println("[DEBUG Player.startFishing] Pengaturan Minigame: Range Tebakan=" + this.fishingGuessRange + ", Max Percobaan=" + this.fishingMaxTry);
 
-        this.fishingAnswerNumber = rand.nextInt(this.fishingGuessRange) + 1;
-        System.out.println("[PLAYER.startFishing()] DEBUG MINIGAME: Angka rahasia ikan adalah = " + this.fishingAnswerNumber);
+        this.fishingAnswerNumber = rand.nextInt(this.fishingGuessRange) + 1; //
+        System.out.println("[DEBUG Player.startFishing] ***** ANGKA RAHASIA IKAN (UNTUK DEBUG): " + this.fishingAnswerNumber + " *****");
 
-        this.fishingCurrentAttempts = 0;
-        this.fishingPlayerInput = "";
+        this.fishingCurrentAttempts = 0; //
+        this.fishingPlayerInput = ""; //
         this.fishingInfoMessage = "Tebak angka (1-" + this.fishingGuessRange + ") untuk menangkap " + this.fishToCatchInMinigame.getFishName(); //
-        this.fishingFeedbackMessage = "";
+        this.fishingFeedbackMessage = ""; //
+        System.out.println("[DEBUG Player.startFishing] Pesan Info Minigame: " + this.fishingInfoMessage);
 
         gp.gameState = gp.fishingMinigameState; //
-        System.out.println("[PLAYER.startFishing()] INFO: Memulai minigame memancing. GameState: " + gp.gameState);
+        System.out.println("[DEBUG Player.startFishing] INFO: Mengubah GameState ke fishingMinigameState (" + gp.fishingMinigameState + "). GUI Minigame seharusnya muncul.");
+        System.out.println("[DEBUG Player.startFishing] === PROSES MEMANCING DIMULAI DENGAN SUKSES (MENUNGGU INPUT MINIGAME) ===\n");
     }
 
     public void processFishingAttempt(int guessedNumber) {
+        System.out.println("\n[DEBUG Player.processFishingAttempt] === MEMPROSES TEBAKAN IKAN ===");
+        System.out.println("[DEBUG Player.processFishingAttempt] Tebakan pemain: " + guessedNumber);
         if (!this.playerIsActuallyFishing || this.fishToCatchInMinigame == null) {
-            System.out.println("[PLAYER.processFishingAttempt] ERROR: Tidak dalam mode memancing atau tidak ada ikan target.");
+            System.out.println("[DEBUG Player.processFishingAttempt] ERROR: Tidak dalam mode memancing atau tidak ada ikan target. Mengakhiri minigame (gagal).");
             endFishingMinigame(false);
             return;
         }
         this.fishingCurrentAttempts++;
+        System.out.println("[DEBUG Player.processFishingAttempt] Percobaan ke-" + this.fishingCurrentAttempts + " dari " + this.fishingMaxTry);
         boolean correctGuess = (guessedNumber == this.fishingAnswerNumber);
 
         if (correctGuess) {
             this.fishingFeedbackMessage = "Tangkapan Sukses!";
-            System.out.println("[PLAYER.processFishingAttempt] INFO MINIGAME: Tebakan benar!");
+            System.out.println("[DEBUG Player.processFishingAttempt] INFO MINIGAME: Tebakan BENAR! (" + guessedNumber + " == " + this.fishingAnswerNumber + ")");
             endFishingMinigame(true);
         } else {
+            System.out.println("[DEBUG Player.processFishingAttempt] INFO MINIGAME: Tebakan SALAH. (" + guessedNumber + " != " + this.fishingAnswerNumber + ")");
             if (this.fishingCurrentAttempts >= this.fishingMaxTry) {
                 this.fishingFeedbackMessage = "Gagal! Kesempatan habis.";
-                System.out.println("[PLAYER.processFishingAttempt] INFO MINIGAME: Kesempatan habis, gagal menangkap.");
+                System.out.println("[DEBUG Player.processFishingAttempt] INFO MINIGAME: Kesempatan habis, gagal menangkap.");
                 endFishingMinigame(false);
             } else {
                 if (guessedNumber < this.fishingAnswerNumber) {
                     this.fishingFeedbackMessage = "Terlalu kecil!";
+                    System.out.println("[DEBUG Player.processFishingAttempt] Feedback: Terlalu kecil.");
                 } else {
                     this.fishingFeedbackMessage = "Terlalu besar!";
+                    System.out.println("[DEBUG Player.processFishingAttempt] Feedback: Terlalu besar.");
                 }
+                System.out.println("[DEBUG Player.processFishingAttempt] Minigame berlanjut.");
             }
         }
     }
 
     public void endFishingMinigame(boolean success) {
-        System.out.println("[PLAYER.endFishingMinigame] Mengakhiri minigame. Sukses: " + success);
+        System.out.println("\n[DEBUG Player.endFishingMinigame] === MENGAKHIRI MINIGAME MEMANCING ===");
+        System.out.println("[DEBUG Player.endFishingMinigame] Status Sukses: " + success);
         if (this.fishToCatchInMinigame != null) {
+            System.out.println("[DEBUG Player.endFishingMinigame] Ikan target adalah: " + this.fishToCatchInMinigame.getFishName());
             if (success) {
-                // Buat instance baru dari ikan yang ditangkap untuk ditambahkan ke inventory
-                // Ini penting jika fishToCatchInMinigame adalah referensi ke template ikan dari gp.entities
                 OBJ_Fish caughtFishInstance = new OBJ_Fish(gp, ItemType.FISH, //
                         this.fishToCatchInMinigame.getFishName(), //
-                        true, // isEdible (sesuaikan jika perlu)
+                        true, //
                         this.fishToCatchInMinigame.getBuyPrice(), //
                         this.fishToCatchInMinigame.getSellPrice(), //
                         this.fishToCatchInMinigame.getSeasons(), //
@@ -975,22 +978,31 @@ private void teleportToPlayerHouse() {
                         this.fishToCatchInMinigame.getEndHour()); //
                 addItemToInventory(caughtFishInstance);
                 gp.ui.showMessage("Berhasil menangkap " + this.fishToCatchInMinigame.getFishName() + "!"); //
+                System.out.println("[DEBUG Player.endFishingMinigame] Berhasil menangkap dan menambahkan ke inventaris: " + this.fishToCatchInMinigame.getFishName());
 
-                // Update statistik memancing
                 totalFishCaught++;
                 switch(this.fishToCatchInMinigame.getFishType()){ //
-                    case COMMON: totalCommonFishCaught++; break;
-                    case REGULAR: totalRegularFishCaught++; break;
-                    case LEGENDARY: totalLegendaryFishCaught++; break;
+                    case COMMON: totalCommonFishCaught++; break; //
+                    case REGULAR: totalRegularFishCaught++; break; //
+                    case LEGENDARY: totalLegendaryFishCaught++; break; //
                 }
-                if("Pufferfish".equals(this.fishToCatchInMinigame.getFishName())) hasFishedPufferfish = true; //
-                if("Legend".equals(this.fishToCatchInMinigame.getFishName())) hasFishedLegend = true; //
+                System.out.println("[DEBUG Player.endFishingMinigame] Statistik Ikan: Total=" + totalFishCaught + ", Common=" + totalCommonFishCaught + ", Regular=" + totalRegularFishCaught + ", Legendary=" + totalLegendaryFishCaught);
+                if("Pufferfish".equals(this.fishToCatchInMinigame.getFishName())) {
+                    hasFishedPufferfish = true; //
+                    System.out.println("[DEBUG Player.endFishingMinigame] Pufferfish berhasil dipancing, hasFishedPufferfish=true");
+                }
+                if("Legend".equals(this.fishToCatchInMinigame.getFishName())) {
+                    hasFishedLegend = true; //
+                    System.out.println("[DEBUG Player.endFishingMinigame] Legend berhasil dipancing, hasFishedLegend=true");
+                }
 
             } else {
                 gp.ui.showMessage("Gagal menangkap " + this.fishToCatchInMinigame.getFishName() + "!"); //
+                System.out.println("[DEBUG Player.endFishingMinigame] Gagal menangkap ikan.");
             }
         } else if (!success) {
             gp.ui.showMessage("Memancing dibatalkan.");
+            System.out.println("[DEBUG Player.endFishingMinigame] Memancing dibatalkan (tidak ada ikan target saat gagal).");
         }
 
         gp.gameClock.getTime().advanceTime(15); //
@@ -1004,7 +1016,8 @@ private void teleportToPlayerHouse() {
         this.fishingCurrentAttempts = 0;
 
         gp.gameState = gp.playState;
-        System.out.println("[PLAYER.endFishingMinigame] Minigame selesai. GameState kembali ke Play. Waktu dilanjutkan.");
+        System.out.println("[DEBUG Player.endFishingMinigame] GameState kembali ke PlayState (" + gp.playState + ").");
+        System.out.println("[DEBUG Player.endFishingMinigame] === MINIGAME MEMANCING SELESAI ===\n");
     }
 
     private int calculateFishPrice(OBJ_Fish fish) { //
@@ -1013,22 +1026,14 @@ private void teleportToPlayerHouse() {
         int nWeather = fish.getWeathers().size(); //
         int nLocation = fish.getLocations().size(); //
         int C = switch (fish.getFishType()) { //
-            case REGULAR -> 5;
-            case LEGENDARY -> 25;
-            default -> 10; // COMMON
+            case REGULAR -> 5; //
+            case LEGENDARY -> 25; //
+            default -> 10; //
         };
-        return 4 * nSeason * hourSpan * 2 * nWeather * 4 * nLocation * C / 32;
+        return 4 * nSeason * hourSpan * 2 * nWeather * 4 * nLocation * C / 32; //
     }
 
-    public void addToInventory(Entity item) { // Overload untuk kompatibilitas jika ada pemanggilan tanpa indeks
+    public void addToInventory(Entity item) { //
         this.inventory.add(item);
     }
 }
-// Misal, player adalah objek Player yang sudah ada
-// Letakkan kode berikut di dalam method (misal, main atau setupGame)
-/*
-player.setCurrentLocation(Location.FOREST_RIVER);
-
-// Debug output untuk memastikan
-System.out.println("DEBUG: Player berada di lokasi: " + player.getCurrentLocation().name());
-*/
