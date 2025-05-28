@@ -4,8 +4,8 @@ import spakborhills.cooking.Recipe;
 import spakborhills.entity.Entity;
 import spakborhills.entity.NPC;
 import spakborhills.entity.Player;
+import spakborhills.enums.Season;
 import spakborhills.Tile.TileManager;
-import spakborhills.enums.EntityType;
 import spakborhills.environment.EnvironmentManager;
 import spakborhills.object.OBJ_Item;
 
@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 public class GamePanel extends  JPanel implements Runnable {
+    private static final int OCEAN_MAP_INDEX = 25;
     final int originalTileSize = 16;
     final int scale = 3;
     public final int tileSize = originalTileSize * scale;
@@ -39,7 +40,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public UI ui;
     Thread gameThread;
     public Time time;
-    private Weather weather;
+    public Weather weather;
     public GameClock gameClock;
 
 
@@ -63,6 +64,9 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int sellState = 11;
     public final int cookingState = 12;
     public final int buyingState = 13;
+    public final int fishingMinigameState = 14;
+    public final int endGameState = 15;
+    public int previousGameState = -1;
 
     public final int PLAYER_HOUSE_INDEX = 10;
 
@@ -73,9 +77,12 @@ public class GamePanel extends  JPanel implements Runnable {
     private long sleepTransitionStartTime = 0;
     private final long SLEEP_TRANSITION_MESSAGE_DURATION = 3500;
 
+    private boolean hasTriggeredEndgame = false;
+
     public ArrayList<MapInfo> mapInfos = new ArrayList<>();
     public int currentMapIndex = -1;
     public int previousMapIndex = -1;
+    public ArrayList<NPC> allNpcsInWorld = new ArrayList<>();
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -90,6 +97,7 @@ public class GamePanel extends  JPanel implements Runnable {
         initializeMapInfos();
         gameState = titleState;
         environmentManager.setup();
+        assetSetter.initializeAllNPCs();
     }
 
     public void startGameThread() {
@@ -174,27 +182,50 @@ public class GamePanel extends  JPanel implements Runnable {
         }
 
         if (gameState == playState) {
-            if (gameClock != null && gameClock.isPaused()) {
-                System.out.println("[GamePanel] Resuming GameClock in playState.");
-                gameClock.resumeTime();
-            }
+            
+            if (!hasTriggeredEndgame && (player.gold >= 17209 || player.isMarried())) {
+                System.out.println("[GamePanel] Endgame condition met for the first time. Gold: " + player.gold
+                        + ", Married: " + player.isMarried());
+                previousGameState = gameState;
+                gameState = endGameState;
+                hasTriggeredEndgame = true; 
+                if (gameClock != null && !gameClock.isPaused()) {
+                    gameClock.pauseTime();
+                }
+                System.out.println("[GamePanel] hasTriggeredEndgame flag set to true");
+            } else {
+                
+                if (gameClock != null && gameClock.isPaused()) {
+                    System.out.println("[GamePanel] Resuming GameClock in playState.");
+                    gameClock.resumeTime();
+                }
 
-            if (player.justGotMarried) {
-                player.justGotMarried = false;
-                handleEndOfWeddingEvent();
-            }
+                if (player.justGotMarried) {
+                    player.justGotMarried = false;
+                    handleEndOfWeddingEvent();
+                }
 
-            player.update();
-            for (NPC character : npcs) {
-                if (character != null) {
-                    character.update();
+                player.update();
+                for (NPC character : npcs) {
+                    if (character != null) {
+                        character.update();
+                    }
+                }
+                if (environmentManager != null) {
+                    environmentManager.update();
                 }
             }
+        }
+
+        else if (gameState == endGameState) {
+            
             if (environmentManager != null) {
                 environmentManager.update();
             }
-        }
-        else if (gameState == sleepTransitionState) {
+            
+            System.out.println("[GamePanel] Currently in endGameState, waiting for user input...");
+        } else if (gameState == sleepTransitionState) {
+            
             if (!isProcessingNewDayDataInTransition) {
                 System.out.println("[GamePanel] sleepTransitionState: Processing new day data...");
 
@@ -210,9 +241,17 @@ public class GamePanel extends  JPanel implements Runnable {
                 performDailyResets();
 
                 if (player.goldFromShipping > 0) {
-                    if (ui.currentDialogue == null) ui.currentDialogue = "";
-                    if (!ui.currentDialogue.isEmpty()) ui.currentDialogue += "\n";
+                    if (ui.currentDialogue == null)
+                        ui.currentDialogue = "";
+                    if (!ui.currentDialogue.isEmpty())
+                        ui.currentDialogue += "\n";
                     ui.currentDialogue += "You earned " + player.goldFromShipping + "G from shipping.";
+                }
+
+                Time countTimeforSeason = gameClock.getTime();
+                if ((countTimeforSeason.getDay() - 1) % 10 == 0) {
+                    Season season = gameClock.getCurrentSeason();
+                    player.seasonPlayed.put(season, player.seasonPlayed.getOrDefault(season, 0) + 1);
                 }
 
                 isProcessingNewDayDataInTransition = true;
@@ -234,7 +273,6 @@ public class GamePanel extends  JPanel implements Runnable {
                     gameClock.resumeTime();
                 }
             }
-
         } else if (gameState == pauseState) {
             if (gameClock != null && !gameClock.isPaused()) {
                 gameClock.pauseTime();
@@ -265,7 +303,6 @@ public class GamePanel extends  JPanel implements Runnable {
                     if (gameClock != null && gameClock.isPaused()) {
                         gameClock.resumeTime();
                     }
-
                 } else {
                     ui.showMessage("Farm name cannot be empty!");
                 }
@@ -288,58 +325,75 @@ public class GamePanel extends  JPanel implements Runnable {
         mapInfos.add(new MapInfo("Player's House", "/maps/player_house_data.txt", "/maps/player_house.txt"));
     }
 
-    public void loadMapbyIndex(int newMapIndex){
+    public void loadMapbyIndex(int newMapIndex) {
         if (newMapIndex >= 0 && newMapIndex < mapInfos.size()) {
             this.previousMapIndex = this.currentMapIndex;
             this.currentMapIndex = newMapIndex;
-            MapInfo selectedMap = mapInfos.get(this.currentMapIndex);
-            player.setLocation(selectedMap.getMapName());
+            MapInfo selectedMap = mapInfos.get(this.currentMapIndex); 
 
-            System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to " + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
+            
+            try {
+                String enumCompatibleName = selectedMap.getMapName().toUpperCase().replace(" ", "_").replace("'", "");
+                player.setCurrentLocation(spakborhills.enums.Location.valueOf(enumCompatibleName)); 
+            } catch (IllegalArgumentException e) {
+                System.err.println("Peringatan: Nama peta '" + selectedMap.getMapName() + "' tidak ditemukan di Enum Location. Menggunakan nama string.");
+                player.setLocation(selectedMap.getMapName()); 
+            }
+
+            System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to " + this.currentMapIndex + " (" + selectedMap.getMapName() + ")"); 
 
             boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 6) ||
                     (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX);
 
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
-                if (player.tryDecreaseEnergy(15)) {
-                    ui.showMessage("Travel tired you out. -15 Energy.");
-                    System.out.println("[GamePanel] Energy decreased by 15 for map travel.");
-                } else {
-                    System.out.println("[GamePanel] Player tried to travel with insufficient energy (may have passed out).");
+                if (player.tryDecreaseEnergy(15)) { 
+                    ui.showMessage("Travel tired you out. -15 Energy."); 
                 }
             }
 
-            tileManager.loadMap(selectedMap);
+            tileManager.loadMap(selectedMap); 
 
             entities.clear();
             npcs.clear();
 
-            int targetX = this.tileSize * 20;
-            int targetY = this.tileSize * 29;
-            String targetDir = "down";
+            
+            int targetX = this.tileSize * 20; 
+            int targetY = this.tileSize * 29; 
+            String targetDir = "down";      
 
             if (this.currentMapIndex == PLAYER_HOUSE_INDEX) {
-                targetX = this.tileSize * 20;
-                targetY = this.tileSize * 29;
+                targetX = this.tileSize * 10; 
+                targetY = this.tileSize * 10; 
                 targetDir = "down";
-
-            } else if (this.currentMapIndex == 6) {
-                targetDir = "up";
+            } else if (this.currentMapIndex == 6) { 
+                if (previousMapIndex == PLAYER_HOUSE_INDEX) {
+                    targetX = this.tileSize * 20; 
+                    targetY = this.tileSize * 28;
+                    targetDir = "up";
+                } else {
+                    targetX = this.tileSize * 25; 
+                    targetY = this.tileSize * 25;
+                    targetDir = "down";
+                }
+            } else if (selectedMap.getMapName().equalsIgnoreCase("Ocean")) { 
+                targetX = this.tileSize * 1; 
+                targetY = this.tileSize * 1; 
+                targetDir = "down";          
+                System.out.println("[GamePanel] Player spawning in Ocean at tile (1,1) based on map name.");
             }
 
-            player.setPositionForMapEntry(targetX, targetY, targetDir);
+            player.setPositionForMapEntry(targetX, targetY, targetDir); 
 
-            assetSetter.setObject(mapInfos.get(currentMapIndex).getMapName());
-            assetSetter.setNPC(mapInfos.get(currentMapIndex).getMapName());
+            assetSetter.setObject(selectedMap.getMapName()); 
+            assetSetter.setNPC(selectedMap.getMapName());    
 
-            System.out.println("[GamePanel] Map loaded: " + selectedMap.getMapName());
+            System.out.println("[GamePanel] Map loaded: " + selectedMap.getMapName()); 
             gameState = playState;
         } else {
             System.err.println("[GamePanel] Invalid map index: " + newMapIndex + ". Cannot load map.");
             gameState = titleState;
         }
     }
-
 
     public void handleEndOfWeddingEvent() {
         System.out.println("[GamePanel] Wedding event concluded. Skipping time to 22:00.");
@@ -399,26 +453,26 @@ public class GamePanel extends  JPanel implements Runnable {
         System.out.println("[GamePanel] Daily resets completed.");
     }
 
-    public void resetCoreGameDataForNewGame() { 
+    public void resetCoreGameDataForNewGame() {
         if (player != null) {
-            player.setDefaultValues(); 
-            
+            player.setDefaultValues();
+
         }
 
-        entities.clear(); 
-        npcs.clear();     
+        entities.clear();
+        npcs.clear();
 
         if (gameClock != null) {
-            gameClock.resetTime(); 
+            gameClock.resetTime();
         }
 
-        
-        if (ui != null) { 
+
+        if (ui != null) {
             ui.currentDialogue = "";
-            ui.commandNumber = 0; 
-            
-        }
+            ui.commandNumber = 0;
 
+        }
+        hasTriggeredEndgame = false;
         System.out.println("Core game data has been reset for a new game session.");
     }
 
