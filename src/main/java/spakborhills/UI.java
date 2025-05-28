@@ -1421,17 +1421,26 @@ public class UI {
     public void drawLocationHUD(Graphics2D g2) {
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 20F));
 
-        
         String currentLocation = "Unknown";
+
+        // DEBUG: Print semua informasi yang tersedia
+        System.out.println("[UI] DEBUG - drawLocationHUD called");
+        System.out.println("[UI] DEBUG - currentMapIndex: " + gp.currentMapIndex);
 
         if (gp.player != null) {
             String playerLocation = gp.player.getLocation();
+            System.out.println("[UI] DEBUG - player.getLocation(): '" + playerLocation + "'");
+
             if (playerLocation != null && !playerLocation.isEmpty() && !playerLocation.equals("Unknown")) {
                 currentLocation = playerLocation;
             } else {
-                
+                // Fallback: gunakan map name dari current map index
                 if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
-                    currentLocation = gp.mapInfos.get(gp.currentMapIndex).getMapName();
+                    String mapName = gp.mapInfos.get(gp.currentMapIndex).getMapName();
+                    System.out.println("[UI] DEBUG - fallback mapName: '" + mapName + "'");
+                    if (mapName != null && !mapName.isEmpty()) {
+                        currentLocation = mapName;
+                    }
                 }
             }
         }

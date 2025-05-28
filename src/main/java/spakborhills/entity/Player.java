@@ -21,6 +21,7 @@ import spakborhills.enums.FishType; //
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+//
 // import java.util.List; // Sudah ada
 import java.util.*;
 import java.util.List; // Pastikan import List ada
@@ -29,7 +30,6 @@ import spakborhills.enums.FishType;
 import spakborhills.enums.ItemType; // Sudah ada di spakborhills.enums
 import spakborhills.enums.ItemType;
 import java.util.List;
-import java.util.Random; //
 
 
 public class Player extends Entity{
@@ -135,19 +135,13 @@ public class Player extends Entity{
 
 
     public String getLocation() {
-        if (currentLocation != null) {
-            String name = currentLocation.name(); //
-            String[] parts = name.split("_"); //
-            StringBuilder formattedName = new StringBuilder(); //
-            for (String part : parts) { //
-                formattedName.append(part.substring(0, 1).toUpperCase()) //
-                        .append(part.substring(1).toLowerCase()) //
-                        .append(" "); //
-            }
-            return formattedName.toString().trim(); //
-        }
-        return "Unknown Location"; //
+    // Jika menggunakan enum Location
+    if (currentLocation != null) {
+        return currentLocation.name().replace("_", " ");
     }
+    // Fallback
+    return "Unknown";
+}
 
 
     public void setLocation(String locationName) {
