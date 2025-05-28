@@ -16,8 +16,8 @@ public class OBJ_Potion extends Entity {
     public boolean use(Entity user) {
         if (user instanceof Player player) {
             gp.ui.showMessage("Kamu meminum " + name + ".");
-            player.increaseEnergy(25); // Contoh: Pulihkan 25 energi
-            return true; // true berarti item ini akan dikonsumsi (dihapus dari inventaris)
+            player.increaseEnergy(25); 
+            return true; 
         }
         return false;
     }

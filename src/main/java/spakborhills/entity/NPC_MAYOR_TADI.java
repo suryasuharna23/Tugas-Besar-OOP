@@ -14,7 +14,7 @@ public class NPC_MAYOR_TADI extends NPC{
         type = EntityType.NPC;
         Collections.addAll(lovedGiftsName, "Legend");
         Collections.addAll(likedGiftsName, "Angler", "Crimsonfish", "Glacierfish");
-        Collections.addAll(hatedItems, "Seluruh item yang bukan merupakan lovedItems dan likedItems"); // Tunggu selesai implement items
+        Collections.addAll(hatedItems, "Seluruh item yang bukan merupakan lovedItems dan likedItems"); 
         setDialogue();
         getNPCImage();
     }

@@ -6,6 +6,7 @@ import spakborhills.entity.NPC;
 import spakborhills.entity.Player;
 import spakborhills.Tile.TileManager;
 import spakborhills.enums.EntityType;
+import spakborhills.environment.EnvironmentManager;
 import spakborhills.object.OBJ_Item;
 
 
@@ -29,6 +30,7 @@ public class GamePanel extends  JPanel implements Runnable {
 
     final int fps = 60;
 
+    EnvironmentManager environmentManager = new EnvironmentManager(this);
     public KeyHandler keyH = new KeyHandler(this);
     Sound music = new Sound();
     Sound se = new Sound();
@@ -61,21 +63,10 @@ public class GamePanel extends  JPanel implements Runnable {
     public final int eatState = 10;
     public final int sellState = 11;
     public final int cookingState = 12;
+    public final int buyingState = 13;
     public final int fishingMinigameState = 13;
 
     public final int PLAYER_HOUSE_INDEX = 10;
-    public final int[] BED_TILE_INDICES = {
-            143, // single_bed_part1.png (mungkin bagian atas/bantal)
-            144, // single_bed_part2.png (bagian tengah)
-            145, // single_bed_part3.png (bagian tengah)
-            146, // single_bed_part4.png (bagian tengah)
-            // Anda bisa menambahkan lebih banyak jika perlu, misalnya:
-            // 147, // single_bed_part5.png
-            // 148, // single_bed_part6.png
-            // 149  // single_bed_part7.png
-            // Pilih tile yang paling masuk akal untuk pemain berdiri di atasnya untuk tidur.
-            // Biasanya 2-3 tile tengah sudah cukup.
-    };
 
     public Recipe selectedRecipeForCooking = null;
 
@@ -100,6 +91,7 @@ public class GamePanel extends  JPanel implements Runnable {
     public void setupGame() {
         initializeMapInfos();
         gameState = titleState;
+        environmentManager.setup();
     }
 
     public void startGameThread() {
@@ -200,6 +192,9 @@ public class GamePanel extends  JPanel implements Runnable {
                     character.update();
                 }
             }
+            if (environmentManager != null) {
+                environmentManager.update();
+            }
         }
         else if (gameState == sleepTransitionState) {
             if (!isProcessingNewDayDataInTransition) {
@@ -248,6 +243,11 @@ public class GamePanel extends  JPanel implements Runnable {
             }
         } else if (gameState == dialogueState || gameState == inventoryState ||
                 gameState == interactionMenuState || gameState == giftSelectionState || gameState == sellState) {
+            if (environmentManager != null) {
+                environmentManager.update();
+            } else {
+                System.err.println("[GamePanel.update()] FATAL: environmentManager is null!");
+            }
             if (gameClock != null && !gameClock.isPaused()) {
                 gameClock.pauseTime();
             }
@@ -346,8 +346,6 @@ public class GamePanel extends  JPanel implements Runnable {
                 targetDir = "down";          // Arah default
                 System.out.println("[GamePanel] Player spawning in Ocean at tile (1,1) based on map name.");
             }
-            // Tambahkan else if untuk spawn point peta lain jika perlu
-            // --- AKHIR MODIFIKASI POSISI SPAWN ---
 
             player.setPositionForMapEntry(targetX, targetY, targetDir); //
 
@@ -420,24 +418,24 @@ public class GamePanel extends  JPanel implements Runnable {
         System.out.println("[GamePanel] Daily resets completed.");
     }
 
-    public void resetCoreGameDataForNewGame() { // Ganti nama agar lebih jelas
+    public void resetCoreGameDataForNewGame() {
         if (player != null) {
-            player.setDefaultValues(); // Ini akan mereset energi, inventaris dasar, gold, dll.
-            // Posisi worldX/Y akan diatur oleh loadMapbyIndex/setPositionForMapEntry
+            player.setDefaultValues();
+
         }
 
-        entities.clear(); // Kosongkan entitas dari sesi game sebelumnya (jika ada)
-        npcs.clear();     // Kosongkan NPC juga
+        entities.clear();
+        npcs.clear();
 
         if (gameClock != null) {
-            gameClock.resetTime(); // Mereset hari, musim, cuaca
+            gameClock.resetTime();
         }
 
-        // Reset elemen UI yang relevan dengan sesi game
-        if (ui != null) { // Tambahkan null check untuk ui
+
+        if (ui != null) {
             ui.currentDialogue = "";
-            ui.commandNumber = 0; // Reset command number umum
-            // ui.farmNameInput akan di-handle oleh state farmNameInputState sendiri
+            ui.commandNumber = 0;
+
         }
 
         System.out.println("Core game data has been reset for a new game session.");
@@ -463,6 +461,10 @@ public class GamePanel extends  JPanel implements Runnable {
                 entity.draw(g2);
             }
             player.draw(g2);
+
+            if (environmentManager != null) {
+                environmentManager.draw(g2);
+            }
 
             ui.draw(g2);
         }

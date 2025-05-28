@@ -26,7 +26,7 @@ public class OBJ_Fish extends OBJ_Item {
                     List<Season> seasons, List<Weather> weathers, List<String> locations,
                     FishType fishType, int startHour, int endHour) { // Tambahkan startHour, endHour
 
-        super(gp, itemType, name, isEdible, buyPrice, sellPrice);
+        super(gp, itemType, name, isEdible, buyPrice, sellPrice, 1);
         this.type = EntityType.INTERACTIVE_OBJECT;
 
         this.fishName = name;

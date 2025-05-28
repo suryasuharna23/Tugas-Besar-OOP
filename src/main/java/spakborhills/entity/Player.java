@@ -24,10 +24,12 @@ import java.util.*;
 import java.util.List; // Pastikan import List ada
 // import spakborhills.enums.Location; // Hapus jika sudah diimport dari atas
 import spakborhills.enums.FishType;
-// import spakborhills.object.OBJ_Fish; // Sudah ada di spakborhills.object.*
-// import spakborhills.enums.ItemType; // Sudah ada di spakborhills.enums
+import spakborhills.object.OBJ_Fish; // Sudah ada di spakborhills.object.*
+import spakborhills.enums.ItemType; // Sudah ada di spakborhills.enums
 // import java.util.List; // Sudah ada
 import java.util.Random;
+import spakborhills.enums.ItemType;
+import java.util.List;
 
 
 public class Player extends Entity{
@@ -41,18 +43,19 @@ public class Player extends Entity{
     public ArrayList<Entity> inventory = new ArrayList<>();
     public int currentEquippedItemIndex = -1;
 
-    // GOLD && SHIPPING BIN
+
     public int gold;
     public ArrayList<Entity> itemsInShippingBinToday = new ArrayList<>();
     public boolean hasUsedShippingBinToday = false;
     public int goldFromShipping = 0;
 
 
-    // Data untuk Memasak
+
+
     public Map<String, Boolean> recipeUnlockStatus = new HashMap<>();
     public ArrayList<ActiveCookingProcess> activeCookingProcesses = new ArrayList<>();
 
-    // Statistik untuk membuka resep (contoh)
+
     public int totalFishCaught = 0;
     public int totalCommonFishCaught = 0;
     public int totalRegularFishCaught = 0;
@@ -63,11 +66,11 @@ public class Player extends Entity{
     public boolean hasObtainedHotPepper = false;
 
 
-    // WEDDING
+
     public NPC partner;
     public boolean justGotMarried = false;
     private boolean married = false;
-    // ENERGY
+
     public int MAX_POSSIBLE_ENERGY = 100;
     public static final int MIN_ENERGY_THRESHOLD = -20;
     public static final int LOW_ENERGY_PENALTY_THRESHOLD_PERCENT = 10;
@@ -162,7 +165,6 @@ public class Player extends Entity{
         }
     }
 
-
     public void setDefaultValues(){
         inventory.clear();
         this.playerIsActuallyFishing = false;
@@ -177,12 +179,22 @@ public class Player extends Entity{
         currentEnergy = MAX_POSSIBLE_ENERGY;
         this.isCurrentlySleeping = false;
         gold = 500;
-        initializeRecipeStatus(); //
-        // Item awal
-        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0)); //
-        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0)); //
-        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0)); //
-        inventory.add(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0)); //
+        initializeRecipeStatus();
+        addItemToInventory(new OBJ_Misc(gp, ItemType.MISC, "Proposal Ring", false, 0, 0));
+        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Pumpkin", false, 150, 75, 1,7,Season.FALL, Weather.RAINY));
+        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Cranberry", false,100, 50, 1,2,Season.FALL, Weather.RAINY));
+        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Melon", false,80, 40, 1,4,Season.FALL, Weather.RAINY));
+        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Hot Pepper", false, 40, 20, 1,1,Season.FALL, Weather.RAINY));
+        addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Tomato", false, 50, 25, 1,3, Season.SUMMER, Weather.RAINY));
+        addItemToInventory(new OBJ_Food(gp, ItemType.FOOD, "Fish n' Chips", true, 150, 135, 50));
+
+        addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0));
+        addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
+        addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
+        addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
+        addItemToInventory(new OBJ_Misc(gp,ItemType.MISC, "Coal", false, 0, 0));
+        addItemToInventory(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
+        addItemToInventory(new OBJ_Crop(gp, ItemType.CROP, "Grape", true,100, 10, 20, 3));
 
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Pumpkin", false, 150, 75, 1,7,Season.FALL, Weather.RAINY)); //
         inventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Cranberry", false,100, 50, 1,2,Season.FALL, Weather.RAINY)); //
@@ -197,7 +209,7 @@ public class Player extends Entity{
     public void checkAndUnlockRecipes() {
         if (gp.gameState == gp.titleState) return;
 
-        for (Recipe recipe : RecipeManager.getAllRecipes()) { //
+        for (Recipe recipe : RecipeManager.getAllRecipes()) {
             if (Boolean.FALSE.equals(recipeUnlockStatus.get(recipe.recipeId))) {
                 boolean unlocked = false;
                 switch (recipe.unlockMechanismKey) { //
@@ -216,6 +228,7 @@ public class Player extends Entity{
                     case "FISH_SPECIFIC_LEGEND":
                         if (hasFishedLegend) unlocked = true;
                         break;
+
                 }
                 if (unlocked) {
                     recipeUnlockStatus.put(recipe.recipeId, true);
@@ -268,6 +281,7 @@ public class Player extends Entity{
         isCurrentlySleeping = currentlySleeping;
     }
 
+
     public void sleep(String sleepMessagePrefix) {
         if (isCurrentlySleeping()) {
             System.out.println("[Player] sleep() called while already isCurrentlySleeping. Duplicate call ignored.");
@@ -275,20 +289,43 @@ public class Player extends Entity{
         }
         setCurrentlySleeping(true);
 
+
         String energyRecoveryMessage;
         if (currentEnergy == 0) {
             currentEnergy = ENERGY_REFILL_AT_ZERO;
             energyRecoveryMessage = "You slept right on the brink and only recovered " + ENERGY_REFILL_AT_ZERO + " energy.";
         } else if (currentEnergy < (MAX_POSSIBLE_ENERGY * LOW_ENERGY_PENALTY_THRESHOLD_PERCENT / 100.0)) {
+
             currentEnergy = MAX_POSSIBLE_ENERGY / 2;
             energyRecoveryMessage = "You were deeply exhausted and \n only recovered half your energy.";
         } else {
             currentEnergy = MAX_POSSIBLE_ENERGY;
-            energyRecoveryMessage = "You feel fully refreshed after a good night's sleep!";
+            energyRecoveryMessage = "You feel fully refreshed\nafter a good night's sleep!";
         }
+
+
+
         gp.ui.currentDialogue = sleepMessagePrefix + "\n" + energyRecoveryMessage;
         System.out.println("[Player] Sleeping. Message: " + gp.ui.currentDialogue);
+        teleportToPlayerHouse();
+
     }
+
+    /**
+ * Memindahkan player ke rumahnya di samping tempat tidur
+ */
+private void teleportToPlayerHouse() {
+    int houseX = gp.tileSize * 7;
+    int houseY = gp.tileSize * 6;
+
+    if (gp.currentMapIndex != gp.PLAYER_HOUSE_INDEX) {
+        gp.loadMapbyIndex(10);
+    }
+    this.worldX = houseX;
+    this.worldY = houseY;
+    this.direction = "down";
+
+}
 
     public boolean isMarried() {
         return married;
@@ -320,7 +357,8 @@ public class Player extends Entity{
             }
             updateSprite();
         }
-        if (gp.keyH.inventoryPressed) { //
+
+        if (gp.keyH.inventoryPressed) {
             gp.keyH.inventoryPressed = false;
             if (gp.gameState == gp.playState) {
                 gp.gameState = gp.inventoryState;
@@ -330,13 +368,17 @@ public class Player extends Entity{
         }
 
         if (gp.gameState == gp.playState) {
-            updateActiveCookingProcesses(); //
+            updateActiveCookingProcesses();
             checkAndUnlockRecipes();
-            if (this.keyH != null && this.keyH.eatPressed) { //
+
+            if (this.keyH != null && this.keyH.eatPressed) {
+                System.out.println("DEBUG: Player.update (playState) - eatPressed is true.");
                 Entity equippedItem = getEquippedItem();
                 if (equippedItem != null) {
-                    if (equippedItem instanceof Edible) { //
-                        Command eatAction = new EatCommand(this, (Edible) equippedItem); //
+                    System.out.println("DEBUG: Player.update - Equipped item: " + equippedItem.name + " | Class: " + equippedItem.getClass().getSimpleName());
+                    if (equippedItem instanceof Edible) {
+                        System.out.println("DEBUG: Player.update - Equipped item IS Edible. Creating EatCommand.");
+                        Command eatAction = new EatCommand(this, (Edible) equippedItem);
                         eatAction.execute(gp);
                     } else {
                         if (gp.ui != null) gp.ui.showMessage(equippedItem.name + " is not edible.");
@@ -346,10 +388,15 @@ public class Player extends Entity{
                 }
                 this.keyH.eatPressed = false;
             }
-            if (this.keyH != null && this.keyH.enterPressed && !(keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed)) { //
+
+
+
+            if (this.keyH != null && this.keyH.enterPressed && !(keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed)) {
                 checkCollisionAndMove();
+
             }
         } else if (gp.gameState == gp.dialogueState || gp.gameState == gp.inventoryState) {
+
             spriteNum = 1;
             spriteCounter = 0;
         }
@@ -372,7 +419,8 @@ public class Player extends Entity{
                 OBJ_Food cookedFood = FoodFactory.createFood(gp, process.foodNameToProduce); //
                 if (cookedFood != null) {
                     for (int i = 0; i < process.foodQuantityToProduce; i++) {
-                        addItemToInventory(FoodFactory.createFood(gp, process.foodNameToProduce)); //
+
+                        addItemToInventory(FoodFactory.createFood(gp, process.foodNameToProduce));
                     }
                     gp.ui.showMessage(process.foodNameToProduce + " is ready!");
                 } else {
@@ -383,6 +431,7 @@ public class Player extends Entity{
         }
     }
 
+
     public void setPositionForMapEntry(int worldX, int worldY, String direction) {
         this.worldX = worldX;
         this.worldY = worldY;
@@ -390,13 +439,24 @@ public class Player extends Entity{
         System.out.println("[Player] Position set for map entry: X=" + this.worldX + ", Y=" + this.worldY + ", Dir=" + this.direction);
     }
 
+
+
     private void checkCollisionAndMove() {
         collisionON = false;
-        gp.collisionChecker.checkTile(this); //
-        int entityIndex = gp.collisionChecker.checkEntity(this, gp.entities); //
+        gp.collisionChecker.checkTile(this);
 
-        if (gp.keyH.enterPressed) { //
+
+
+
+
+
+
+        int entityIndex = gp.collisionChecker.checkEntity(this, gp.entities);
+
+        if (gp.keyH.enterPressed) {
             boolean interactionHandled = false;
+
+
             if (entityIndex != 999) {
                 Entity interactedEntity = gp.entities.get(entityIndex);
                 if (interactedEntity instanceof NPC) { //
@@ -405,8 +465,8 @@ public class Player extends Entity{
                     gp.currentInteractingNPC = npc;
                     npc.openInteractionMenu();
                     interactionHandled = true;
-                } else if (interactedEntity.type == EntityType.INTERACTIVE_OBJECT) { //
-                    interactedEntity.interact(); //
+                } else if (interactedEntity.type == EntityType.INTERACTIVE_OBJECT) {
+                    interactedEntity.interact();
                     interactionHandled = true;
                 } else if (interactedEntity.type == EntityType.PICKUP_ITEM) { //
                     gp.ui.showMessage("Kamu mengambil " + interactedEntity.name + "!");
@@ -415,8 +475,9 @@ public class Player extends Entity{
                     interactionHandled = true;
                 }
             }
-            gp.keyH.enterPressed = false; //
+            gp.keyH.enterPressed = false;
         }
+
 
         if (!collisionON) {
             if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
@@ -443,11 +504,44 @@ public class Player extends Entity{
         }
         gp.keyH.enterPressed = false; //
     }
+    public boolean addItemToInventory(Entity itemToAdd) {
+        if (!(itemToAdd instanceof OBJ_Item newItem)) {
+            if (inventory.size() < 20) {
+                inventory.add(itemToAdd);
+                if (gp.ui != null) gp.ui.showMessage("Kamu mendapatkan: " + itemToAdd.name);
+                return true;
+            } else {
+                if (gp.ui != null) gp.ui.showMessage("Inventaris penuh!");
+                return false;
+            }
+        }
 
-    public boolean addItemToInventory(Entity item){
-        inventory.add(item);
-        gp.ui.showMessage("You got: " + item.name);
-        return true;
+
+
+        for (Entity existingEntity : inventory) {
+            if (existingEntity instanceof OBJ_Item existingItem) {
+
+                if (newItem instanceof OBJ_Item) {
+                    OBJ_Item newItemAsObjItem = (OBJ_Item) newItem;
+                    if (existingItem.name.equals(newItemAsObjItem.name) &&
+                            existingItem.getType() == newItemAsObjItem.getType()) {
+
+                        existingItem.quantity += newItemAsObjItem.quantity;
+                        return true;
+                    }
+                }
+            }
+        }
+
+
+        if (inventory.size() < 20) {
+            inventory.add(newItem);
+            if (gp.ui != null) gp.ui.showMessage("Kamu mendapatkan: " + newItem.name + (newItem.quantity > 1 ? " x" + newItem.quantity : ""));
+            return true;
+        } else {
+            if (gp.ui != null) gp.ui.showMessage("Inventaris penuh! Tidak dapat menambahkan " + newItem.name);
+            return false;
+        }
     }
 
     public void removeItemFromInventory(int itemIndex){ // Diubah untuk menerima indeks
@@ -467,10 +561,16 @@ public class Player extends Entity{
         if (inventory.isEmpty()) {
             return;
         }
+
         int itemIndex = gp.ui.inventoryCommandNum;
+
         if (itemIndex >= 0 && itemIndex < inventory.size()) {
             Entity selectedItem = inventory.get(itemIndex);
-            boolean itemWasConsumed = selectedItem.use(this); //
+
+
+
+            boolean itemWasConsumed = selectedItem.use(this);
+
             if (itemWasConsumed) {
                 removeItemFromInventory(itemIndex);
                 if (gp.ui.inventoryCommandNum >= inventory.size() && !inventory.isEmpty()) {
@@ -484,6 +584,61 @@ public class Player extends Entity{
         }
     }
 
+
+    public boolean buyItem(OBJ_Item itemToBuy, String recipeIdToUnlockIfApplicable) {
+        if (itemToBuy == null) {
+            gp.ui.showMessage("Item tidak valid.");
+            return false;
+        }
+
+        int price = itemToBuy.getBuyPrice();
+        if (gold >= price) {
+            gold -= price;
+
+            if (itemToBuy instanceof OBJ_Recipe) {
+
+                if (recipeIdToUnlockIfApplicable != null
+                        && recipeUnlockStatus.containsKey(recipeIdToUnlockIfApplicable)) {
+                    recipeUnlockStatus.put(recipeIdToUnlockIfApplicable, true);
+                    gp.ui.showMessage(
+                            "Kamu membeli dan mempelajari resep: " + itemToBuy.name.replace("Recipe: ", "") + "!");
+                } else {
+                    gp.ui.showMessage("Kamu membeli resep: " + itemToBuy.name.replace("Recipe: ", "")
+                            + ", tapi ada masalah saat mempelajarinya.");
+                }
+            } else {
+
+                OBJ_Item purchasedItemInstance = null;
+                if (itemToBuy instanceof OBJ_Seed) {
+                    OBJ_Seed seedTemplate = (OBJ_Seed) itemToBuy;
+                    purchasedItemInstance = new OBJ_Seed(gp, seedTemplate.getType(),
+                            seedTemplate.name.replace(" seeds", ""), seedTemplate.isEdible(),
+                            seedTemplate.getBuyPrice(), seedTemplate.getSellPrice(),
+                            1, 1, Season.SPRING, Weather.SUNNY);
+                    purchasedItemInstance = itemToBuy;
+
+                } else if (itemToBuy instanceof OBJ_Food) {
+                    OBJ_Food foodTemplate = (OBJ_Food) itemToBuy;
+                    purchasedItemInstance = FoodFactory.createFood(gp, foodTemplate.name.replace(" food", ""));
+                }
+                if (purchasedItemInstance != null) {
+                    addItemToInventory(purchasedItemInstance);
+                    gp.ui.showMessage("Kamu membeli: " + purchasedItemInstance.name + " seharga " + price + "G.");
+                } else {
+                    OBJ_Item genericItem = new OBJ_Item(gp, itemToBuy.getType(),
+                            itemToBuy.name.replace(" " + itemToBuy.getType().name().toLowerCase(), ""),
+                            itemToBuy.isEdible(), itemToBuy.getBuyPrice(), itemToBuy.getSellPrice(),
+                            itemToBuy.quantity);
+                    addItemToInventory(genericItem);
+                    gp.ui.showMessage("Kamu membeli: " + genericItem.name + " seharga " + price + "G.");
+                }
+            }
+            return true;
+        } else {
+            gp.ui.showMessage("Gold tidak cukup untuk membeli " + itemToBuy.name + ".");
+            return false;
+        }
+    }
     public void consumeItemFromInventory(Entity itemToConsume) {
         Entity equippedItemBeforeConsumption = getEquippedItem();
         boolean wasEquippedAndIsTheSameItem = (equippedItemBeforeConsumption == itemToConsume);
@@ -494,6 +649,7 @@ public class Player extends Entity{
                 this.currentEquippedItemIndex = -1;
                 System.out.println("DEBUG: Equipped item slot cleared because consumed item was equipped.");
             }
+
             if (gp.ui.inventoryCommandNum >= inventory.size() && !inventory.isEmpty()) {
                 gp.ui.inventoryCommandNum = inventory.size() - 1;
             } else if (inventory.isEmpty()) {
@@ -501,6 +657,8 @@ public class Player extends Entity{
             }
         } else {
             System.out.println("WARNING: Attempted to consume " + itemToConsume.name + " but it was not found/removed from inventory list.");
+
+
             if (wasEquippedAndIsTheSameItem) {
                 this.currentEquippedItemIndex = -1;
             }
@@ -509,14 +667,17 @@ public class Player extends Entity{
     public void pickUpObject(int i) {
         if (i != 999) {
             Entity object = gp.entities.get(i);
-            if (object.type == EntityType.PICKUP_ITEM || object.name.equals("Key") || object.name.equals("Boots")) { //
+
+            if (object.type == EntityType.PICKUP_ITEM ||
+                    object.name.equals("Key") ||
+                    object.name.equals("Boots")) {
+
                 if (addItemToInventory(object)) {
                     gp.entities.remove(i);
                 }
             }
         }
     }
-
     private void updateSprite(){
         spriteCounter++;
         if(spriteCounter > 12){
@@ -563,7 +724,10 @@ public class Player extends Entity{
             this.currentEquippedItemIndex = inventoryIndex;
             Entity equipped = getEquippedItem();
             if (equipped != null) {
-                equipped.use(this); //
+
+
+
+                equipped.use(this);
             }
         } else {
             this.currentEquippedItemIndex = -1;
@@ -606,8 +770,6 @@ public class Player extends Entity{
         // Tambahkan 'else if' untuk peta lain yang bisa dipancingi
         return waterTileIds;
     }
-
-
     public void startFishing() {
         // 1. Cek Kepemilikan Fishing Rod
         boolean hasFishingRod = false;
@@ -701,7 +863,11 @@ public class Player extends Entity{
 
         System.out.println("--------------------------------------------------");
         System.out.println("[PLAYER.startFishing()] Memulai proses memancing...");
-
+        System.out.println("[PLAYER.startFishing()] Player.getLocation() (String): '" + playerCurrentLocationString + "'");
+        System.out.println("[PLAYER.startFishing()] Musim saat ini: " + currentSeasonForFishing);
+        System.out.println("[PLAYER.startFishing()] Cuaca saat ini: " + currentWeatherForFishing);
+        System.out.println("[PLAYER.startFishing()] Jam saat ini: " + currentHourForFishing);
+        System.out.println("--------------------------------------------------");
         if (this.playerIsActuallyFishing) {
             System.out.println("[PLAYER.startFishing()] INFO: Pemain sudah dalam proses memancing. Permintaan baru diabaikan.");
             gp.ui.showMessage("Sedang memancing, tunggu proses selesai.");
@@ -738,10 +904,12 @@ public class Player extends Entity{
         for (Entity entity : gp.entities) {
             if (entity instanceof OBJ_Fish) {
                 OBJ_Fish fish = (OBJ_Fish) entity;
-                if (fish.isAvailable(currentSeasonForFishing, currentWeatherForFishing, currentHourForFishing, playerCurrentLocationString)) { //
+                if (fish.isAvailable(currentSeasonForFishing, currentWeatherForFishing, currentHourForFishing, playerCurrentLocationString)) {
                     availableFish.add(fish);
                     System.out.println("    +++ [IKAN TERSEDIA]: " + fish.getFishName()
-                            + " (Lokasi Cocok: " + fish.getLocations().contains(playerCurrentLocationString) + ")"); //
+                            + " (Lokasi Cocok: " + fish.getLocations().contains(playerCurrentLocationString) + ")");
+                } else {
+                    return;
                 }
             }
         }
@@ -875,3 +1043,11 @@ public class Player extends Entity{
         this.inventory.add(item);
     }
 }
+// Misal, player adalah objek Player yang sudah ada
+// Letakkan kode berikut di dalam method (misal, main atau setupGame)
+/*
+player.setCurrentLocation(Location.FOREST_RIVER);
+
+// Debug output untuk memastikan
+System.out.println("DEBUG: Player berada di lokasi: " + player.getCurrentLocation().name());
+*/

@@ -1,4 +1,4 @@
-// File: Tugas-Besar-OOP/src/main/java/spakborhills/GameClock.java
+
 package spakborhills;
 
 import spakborhills.enums.Season;
@@ -7,35 +7,30 @@ public class GameClock extends Thread {
     private final Time time;
     private final Weather weather;
     private Season currentSeason = Season.SPRING;
-    private volatile boolean running = true; // Pastikan 'running' adalah volatile
-    private volatile boolean paused = false; // Flag untuk status pause, volatile
-    private final Object pauseLock = new Object(); // Objek untuk sinkronisasi pause/resume
+    private volatile boolean running = true; 
+    private volatile boolean paused = false; 
+    private final Object pauseLock = new Object(); 
 
     public GameClock(Time time, Weather weather) {
         this.time = time;
         this.weather = weather;
-        // Inisialisasi musim saat GameClock dibuat
+        
         if (this.time != null) {
             updateSeasonBasedOnDay(this.time.getDay());
         }
     }
 
-    // Mengubah nama agar lebih jelas dan menjadikannya publik
-    /**
-     * Memperbarui musim berdasarkan hari saat ini.
-     * Dapat dipanggil secara eksternal jika hari dimajukan di luar siklus normal run().
-     * @param currentDay hari saat ini.
-     */
+
     public void updateSeasonBasedOnDay(int currentDay) {
-        int index = ((currentDay - 1) / 10) % 4; // Asumsi 1 musim = 10 hari
+        int index = ((currentDay - 1) / 10) % 4; 
         if (index < Season.values().length) {
             currentSeason = Season.values()[index];
         } else {
-            // Fallback jika perhitungan indeks salah, default ke SPRING
+            
             currentSeason = Season.SPRING;
             System.err.println("[GameClock] Warning: Season index out of bounds. Defaulting to SPRING.");
         }
-        // System.out.println("[GameClock] Season updated to: " + currentSeason.name() + " for Day " + currentDay); // Debug
+        
     }
 
     @Override
@@ -55,22 +50,22 @@ public class GameClock extends Thread {
 
                 if (!running) break;
 
-                Thread.sleep(1000); // Kecepatan game (sesuaikan jika perlu)
+                Thread.sleep(1000); 
 
-                time.advanceTime(5); // Majukan waktu 5 menit game
+                time.advanceTime(5); 
 
                 if (time.isNewDay()) {
-                    time.startNewDay(); // Proses hari baru secara alami
-                    updateSeasonBasedOnDay(time.getDay()); // Perbarui musim
+                    time.startNewDay(); 
+                    updateSeasonBasedOnDay(time.getDay()); 
 
                     if ((time.getDay() - 1) % 10 == 0) {
                         weather.resetRainyCount();
                     }
-                    weather.generateNewWeather(); // Hasilkan cuaca baru
+                    weather.generateNewWeather(); 
                 }
             } catch (InterruptedException e) {
                 if (running) {
-                    // Handle interupsi jika perlu
+                    
                 }
             } catch (Exception e) {
                 System.err.println("Error in GameClock run loop: " + e.getMessage());
@@ -89,9 +84,9 @@ public class GameClock extends Thread {
      */
     public void stopClock() {
         running = false;
-        // Bangunkan thread jika sedang di-pause atau sleep agar bisa keluar dari loop
-        resumeTime(); // Ini akan memanggil notify dan membiarkan loop memeriksa 'running'
-        this.interrupt(); // Interupsi thread utama jika sedang dalam Thread.sleep()
+        
+        resumeTime(); 
+        this.interrupt(); 
     }
 
     /**
@@ -101,7 +96,7 @@ public class GameClock extends Thread {
     public void pauseTime() {
         if (!paused) {
             paused = true;
-            // System.out.println("[GameClock] Attempting to pause time..."); // Debug
+            
         }
     }
 
@@ -112,9 +107,9 @@ public class GameClock extends Thread {
         if (paused) {
             synchronized (pauseLock) {
                 paused = false;
-                pauseLock.notifyAll(); // Bangunkan thread yang sedang menunggu di pauseLock.wait()
+                pauseLock.notifyAll(); 
             }
-            // System.out.println("[GameClock] Attempting to resume time..."); // Debug
+            
         }
     }
 
@@ -134,7 +129,7 @@ public class GameClock extends Thread {
         if (time != null) {
             return time.getFormattedTime();
         }
-        return "00:00"; // Default jika time belum terinisialisasi
+        return "00:00"; 
     }
 
     public Weather getWeather() {
@@ -149,9 +144,9 @@ public class GameClock extends Thread {
 
         if (this.time != null) {
             this.time.resetToDefault();
-            updateSeasonBasedOnDay(this.time.getDay()); // Panggil setelah time direset
+            updateSeasonBasedOnDay(this.time.getDay()); 
         } else {
-            currentSeason = Season.SPRING; // Default jika time null
+            currentSeason = Season.SPRING; 
         }
 
         if (this.weather != null) {
@@ -163,7 +158,7 @@ public class GameClock extends Thread {
         if (weather != null) {
             return spakborhills.enums.Weather.valueOf(weather.getCurrentWeather().name());
         }
-        // Nilai default jika weather null, misal default ke SUNNY
+        
         return spakborhills.enums.Weather.SUNNY;
     }
 }
