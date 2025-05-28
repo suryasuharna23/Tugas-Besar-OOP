@@ -344,24 +344,23 @@ public class GamePanel extends  JPanel implements Runnable {
                 System.out.println(
                         "[GamePanel] Location set using enum: " + locationEnum + " -> " + player.getLocation());
             } catch (IllegalArgumentException e) {
-                // Jika enum tidak ada, gunakan string fallback
                 System.out.println("[GamePanel] Enum not found for '" + mapName + "', using string location");
                 player.setLocation(mapName);
                 System.out.println("[GamePanel] Location set using string: " + player.getLocation());
             }
 
-            // TAMBAHAN: Force update location setelah set
             System.out.println("[GamePanel] Final player location after setting: " + player.getLocation());
 
             System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to "
                     + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
 
             boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 6) ||
-                    (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX);
+                    (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX) || this.currentMapIndex == 6 || this.currentMapIndex == PLAYER_HOUSE_INDEX;
 
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
-                if (player.tryDecreaseEnergy(15)) {
-                    ui.showMessage("Travel tired you out. -15 Energy.");
+                if (player.tryDecreaseEnergy(10)) {
+                    this.time.advanceTime(-20);
+                    ui.showMessage("Travel tired you out. -10 Energy.");
                 }
             }
 
