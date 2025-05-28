@@ -36,7 +36,6 @@ public class Time {
                 
             }
         }
-        
         while (this.minute >= 60) {
             this.minute -= 60;
             this.hour++;

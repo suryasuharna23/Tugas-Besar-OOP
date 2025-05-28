@@ -44,11 +44,11 @@ public class KeyHandler implements KeyListener {
                 if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                     gp.ui.commandNumber--;
                     if (gp.ui.commandNumber < 0) {
-                        gp.ui.commandNumber = 2;
+                        gp.ui.commandNumber = 3;
                     }
                 } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
                     gp.ui.commandNumber++;
-                    if (gp.ui.commandNumber > 2) {
+                    if (gp.ui.commandNumber > 3) {
                         gp.ui.commandNumber = 0;
                     }
                 } else if (code == KeyEvent.VK_ENTER) {
@@ -61,6 +61,9 @@ public class KeyHandler implements KeyListener {
                     } else if (gp.ui.commandNumber == 1) {
                         gp.ui.showMessage("Load Game (Not Implemented Yet)");
                     } else if (gp.ui.commandNumber == 2) {
+                        gp.gameState = gp.creditPageState;
+                        enterPressed = true;
+                    } else if (gp.ui.commandNumber == 3) {
                         System.exit(0);
                     }
                 }
@@ -88,6 +91,13 @@ public class KeyHandler implements KeyListener {
                     gp.ui.mapSelectionState = 0;
                     gp.ui.commandNumber = 0;
                 }
+            }
+        } else if (gp.gameState == gp.creditPageState) {
+            if (code == KeyEvent.VK_ESCAPE) {
+                enterPressed = false;
+                gp.gameState = gp.titleState;
+                gp.ui.commandNumber = 0;
+                //gp.repaint();
             }
         }
         else if (gp.gameState == gp.playerNameInputState) {

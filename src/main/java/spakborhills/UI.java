@@ -90,7 +90,7 @@ public class UI {
 
     public void loadTitleScreenImage() {
         try {
-            InputStream inputStream = getClass().getResourceAsStream("/background/title_screen.png");
+            InputStream inputStream = getClass().getResourceAsStream("/background/title.png");
 
             if (inputStream != null) {
                 titleScreenBackground = ImageIO.read(inputStream);
@@ -164,6 +164,9 @@ public class UI {
             drawFishingMinigameScreen(g2);
         } else if (gp.gameState == gp.endGameState) {
             drawEndGameStatisticsScreen(g2);
+        }
+        else if (gp.gameState == gp.creditPageState) {
+            drawCreditPage(g2);
         }
     }
 
@@ -344,7 +347,7 @@ public class UI {
                 g2.drawString(">", x - gp.tileSize, y);
             }
 
-            text = "QUIT";
+            text = "CREDITS";
             x = getXForCenteredText(text);
             y += gp.tileSize;
             g2.setColor(Color.black);
@@ -352,6 +355,21 @@ public class UI {
             g2.setColor(Color.white);
             g2.drawString(text, x, y);
             if (commandNumber == 2) {
+                g2.drawString(">", x - gp.tileSize, y);
+                if (gp.keyH.enterPressed) {
+                    gp.gameState = gp.creditPageState;
+                    drawCreditPage(g2);
+                }
+            }
+
+            text = "QUIT";
+            x = getXForCenteredText(text);
+            y += gp.tileSize;
+            g2.setColor(Color.black);
+            g2.drawString(text, x + 5, y + 5);
+            g2.setColor(Color.white);
+            g2.drawString(text, x, y);
+            if (commandNumber == 3) {
                 g2.drawString(">", x - gp.tileSize, y);
             }
         } else if (mapSelectionState == 1) {
@@ -489,6 +507,46 @@ public class UI {
         String text = "PAUSED";
         int x = getXForCenteredText(text);
         int y = gp.screenHeight / 2;
+        g2.drawString(text, x, y);
+    }
+
+    public void drawCreditPage(Graphics2D g2) {
+        drawSharedBackground(g2);
+        g2.setColor(new Color(0, 0, 0, 200));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        g2.setColor(Color.white);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20F));
+
+        String text = "Developer Team";
+        int x = getXForCenteredText(text);
+        int y = gp.tileSize * 5/2;
+        g2.drawString(text, x, y);
+
+        x -= gp.tileSize*2;
+
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 12F));
+        y += gp.tileSize * 2;
+        text = "18223033 | Persada Ramiiza Abyudaya";
+        g2.drawString(text, x, y);
+        y += gp.tileSize;
+        text = "18223039 | Devon Wiraditya Tanumihardja";
+        g2.drawString(text, x, y);
+        y += gp.tileSize;
+        text = "18223075 | Surya Suharna";
+        g2.drawString(text, x, y);
+        y += gp.tileSize;
+        text = "18223085 | Velicia Christina Gabriel";
+        g2.drawString(text, x, y);
+
+        text = "Special thanks to: ";
+        y += gp.tileSize*2;
+        x = getXForCenteredText(text);
+        g2.drawString(text, x, y);
+
+        text = "Jabarano Dago, Rumah Aca, Ryisnow, dan azzAAAm";
+        y += gp.tileSize;
+        x -= gp.tileSize*3;
         g2.drawString(text, x, y);
     }
 
