@@ -6,9 +6,7 @@ import spakborhills.entity.Entity;
 import spakborhills.entity.NPC;
 import spakborhills.entity.NPC_EMILY;
 import spakborhills.interfaces.Edible;
-import spakborhills.object.OBJ_Food;
 import spakborhills.object.OBJ_Item;
-import spakborhills.object.OBJ_Recipe;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -734,9 +732,6 @@ public class UI {
         return lastProcessedDialogue;
     }
 
-    private void setLastProcessedDialogue(String dialogue) {
-        this.lastProcessedDialogue = dialogue;
-    }
 
     public void drawSubWindow(int x, int y, int width, int height) {
         Color c = new Color(0, 0, 0, 210);
