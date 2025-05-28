@@ -726,8 +726,9 @@ public class Player extends Entity{
                     306, 333, 335, 339, 351, 28, 30, 31, 0
             ));
         } else if ("Ocean".equalsIgnoreCase(mapName)) {
-            // GANTI DENGAN ID TILE AIR AKTUAL UNTUK OCEAN!
-            // waterTileIds.addAll(Arrays.asList(...));
+            waterTileIds.addAll(Arrays.asList(
+            143, 992, 32, 58, 96, 235, 267, 171, 203, 331, 504, 547, 548, 565, 549, 575, 551, 552, 572, 573, 570, 553, 554, 574, 314, 61, 93, 330, 221, 256
+            ));
         } else if ("Pond".equalsIgnoreCase(mapName)) {
             // GANTI DENGAN ID TILE AIR AKTUAL UNTUK POND!
             // waterTileIds.addAll(Arrays.asList(...));
