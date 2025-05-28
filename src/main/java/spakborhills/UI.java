@@ -59,7 +59,6 @@ public class UI {
     public int cookingCommandNum = 0;
     public int cookingSubState = 0;
 
-
     private List<String> currentDialogueLines;
     public int dialogueCurrentPage;
     private int dialogueLinesPerPage;
@@ -129,22 +128,8 @@ public class UI {
             drawLocationHUD(g2);
             drawEnergyBar(g2);
             drawPlayerGold();
-            // Original message drawing during playState is now fully handled by drawTimedMessage
-            // if (messageOn) {
-            //     g2.setFont(g2.getFont().deriveFont(20F));
-            //     g2.setColor(Color.YELLOW);
-            //     int messageX = gp.tileSize / 2;
-            //     int messageY = gp.tileSize * 2;
-            //     g2.drawString(message, messageX, messageY);
-
-            //     messageCounter++;
-            //     if (messageCounter > 120) {
-            //         messageCounter = 0;
-            //         messageOn = false;
-            //         message = "";
-            //     }
-            // }
-            drawTimedMessage(g2); // Call drawTimedMessage here as well if you want it in playState too
+            drawFarmNameHUD(g2);
+            drawTimedMessage(g2);
         } else if (gp.gameState == gp.pauseState) {
             drawPauseScreen();
         } else if (gp.gameState == gp.dialogueState) {
@@ -160,15 +145,14 @@ public class UI {
         } else if (gp.gameState == gp.cookingState) {
             drawCookingScreen();
             drawTimedMessage(g2);
-        } else if (gp.gameState == gp.buyingState){
+        } else if (gp.gameState == gp.buyingState) {
             drawBuyingScreen();
-        }   else if (gp.gameState == gp.fishingMinigameState) {
+        } else if (gp.gameState == gp.fishingMinigameState) {
             drawFishingMinigameScreen(g2);
         } else if (gp.gameState == gp.endGameState) {
             drawEndGameStatisticsScreen(g2);
         }
     }
-
 
     public void drawFishingMinigameScreen(Graphics2D g2) {
 
@@ -182,11 +166,11 @@ public class UI {
         Font baseFont = pressStart != null ? pressStart : new Font("Arial", Font.PLAIN, 12);
         int currentTextY = frameY + gp.tileSize;
 
-
         g2.setFont(baseFont.deriveFont(Font.PLAIN, 14F));
         if (gp.player.fishingInfoMessage != null && !gp.player.fishingInfoMessage.isEmpty()) {
 
-            List<String> infoLines = wrapText(gp.player.fishingInfoMessage, frameWidth - gp.tileSize, g2.getFontMetrics());
+            List<String> infoLines = wrapText(gp.player.fishingInfoMessage, frameWidth - gp.tileSize,
+                    g2.getFontMetrics());
             for (String line : infoLines) {
                 int lineX = getXForCenteredTextInFrame(line, frameX, frameWidth);
                 g2.drawString(line, lineX, currentTextY);
@@ -194,7 +178,6 @@ public class UI {
             }
         }
         currentTextY += gp.tileSize / 2;
-
 
         g2.setFont(baseFont.deriveFont(Font.BOLD, 16F));
         String displayInput = gp.player.fishingPlayerInput;
@@ -207,7 +190,6 @@ public class UI {
         g2.drawString(displayInput, inputX, currentTextY);
         currentTextY += gp.tileSize;
 
-
         g2.setFont(baseFont.deriveFont(Font.ITALIC, 14F));
         if (gp.player.fishingFeedbackMessage != null && !gp.player.fishingFeedbackMessage.isEmpty()) {
             int feedbackX = getXForCenteredTextInFrame(gp.player.fishingFeedbackMessage, frameX, frameWidth);
@@ -215,20 +197,17 @@ public class UI {
         }
         currentTextY += gp.tileSize / 2;
 
-
         g2.setFont(baseFont.deriveFont(Font.PLAIN, 12F));
         int attemptsLeft = gp.player.fishingMaxTry - gp.player.fishingCurrentAttempts;
         String attemptsText = "Percobaan tersisa: " + attemptsLeft + "/" + gp.player.fishingMaxTry;
         int attemptsX = frameX + gp.tileSize / 2;
-        g2.drawString(attemptsText, attemptsX, frameY + frameHeight - gp.tileSize + 15 );
-
+        g2.drawString(attemptsText, attemptsX, frameY + frameHeight - gp.tileSize + 15);
 
         g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
         String instructions = "[0-9] Angka | [Enter] Tebak | [Backspace] Hapus | [Esc] Menyerah";
         int instructionX = getXForCenteredTextInFrame(instructions, frameX, frameWidth);
-        g2.drawString(instructions, instructionX, frameY + frameHeight - gp.tileSize / 2 );
+        g2.drawString(instructions, instructionX, frameY + frameHeight - gp.tileSize / 2);
     }
-
 
     private List<String> wrapText(String text, int maxWidth, FontMetrics fm) {
         List<String> lines = new ArrayList<>();
@@ -279,7 +258,7 @@ public class UI {
 
         int padding = 10;
         int x = gp.screenWidth - textWidth - coinSize - padding * 2;
-        int y = padding * 8;
+        int y = padding * 10;
 
         InputStream inputStream = getClass().getResourceAsStream("/objects/gold.png");
         BufferedImage coinImage;
@@ -293,6 +272,60 @@ public class UI {
 
         x += coinSize + 5;
         g2.drawString(goldText, x, y);
+    }
+
+    public void drawFarmNameHUD(Graphics2D g2) {
+        if (gp.gameState != gp.playState || gp.player == null) {
+            return;
+        }
+
+        String currentLocation = gp.player.getLocation();
+        boolean isInFarm = false;
+
+        if (currentLocation != null && currentLocation.equalsIgnoreCase("Farm")) {
+            isInFarm = true;
+        } else {
+
+            if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
+                String mapName = gp.mapInfos.get(gp.currentMapIndex).getMapName();
+                if (mapName != null && mapName.equalsIgnoreCase("Farm")) {
+                    isInFarm = true;
+                }
+            }
+        }
+
+        if (!isInFarm) {
+            return;
+        }
+
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 15F));
+        g2.setColor(Color.WHITE);
+
+        String farmName = gp.player.getFarmName();
+        if (farmName == null || farmName.trim().isEmpty()) {
+            farmName = "Unnamed Farm";
+        }
+
+        String farmText = farmName;
+        FontMetrics fm = g2.getFontMetrics();
+        int textWidth = fm.stringWidth(farmText);
+        int textHeight = fm.getHeight();
+
+        int padding = 10;
+        int x = padding;
+        int y = gp.screenHeight - padding;
+
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.fillRoundRect(
+                x - 8,
+                y - textHeight + fm.getDescent() - 5,
+                textWidth + 16,
+                textHeight + 10,
+                15,
+                15);
+
+        g2.setColor(Color.WHITE);
+        g2.drawString(farmText, x, y);
     }
 
     public void drawTitleScreen() {
@@ -581,7 +614,6 @@ public class UI {
         int lineHeight = fm.getHeight() + 3;
         int currentY = startY + fm.getAscent();
 
-
         if (gp.currentInteractingNPC != null && gp.currentInteractingNPC.name != null
                 && !gp.currentInteractingNPC.name.isEmpty()) {
             Font currentFont = g2.getFont();
@@ -599,16 +631,13 @@ public class UI {
                 dialogueCurrentPage = 0;
             }
 
-
             int availableHeight = maxHeight - currentY;
             int maxDisplayableLines = availableHeight / lineHeight - 1;
             dialogueLinesPerPage = Math.max(1, maxDisplayableLines);
 
-
             int totalPages = (int) Math.ceil((double) currentDialogueLines.size() / dialogueLinesPerPage);
             int startLineIndex = dialogueCurrentPage * dialogueLinesPerPage;
             int endLineIndex = Math.min(startLineIndex + dialogueLinesPerPage, currentDialogueLines.size());
-
 
             for (int i = startLineIndex; i < endLineIndex; i++) {
                 String line = currentDialogueLines.get(i);
@@ -629,7 +658,6 @@ public class UI {
                 currentY += lineHeight;
             }
 
-
             g2.setFont(pressStart.deriveFont(Font.PLAIN, 12F));
             g2.setColor(Color.LIGHT_GRAY);
             if (totalPages > 1) {
@@ -638,7 +666,6 @@ public class UI {
                 int pageInfoX = dialogueContentX;
                 int pageInfoY = y + height - textPadding - 25;
                 g2.drawString(pageInfo, pageInfoX, pageInfoY);
-
 
                 String navHint = "";
                 if (dialogueCurrentPage > 0 && dialogueCurrentPage < totalPages - 1) {
@@ -653,8 +680,6 @@ public class UI {
                     FontMetrics hintFm = g2.getFontMetrics();
                     int maxHintWidth = width - pageInfo.length() * 8 - textPadding * 2;
 
-
-
                     if (hintFm.stringWidth(navHint) > maxHintWidth) {
                         int navHintX = dialogueContentX;
                         int navHintY = pageInfoY + 15;
@@ -665,8 +690,7 @@ public class UI {
                         g2.drawString(navHint, navHintX, pageInfoY);
                     }
                 }
-            }
-            else {
+            } else {
                 String continueText = "Press ENTER to continue...";
                 int continueX = x + width - fm.stringWidth(continueText) - textPadding;
                 int continueY = y + height - textPadding;
@@ -730,13 +754,11 @@ public class UI {
         }
     }
 
-
     private String lastProcessedDialogue = "";
 
     private String getLastProcessedDialogue() {
         return lastProcessedDialogue;
     }
-
 
     public void drawSubWindow(int x, int y, int width, int height) {
         Color c = new Color(0, 0, 0, 210);
@@ -940,7 +962,6 @@ public class UI {
             return;
         NPC npc = (NPC) gp.currentInteractingNPC;
 
-
         List<String> options = new ArrayList<>();
         options.add("Chat");
         options.add("Give Gift");
@@ -956,17 +977,14 @@ public class UI {
         }
         options.add("Leave");
 
-
         int frameX = gp.tileSize * 2;
         int frameY = gp.screenHeight / 2 - gp.tileSize * 2;
         int frameWidth = gp.tileSize * 6;
-
 
         int titleHeight = gp.tileSize;
         int optionHeight = gp.tileSize * options.size();
         int padding = gp.tileSize / 2;
         int frameHeight = titleHeight + optionHeight + padding * 2;
-
 
         if (frameY + frameHeight > gp.screenHeight) {
             frameY = gp.screenHeight - frameHeight - gp.tileSize / 2;
@@ -985,12 +1003,10 @@ public class UI {
         g2.setColor(Color.white);
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 18F));
 
-
         String title = npc.name;
         int titleX = getXForCenteredTextInFrame(title, frameX, frameWidth);
         int titleY = frameY + gp.tileSize / 2 + 15;
         g2.drawString(title, titleX, titleY);
-
 
         int textX = frameX + gp.tileSize / 2;
         int textY = titleY + gp.tileSize / 2 + 10;
@@ -999,7 +1015,6 @@ public class UI {
 
         for (int i = 0; i < options.size(); i++) {
             int currentY = textY + (i * lineSpacing);
-
 
             if (currentY > frameY + frameHeight - gp.tileSize / 2) {
                 break;
@@ -1013,7 +1028,6 @@ public class UI {
                 g2.drawString("  " + options.get(i), textX, currentY);
             }
         }
-
 
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 10F));
         g2.setColor(Color.LIGHT_GRAY);
@@ -1122,21 +1136,20 @@ public class UI {
 
     private void drawTimedMessage(Graphics2D g2) {
         if (messageOn && this.message != null && !this.message.isEmpty()) {
-            // Untuk mengatur ukuran font, ubah nilai timedMessageFontSize di deklarasi variabel kelas UI
-            // Jika font silkScreen hanya memiliki karakter uppercase, maka pesan akan tampil uppercase.
+
             float timedMessageFontSize = 15F;
-            Font messageFont = (silkScreen != null) ? silkScreen.deriveFont(Font.PLAIN, timedMessageFontSize) : new Font("Arial", Font.PLAIN, (int) timedMessageFontSize);
+            Font messageFont = (silkScreen != null) ? silkScreen.deriveFont(Font.PLAIN, timedMessageFontSize)
+                    : new Font("Arial", Font.PLAIN, (int) timedMessageFontSize);
             g2.setFont(messageFont);
             FontMetrics fm = g2.getFontMetrics(messageFont);
 
-            int textPadding = 15; // Padding antara teks dan garis hitam tipis
-            int innerLinePadding = 3; // Jarak antara garis hitam tipis dan border coklat luar
-            int outerBorderThickness = 4; // Ketebalan border coklat luar
+            int textPadding = 15;
+            int innerLinePadding = 3;
+            int outerBorderThickness = 4;
 
-            int maxContentWidth = gp.screenWidth - (gp.tileSize * 6) - (textPadding * 2) - (innerLinePadding * 2) - (outerBorderThickness * 2);
+            int maxContentWidth = gp.screenWidth - (gp.tileSize * 6) - (textPadding * 2) - (innerLinePadding * 2)
+                    - (outerBorderThickness * 2);
 
-
-            // --- Text Wrapping Logic ---
             List<String> lines = new ArrayList<>();
             String[] paragraphs = this.message.split("\\n");
             for (String paragraph : paragraphs) {
@@ -1149,22 +1162,25 @@ public class UI {
                 for (String word : words) {
                     String testLine = currentLine.length() > 0 ? currentLine.toString() + " " + word : word;
                     if (fm.stringWidth(testLine) <= maxContentWidth) {
-                        if (currentLine.length() > 0) currentLine.append(" ");
+                        if (currentLine.length() > 0)
+                            currentLine.append(" ");
                         currentLine.append(word);
                     } else {
-                        if (currentLine.length() > 0) lines.add(currentLine.toString());
+                        if (currentLine.length() > 0)
+                            lines.add(currentLine.toString());
                         currentLine = new StringBuilder(word);
                         while (fm.stringWidth(currentLine.toString()) > maxContentWidth && currentLine.length() > 1) {
-                            String part = currentLine.substring(0, currentLine.length() -1 );
+                            String part = currentLine.substring(0, currentLine.length() - 1);
                             lines.add(part + "-");
-                            currentLine = new StringBuilder(currentLine.substring(currentLine.length()-1));
-                            if(fm.stringWidth(currentLine.toString()) <= maxContentWidth) break;
+                            currentLine = new StringBuilder(currentLine.substring(currentLine.length() - 1));
+                            if (fm.stringWidth(currentLine.toString()) <= maxContentWidth)
+                                break;
                         }
                     }
                 }
-                if (currentLine.length() > 0) lines.add(currentLine.toString());
+                if (currentLine.length() > 0)
+                    lines.add(currentLine.toString());
             }
-            // --- End Text Wrapping Logic ---
 
             int maxLinesToDisplay = 7;
             List<String> displayLines = lines;
@@ -1180,57 +1196,45 @@ public class UI {
             }
             actualContentWidth = Math.min(actualContentWidth, maxContentWidth);
 
-            // Dimensi untuk area teks utama (latar coklat terang)
             int mainContentBoxWidth = actualContentWidth + (textPadding * 2);
-            int mainContentBoxHeight = displayLines.size() * lineHeight + (textPadding * 2) - (displayLines.isEmpty() ? 0 : 4);
+            int mainContentBoxHeight = displayLines.size() * lineHeight + (textPadding * 2)
+                    - (displayLines.isEmpty() ? 0 : 4);
 
-            // Dimensi untuk area termasuk garis hitam tipis
             int blackLineAreaWidth = mainContentBoxWidth + (innerLinePadding * 2);
             int blackLineAreaHeight = mainContentBoxHeight + (innerLinePadding * 2);
 
-            // Dimensi untuk keseluruhan box termasuk border coklat luar
             int totalBoxWidth = blackLineAreaWidth + (outerBorderThickness * 2);
             int totalBoxHeight = blackLineAreaHeight + (outerBorderThickness * 2);
 
-            // Posisi untuk keseluruhan box (tengah layar, lebih ke atas lagi)
             int totalBoxX = (gp.screenWidth - totalBoxWidth) / 2;
-            int totalBoxY = (gp.screenHeight / 3) - (totalBoxHeight / 2) - gp.tileSize; // Naikkan lagi sedikit
-            if (totalBoxY < gp.tileSize / 2 ) totalBoxY = gp.tileSize / 2;
+            int totalBoxY = (gp.screenHeight / 3) - (totalBoxHeight / 2) - gp.tileSize;
+            if (totalBoxY < gp.tileSize / 2)
+                totalBoxY = gp.tileSize / 2;
 
-
-            // Posisi turunan
             int blackLineAreaX = totalBoxX + outerBorderThickness;
             int blackLineAreaY = totalBoxY + outerBorderThickness;
 
             int mainContentBoxX = blackLineAreaX + innerLinePadding;
             int mainContentBoxY = blackLineAreaY + innerLinePadding;
 
-            // Warna-warna
-            Color stardewOuterBorder = new Color(101, 67, 33); // Coklat tua untuk border luar
+            Color stardewOuterBorder = new Color(101, 67, 33);
             Color stardewThinBlackLine = Color.BLACK;
-            Color stardewMainBackground = new Color(245, 222, 179); // Warna coklat terang (Wheat)
+            Color stardewMainBackground = new Color(245, 222, 179);
             Color stardewTextColor = Color.BLACK;
 
-            // 1. Gambar border luar paling tebal (coklat tua)
             g2.setColor(stardewOuterBorder);
             g2.fillRoundRect(totalBoxX, totalBoxY, totalBoxWidth, totalBoxHeight, 10, 10);
 
-            // 2. Gambar latar belakang untuk area garis hitam (sebenarnya ini adalah latar utama yg sedikit lebih kecil dari border luar)
-            // Tidak perlu digambar terpisah jika strukturnya fill, karena langkah 3 akan menimpanya.
-            // Cukup pastikan mainContentBox digambar di atasnya.
-
-            // 3. Gambar latar belakang utama pesan (coklat terang)
             g2.setColor(stardewMainBackground);
             g2.fillRoundRect(mainContentBoxX, mainContentBoxY, mainContentBoxWidth, mainContentBoxHeight, 6, 6);
 
-            // 4. Gambar garis hitam tipis di sekeliling latar belakang utama pesan
             g2.setColor(stardewThinBlackLine);
-            g2.setStroke(new BasicStroke(1)); // Garis tipis 1px
-            g2.drawRoundRect(mainContentBoxX -1, mainContentBoxY -1, mainContentBoxWidth +2, mainContentBoxHeight +2, 7, 7); // Sedikit offset agar garis pas
+            g2.setStroke(new BasicStroke(1));
+            g2.drawRoundRect(mainContentBoxX - 1, mainContentBoxY - 1, mainContentBoxWidth + 2,
+                    mainContentBoxHeight + 2, 7, 7);
 
-            g2.setStroke(new BasicStroke(1)); // Reset stroke
+            g2.setStroke(new BasicStroke(1));
 
-            // 5. Gambar teks
             g2.setColor(stardewTextColor);
             int currentTextY = mainContentBoxY + textPadding + fm.getAscent();
             for (String line : displayLines) {
@@ -1402,8 +1406,9 @@ public class UI {
 
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 13F));
 
-        String[] labels = { "Time:", "Season:", "Weather:" };
+        String[] labels = { "Day:", "Time:", "Season:", "Weather:" };
         String[] values = {
+                String.valueOf(gameClock.getTime().getDay()),
                 gameClock.getFormattedTime(),
                 gameClock.getCurrentSeason().name(),
                 gameClock.getWeather().getWeatherName()
@@ -1450,10 +1455,8 @@ public class UI {
     public void drawLocationHUD(Graphics2D g2) {
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 20F));
 
-
         String currentLocation = "Unknown";
 
-        // DEBUG: Print semua informasi yang tersedia
         System.out.println("[UI] DEBUG - drawLocationHUD called");
         System.out.println("[UI] DEBUG - currentMapIndex: " + gp.currentMapIndex);
 
@@ -1464,7 +1467,6 @@ public class UI {
             if (playerLocation != null && !playerLocation.isEmpty() && !playerLocation.equals("Unknown")) {
                 currentLocation = playerLocation;
             } else {
-                // Fallback: gunakan map name dari current map index
 
                 if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
                     String mapName = gp.mapInfos.get(gp.currentMapIndex).getMapName();
@@ -1536,7 +1538,6 @@ public class UI {
         int itemListWidth = usableWidth * 2 / 5;
         int detailAreaWidth = usableWidth * 3 / 5 - padding;
 
-
         int detailsStartX = listStartX + itemListWidth + padding;
         int maxDetailWidth = Math.min(detailAreaWidth, frameX + frameWidth - detailsStartX - padding);
 
@@ -1570,8 +1571,6 @@ public class UI {
                     g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
                     g2.drawString("> " + displayText, listStartX, currentY);
 
-
-
                     int detailBackgroundHeight = gp.tileSize * 2 + 40;
                     g2.setColor(new Color(50, 50, 50, 150));
                     g2.fillRoundRect(detailsStartX - 10, listStartY - 10,
@@ -1579,7 +1578,6 @@ public class UI {
                     g2.setColor(Color.WHITE);
                     g2.drawRoundRect(detailsStartX - 10, listStartY - 10,
                             maxDetailWidth + 20, detailBackgroundHeight, 10, 10);
-
 
                     int imageSize = gp.tileSize;
                     if (shopItem.down1 != null) {
@@ -1594,11 +1592,9 @@ public class UI {
                         g2.drawString("Image", detailsStartX + 5, listStartY + imageSize / 2 + 12);
                     }
 
-
                     int textStartX = detailsStartX + imageSize + 15;
                     int textStartY = listStartY + 20;
                     int maxTextWidth = maxDetailWidth - imageSize - 25;
-
 
                     if (textStartX + maxTextWidth > frameX + frameWidth - padding) {
                         maxTextWidth = frameX + frameWidth - padding - textStartX;
@@ -1606,7 +1602,6 @@ public class UI {
 
                     g2.setColor(Color.WHITE);
                     g2.setFont(baseFont.deriveFont(Font.BOLD, 14F));
-
 
                     String displayName = shopItem.name;
                     FontMetrics fm = g2.getFontMetrics();
@@ -1626,7 +1621,6 @@ public class UI {
                     g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
                     String itemInfo = "";
 
-
                     if (fm.stringWidth(itemInfo) > maxTextWidth) {
                         while (fm.stringWidth(itemInfo + "...") > maxTextWidth && itemInfo.length() > 1) {
                             itemInfo = itemInfo.substring(0, itemInfo.length() - 1);
@@ -1638,7 +1632,6 @@ public class UI {
                 } else {
                     g2.setColor(Color.WHITE);
                     g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
-
 
                     FontMetrics fm = g2.getFontMetrics();
                     if (fm.stringWidth(displayText) > itemListWidth - 30) {
@@ -1652,20 +1645,17 @@ public class UI {
             }
         }
 
-
         g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
         g2.setColor(Color.WHITE);
         String instructions = "[Up/Down] Select | [Enter] Buy | [Esc] Exit";
         g2.drawString(instructions, listStartX, frameY + frameHeight - padding);
     }
 
-
     public void resetDialoguePagination() {
         currentDialogueLines.clear();
         dialogueCurrentPage = 0;
         lastProcessedDialogue = "";
     }
-
 
     public List<String> getCurrentDialogueLines() {
         return currentDialogueLines;
@@ -1683,8 +1673,6 @@ public class UI {
         return dialogueLinesPerPage;
     }
 
-
-
     public void drawEndGameStatisticsScreen(Graphics2D g2) {
 
         drawSharedBackground(g2);
@@ -1698,7 +1686,6 @@ public class UI {
         int titleY = gp.tileSize;
         g2.drawString(title, titleX, titleY);
 
-
         Font headerFont = pressStart.deriveFont(Font.BOLD, 12F);
         Font statTextFont = pressStart.deriveFont(Font.PLAIN, 8F);
         Font npcNameFont = pressStart.deriveFont(Font.BOLD, 9F);
@@ -1711,7 +1698,6 @@ public class UI {
         int totalUsableWidth = gp.screenWidth - (paddingHorizontal * 2);
         int columnWidth = (totalUsableWidth - (paddingHorizontal * 2)) / 3;
 
-
         class StatDrawer {
             private int currentY;
             private int startX;
@@ -1721,7 +1707,8 @@ public class UI {
             private final int lht;
             private final int lhs;
 
-            public StatDrawer(Graphics2D g, int startX, int startY, Font headerFont, Font textFont, int lineHeightText, int lineHeightSection) {
+            public StatDrawer(Graphics2D g, int startX, int startY, Font headerFont, Font textFont, int lineHeightText,
+                    int lineHeightSection) {
                 this.g = g;
                 this.startX = startX;
                 this.currentY = startY;
@@ -1757,19 +1744,30 @@ public class UI {
                 g.setFont(hFont);
                 g.setColor(new Color(255, 215, 0));
                 g.drawString(header, startX, currentY);
-                currentY += (int)(lht * 1.2);
+                currentY += (int) (lht * 1.2);
                 g.setColor(Color.WHITE);
             }
 
-            public int getCurrentY() { return currentY; }
-            public void advanceY(double multiplier) { currentY += (int)(lht * multiplier); }
-            public void setCurrentY(int y) { this.currentY = y; }
-            public void setStartX(int x) { this.startX = x; }
+            public int getCurrentY() {
+                return currentY;
+            }
+
+            public void advanceY(double multiplier) {
+                currentY += (int) (lht * multiplier);
+            }
+
+            public void setCurrentY(int y) {
+                this.currentY = y;
+            }
+
+            public void setStartX(int x) {
+                this.startX = x;
+            }
         }
 
-
         int statStartXCol1 = paddingHorizontal;
-        StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont, lineHeight, sectionSpacing);
+        StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont, lineHeight,
+                sectionSpacing);
 
         statsDrawer.drawHeader("~ General ~");
         if (gp.gameClock != null && gp.gameClock.getTime() != null && gp.player != null) {
@@ -1795,13 +1793,14 @@ public class UI {
 
                 Font italicFont = statTextFont.deriveFont(Font.ITALIC, 8F);
                 g2.setFont(italicFont);
-                statsDrawer.drawStat(String.format("%s Inc (x%d)", season.name().substring(0,3), timesPlayed), String.format("%.0fG", avgIncome));
-                statsDrawer.drawStat(String.format("%s Exp (x%d)", season.name().substring(0,3), timesPlayed), String.format("%.0fG", avgExpenditure));
+                statsDrawer.drawStat(String.format("%s Inc (x%d)", season.name().substring(0, 3), timesPlayed),
+                        String.format("%.0fG", avgIncome));
+                statsDrawer.drawStat(String.format("%s Exp (x%d)", season.name().substring(0, 3), timesPlayed),
+                        String.format("%.0fG", avgExpenditure));
             }
         } else {
             statsDrawer.drawStat("Financial Data", "N/A");
         }
-
 
         int statStartXCol2 = statStartXCol1 + columnWidth + paddingHorizontal;
         statsDrawer.setStartX(statStartXCol2);
@@ -1824,7 +1823,6 @@ public class UI {
             statsDrawer.drawStat("Fishing Data", "N/A");
         }
 
-
         int statStartXCol3 = statStartXCol2 + columnWidth + paddingHorizontal;
         statsDrawer.setStartX(statStartXCol3);
         statsDrawer.setCurrentY(contentStartY);
@@ -1835,7 +1833,8 @@ public class UI {
         } else {
             boolean npcDataAvailable = false;
             for (NPC npc : gp.allNpcsInWorld) {
-                if (npc == null || gp.player == null) continue;
+                if (npc == null || gp.player == null)
+                    continue;
                 npcDataAvailable = true;
 
                 g2.setFont(npcNameFont);
@@ -1849,8 +1848,10 @@ public class UI {
 
                 if (npc.isMarriageCandidate) {
                     String marriageStatus = "Single";
-                    if (npc.marriedToPlayer) marriageStatus = "Married to You";
-                    else if (npc.engaged) marriageStatus = "Engaged";
+                    if (npc.marriedToPlayer)
+                        marriageStatus = "Married to You";
+                    else if (npc.engaged)
+                        marriageStatus = "Engaged";
                     statsDrawer.drawStat(" Status", marriageStatus);
                 }
                 statsDrawer.advanceY(0.3);
@@ -1860,7 +1861,6 @@ public class UI {
                 statsDrawer.drawStat("No valid NPC data", "");
             }
         }
-
 
         int exitY = gp.screenHeight - 25;
         String exitMessage = "Press ENTER to Continue Playing | Press ESC to Return to Menu";
