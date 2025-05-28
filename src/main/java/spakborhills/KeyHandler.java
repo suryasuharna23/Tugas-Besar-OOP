@@ -1,4 +1,3 @@
-// File: spakborhills/KeyHandler.java
 package spakborhills;
 
 import java.awt.event.KeyEvent;
@@ -40,9 +39,9 @@ public class KeyHandler implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
-        // Game State: Title Screen
+
         if (gp.gameState == gp.titleState) {
-            if (gp.ui.mapSelectionState == 0) { // Main title options
+            if (gp.ui.mapSelectionState == 0) {
                 if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                     gp.ui.commandNumber--;
                     if (gp.ui.commandNumber < 0) {
@@ -54,19 +53,19 @@ public class KeyHandler implements KeyListener {
                         gp.ui.commandNumber = 0;
                     }
                 } else if (code == KeyEvent.VK_ENTER) {
-                    if (gp.ui.commandNumber == 0) { // New Game
+                    if (gp.ui.commandNumber == 0) {
                         gp.gameState = gp.playerNameInputState;
                         gp.ui.playerNameInput = "";
                         if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                             gp.gameClock.pauseTime();
                         }
-                    } else if (gp.ui.commandNumber == 1) { // Load Game
+                    } else if (gp.ui.commandNumber == 1) {
                         gp.ui.showMessage("Load Game (Not Implemented Yet)");
-                    } else if (gp.ui.commandNumber == 2) { // Quit
+                    } else if (gp.ui.commandNumber == 2) {
                         System.exit(0);
                     }
                 }
-            } else if (gp.ui.mapSelectionState == 1) { // World Map Selection
+            } else if (gp.ui.mapSelectionState == 1) {
                 if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                     gp.ui.commandNumber--;
                     if (gp.ui.commandNumber < 0) {
@@ -81,7 +80,6 @@ public class KeyHandler implements KeyListener {
                     if (gp.ui.commandNumber >= 0 && gp.ui.commandNumber < gp.mapInfos.size()) {
                         System.out.println("DEBUG: KeyHandler - Map Selected Index: " + gp.ui.commandNumber);
                         gp.loadMapbyIndex(gp.ui.commandNumber);
-                        // gp.gameState = gp.playState; // loadMapByIndex akan mengatur ini
                         if (gp.gameClock != null && gp.gameClock.isPaused()) {
                             gp.gameClock.resumeTime();
                         }
@@ -92,19 +90,15 @@ public class KeyHandler implements KeyListener {
                 }
             }
         }
-        // Game State: Player Name Input
         else if (gp.gameState == gp.playerNameInputState) {
             handlePlayerNameInput(code, e.getKeyChar());
         }
-        // Game State: Farm Name Input
         else if (gp.gameState == gp.farmNameInputState) {
             handleFarmNameInput(code, e.getKeyChar());
         }
-        // Game State: NPC Interaction Menu
         else if (gp.gameState == gp.interactionMenuState) {
             handleNPCInteractionMenuInput(code);
         }
-        // Game State: Play
         else if (gp.gameState == gp.playState) {
             if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) upPressed = true;
             else if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) leftPressed = true;
@@ -112,9 +106,11 @@ public class KeyHandler implements KeyListener {
             else if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) rightPressed = true;
             else if (code == KeyEvent.VK_P) {
                 gp.gameState = gp.pauseState;
-                if (gp.gameClock != null) gp.gameClock.pauseTime();
-            } else if (code == KeyEvent.VK_ENTER) enterPressed = true;
-            else if (code == KeyEvent.VK_M) {
+                if (gp.gameClock != null)
+                    gp.gameClock.pauseTime();
+            } else if (code == KeyEvent.VK_ENTER) {
+                enterPressed = true;
+            } else if (code == KeyEvent.VK_M) {
                 gp.gameState = gp.titleState;
                 gp.ui.mapSelectionState = 1;
                 gp.ui.commandNumber = gp.currentMapIndex != -1 ? gp.currentMapIndex : 0;
@@ -123,12 +119,17 @@ public class KeyHandler implements KeyListener {
                 }
             } else if (code == KeyEvent.VK_K) {
                 gp.player.startFishing();
-            } else if (code == KeyEvent.VK_E) eatPressed = true;
-            else if (code == KeyEvent.VK_R) new TillingCommand(gp.player).execute(gp);
-            else if (code == KeyEvent.VK_T) new RecoverLandCommand(gp.player).execute(gp);
-            else if (code == KeyEvent.VK_G) new WateringCommand(gp.player).execute(gp);
-            else if (code == KeyEvent.VK_F) new PlantingCommand(gp.player).execute(gp);
-            else if (code == KeyEvent.VK_I) {
+            } else if (code == KeyEvent.VK_E) {
+                eatPressed = true;
+            } else if (code == KeyEvent.VK_R) {
+                new TillingCommand(gp.player).execute(gp);
+            } else if (code == KeyEvent.VK_T) {
+                new RecoverLandCommand(gp.player).execute(gp);
+            } else if (code == KeyEvent.VK_G) {
+                new WateringCommand(gp.player).execute(gp);
+            } else if (code == KeyEvent.VK_F) {
+                new PlantingCommand(gp.player).execute(gp);
+            } else if (code == KeyEvent.VK_I) {
                 if (gp.player != null) {
                     gp.gameState = gp.inventoryState;
                     gp.ui.inventoryCommandNum = 0;
@@ -139,62 +140,145 @@ public class KeyHandler implements KeyListener {
                 }
             }
         }
-        // Game State: Pause
         else if (gp.gameState == gp.pauseState) {
             if (code == KeyEvent.VK_P) {
                 gp.gameState = gp.playState;
                 if (gp.gameClock != null) gp.gameClock.resumeTime();
             }
         }
-        // Game State: Dialogue
         else if (gp.gameState == gp.dialogueState) {
-            if (code == KeyEvent.VK_ENTER) {
-                if (gp.currentInteractingNPC != null && gp.currentInteractingNPC instanceof NPC) {
+
+            if (code == KeyEvent.VK_UP) {
+
+                if (gp.ui.getDialogueCurrentPage() > 0) {
+                    gp.ui.setDialogueCurrentPage(gp.ui.getDialogueCurrentPage() - 1);
+                    return;
+                }
+            } else if (code == KeyEvent.VK_DOWN) {
+
+                int totalPages = (int) Math
+                        .ceil((double) gp.ui.getCurrentDialogueLines().size() / gp.ui.getDialogueLinesPerPage());
+                if (gp.ui.getDialogueCurrentPage() < totalPages - 1) {
+                    gp.ui.setDialogueCurrentPage(gp.ui.getDialogueCurrentPage() + 1);
+                    return;
+                }
+            } else if (code == KeyEvent.VK_ENTER) {
+
+                int totalPages = (int) Math
+                        .ceil((double) gp.ui.getCurrentDialogueLines().size() / gp.ui.getDialogueLinesPerPage());
+                if (gp.ui.getDialogueCurrentPage() < totalPages - 1) {
+
+                    gp.ui.setDialogueCurrentPage(gp.ui.getDialogueCurrentPage() + 1);
+                    return;
+                }
+
+
+                System.out.println("[KeyHandler - dialogueState] ENTER pressed. CurrentDialogue: \""
+                        + gp.ui.currentDialogue + "\", CurrentInteractingNPC: "
+                        + (gp.currentInteractingNPC != null ? gp.currentInteractingNPC.name : "null"));
+
+                boolean isOneShotDialogue = false;
+                if (gp.ui.currentDialogue != null) {
+                    if (gp.ui.currentDialogue.contains("(HP:") ||
+                            gp.ui.currentDialogue.contains("Thank you") ||
+                            gp.ui.currentDialogue.contains("Makasih") ||
+                            gp.ui.currentDialogue.contains("sangat suka") ||
+                            (gp.currentInteractingNPC != null && gp.currentInteractingNPC instanceof NPC &&
+                                    (gp.ui.currentDialogue
+                                            .equals(((NPC) gp.currentInteractingNPC).proposalAcceptedDialogue) ||
+                                            gp.ui.currentDialogue.startsWith(
+                                                    ((NPC) gp.currentInteractingNPC).proposalRejectedDialogue_LowHearts)
+                                            ||
+                                            gp.ui.currentDialogue
+                                                    .equals(((NPC) gp.currentInteractingNPC).marriageDialogue)
+                                            ||
+                                            gp.ui.currentDialogue
+                                                    .equals(((NPC) gp.currentInteractingNPC).alreadyMarriedDialogue)
+                                            ||
+                                            gp.ui.currentDialogue
+                                                    .equals(((NPC) gp.currentInteractingNPC).notEngagedDialogue)
+                                            ||
+                                            gp.ui.currentDialogue
+                                                    .equals(((NPC) gp.currentInteractingNPC).alreadyGiftedDialogue)))) {
+                        isOneShotDialogue = true;
+                    }
+                }
+
+                if (gp.currentInteractingNPC != null && isOneShotDialogue) {
+                    System.out.println(
+                            "[KeyHandler - dialogueState] Detected one-shot NPC dialogue. Returning to interactionMenuState.");
+                    if (gp.currentInteractingNPC instanceof NPC) {
+                        ((NPC) gp.currentInteractingNPC).dialogueIndex = 0;
+                    }
+                    gp.gameState = gp.interactionMenuState;
+                } else if (gp.currentInteractingNPC != null && gp.currentInteractingNPC instanceof NPC) {
                     NPC npc = (NPC) gp.currentInteractingNPC;
-                    if (npc.dialogueIndex < npc.dialogues.size() - 1) {
-                        npc.dialogueIndex++;
-                        gp.ui.currentDialogue = npc.dialogues.get(npc.dialogueIndex);
+
+                    if (npc.dialogues != null && !npc.dialogues.isEmpty()) {
+                        if (npc.dialogueIndex < npc.dialogues.size() - 1
+                                && npc.dialogues.contains(gp.ui.currentDialogue)) {
+                            npc.dialogueIndex++;
+                            gp.ui.currentDialogue = npc.dialogues.get(npc.dialogueIndex);
+                            System.out.println(
+                                    "[KeyHandler - dialogueState] Advanced NPC chat to: " + gp.ui.currentDialogue);
+
+                            gp.ui.resetDialoguePagination();
+                        } else {
+                            npc.dialogueIndex = 0;
+                            System.out.println(
+                                    "[KeyHandler - dialogueState] End of NPC chat. Returning to interactionMenuState.");
+                            gp.gameState = gp.interactionMenuState;
+                        }
                     } else {
                         npc.dialogueIndex = 0;
-                        gp.gameState = gp.playState;
-                        if (gp.gameClock != null && gp.gameClock.isPaused()) {
-                            gp.gameClock.resumeTime();
-                        }
+                        System.out.println(
+                                "[KeyHandler - dialogueState] NPC has no generic dialogues. Returning to interactionMenuState.");
+                        gp.gameState = gp.interactionMenuState;
                     }
                 } else {
+                    System.out.println(
+                            "[KeyHandler - dialogueState] General dialogue. Returning to playState.");
                     gp.gameState = gp.playState;
+                }
+
+
+                if (gp.gameState != gp.dialogueState) {
                     if (gp.gameClock != null && gp.gameClock.isPaused()) {
                         gp.gameClock.resumeTime();
                     }
+                    gp.ui.currentDialogue = "";
+                    gp.ui.resetDialoguePagination();
                 }
-                gp.ui.messageOn = false;
-                gp.ui.message = "";
+                enterPressed = false;
+
+            } else if (code == KeyEvent.VK_ESCAPE) {
+                System.out.println("[KeyHandler - dialogueState] ESC pressed. Returning to playState.");
+                gp.gameState = gp.playState;
+                if (gp.gameClock != null && gp.gameClock.isPaused()) {
+                    gp.gameClock.resumeTime();
+                }
+                gp.ui.currentDialogue = "";
+                gp.ui.resetDialoguePagination();
+                enterPressed = false;
             }
         }
-        // Game State: Inventory or Gift Selection
         else if (gp.gameState == gp.inventoryState || gp.gameState == gp.giftSelectionState) {
             handleInventoryInput(code, gp.gameState == gp.giftSelectionState);
         }
-        // Game State: Sell
         else if (gp.gameState == gp.sellState) {
-            handleSellScreenInput(code); // Panggil metode yang sudah ada
+            handleSellScreenInput(code);
         }
-        // Game State: Cooking
         else if (gp.gameState == gp.cookingState) {
             handleCookingInput(code);
         }
-        // Game State: Buying (State 13)
-        else if (gp.gameState == gp.buyingState) {
+        else if (gp.gameState == gp.buyingState){
             handleBuyingInput(code);
         }
-        // --- AWAL BLOK BARU UNTUK FISHING MINIGAME ---
-        else if (gp.gameState == gp.fishingMinigameState) { // Pastikan nilai ini (14) sudah benar di GamePanel
-            handleFishingMinigameInput(e); // Mengirim KeyEvent 'e'
+        else if (gp.gameState == gp.fishingMinigameState) {
+            handleFishingMinigameInput(e);
         }
-        // --- AKHIR BLOK BARU ---
     }
 
-    // Metode handleSellScreenInput (diasumsikan sudah ada dan benar)
     private void handleSellScreenInput(int code) {
         if (code == KeyEvent.VK_ESCAPE) {
             gp.player.hasUsedShippingBinToday = true;
@@ -245,32 +329,29 @@ public class KeyHandler implements KeyListener {
         sellScreenControls(code);
     }
 
-
-    // --- AWAL METODE BARU UNTUK MENANGANI INPUT MINIGAME MEMANCING ---
     private void handleFishingMinigameInput(KeyEvent e) {
         int keyCode = e.getKeyCode();
         char keyChar = e.getKeyChar();
         Player player = gp.player;
 
-        // Pemeriksaan dasar
         if (player == null) {
             System.err.println("[KeyHandler] ERROR: Player is null in fishing minigame.");
-            gp.gameState = gp.playState; // Kembali ke playState sebagai fallback aman
-            if(gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
+            gp.gameState = gp.playState;
+            if (gp.gameClock != null && gp.gameClock.isPaused()) gp.gameClock.resumeTime();
             return;
         }
+
         if (player.fishToCatchInMinigame == null && keyCode != KeyEvent.VK_ESCAPE) {
-            // Jika tidak ada ikan target dan pemain tidak mencoba keluar, ini kondisi aneh.
             System.err.println("[KeyHandler] ERROR: fishToCatchInMinigame is null during active fishing minigame input (not Esc).");
-            player.endFishingMinigame(false); // Akhiri minigame (gagal)
+            player.endFishingMinigame(false);
             return;
         }
 
 
         if (keyCode >= KeyEvent.VK_0 && keyCode <= KeyEvent.VK_9) {
-            if (player.fishingPlayerInput.length() < 4) { // Batasi panjang input, misal 4 digit
+            if (player.fishingPlayerInput.length() < 4) {
                 player.fishingPlayerInput += keyChar;
-                player.fishingFeedbackMessage = ""; // Hapus feedback lama saat ada input baru
+                player.fishingFeedbackMessage = "";
             }
         } else if (keyCode == KeyEvent.VK_BACK_SPACE) {
             if (player.fishingPlayerInput.length() > 0) {
@@ -284,18 +365,15 @@ public class KeyHandler implements KeyListener {
                 } catch (NumberFormatException nfe) {
                     player.fishingFeedbackMessage = "Input angka tidak valid!";
                 }
-                player.fishingPlayerInput = ""; // Reset input setelah mencoba
+                player.fishingPlayerInput = "";
             } else {
                 player.fishingFeedbackMessage = "Masukkan angka terlebih dahulu!";
             }
         } else if (keyCode == KeyEvent.VK_ESCAPE) {
-            player.endFishingMinigame(false); // Menyerah, panggil metode di Player
+            player.endFishingMinigame(false);
         }
     }
-    // --- AKHIR METODE BARU ---
 
-    // Metode handlePlayerNameInput, handleFarmNameInput, dll. (yang sudah ada sebelumnya)
-    // ... (Pastikan metode-metode ini ada di bawah sini) ...
     private void handleBuyingInput(int code) {
         if (!(gp.currentInteractingNPC instanceof NPC_EMILY)) {
             gp.gameState = gp.playState;
@@ -357,7 +435,7 @@ public class KeyHandler implements KeyListener {
             return;
         }
 
-        if (gp.ui.cookingSubState == 0) { // Recipe Selection
+        if (gp.ui.cookingSubState == 0) {
             if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                 gp.ui.cookingCommandNum--;
                 if (gp.ui.cookingCommandNum < 0)
@@ -370,7 +448,7 @@ public class KeyHandler implements KeyListener {
                 if (!availableRecipes.isEmpty() && gp.ui.cookingCommandNum < availableRecipes.size()) {
                     gp.selectedRecipeForCooking = availableRecipes.get(gp.ui.cookingCommandNum);
                     if (canPlayerCookRecipe(gp.selectedRecipeForCooking, gp.player)) {
-                        gp.ui.cookingSubState = 1; // Move to confirmation
+                        gp.ui.cookingSubState = 1;
                         gp.ui.showMessage(
                                 "Cook " + gp.selectedRecipeForCooking.outputFoodName + "? (Cost: 10 Energy, 1hr)");
                     } else {
@@ -383,7 +461,7 @@ public class KeyHandler implements KeyListener {
                     gp.gameClock.resumeTime();
                 gp.selectedRecipeForCooking = null;
             }
-        } else if (gp.ui.cookingSubState == 1) { // Confirmation
+        } else if (gp.ui.cookingSubState == 1) {
             if (code == KeyEvent.VK_ENTER) {
                 if (gp.selectedRecipeForCooking != null) {
                     initiateCookingProcess(gp.selectedRecipeForCooking, gp.player);
@@ -446,6 +524,7 @@ public class KeyHandler implements KeyListener {
                 for (Entity itemInInventory : player.inventory) {
                     if (itemInInventory instanceof OBJ_Item) {
                         OBJ_Item objItem = (OBJ_Item) itemInInventory;
+
                         String itemFullName = objItem.name;
                         String itemTypeString = objItem.getType() != null ? " " + objItem.getType().name().toLowerCase()
                                 : "";
@@ -482,6 +561,7 @@ public class KeyHandler implements KeyListener {
             gp.ui.showMessage("Not enough energy to cook!");
             return;
         }
+
         for (Map.Entry<String, Integer> ingredientEntry : recipe.ingredients.entrySet()) {
             String requiredIngredientBaseName = ingredientEntry.getKey();
             int qtyToConsume = ingredientEntry.getValue();
@@ -537,10 +617,13 @@ public class KeyHandler implements KeyListener {
                 return;
             }
         }
+
         boolean fuelConsumed = false;
+
         Iterator<Entity> fuelIterator = player.inventory.iterator();
         Entity fuelToConsume = null;
         String fuelNameUsed = "";
+
         while (fuelIterator.hasNext()) {
             Entity item = fuelIterator.next();
             if (item instanceof OBJ_Misc && item.name != null && item.name.startsWith("Coal")) {
@@ -549,6 +632,7 @@ public class KeyHandler implements KeyListener {
                 break;
             }
         }
+
         if (fuelToConsume == null) {
             fuelIterator = player.inventory.iterator();
             while (fuelIterator.hasNext()) {
@@ -580,6 +664,7 @@ public class KeyHandler implements KeyListener {
             player.increaseEnergy(10);
             return;
         }
+
         spakborhills.Time startTime = gp.gameClock.getTime();
         int finishHour = startTime.getHour() + 1;
         int finishMinute = startTime.getMinute();
@@ -615,6 +700,7 @@ public class KeyHandler implements KeyListener {
         } else if (code == KeyEvent.VK_DOWN || code == KeyEvent.VK_S) {
             currentSlot += slotsPerRow;
             if (currentSlot >= currentInventorySize) {
+
                 currentSlot = currentSlot % slotsPerRow;
                 if (currentSlot >= currentInventorySize)
                     currentSlot = currentInventorySize - 1;
@@ -622,14 +708,19 @@ public class KeyHandler implements KeyListener {
         } else if (code == KeyEvent.VK_UP || code == KeyEvent.VK_W) {
             currentSlot -= slotsPerRow;
             if (currentSlot < 0) {
+
                 int lastRowPotentialStart = ((currentInventorySize - 1) / slotsPerRow) * slotsPerRow;
                 currentSlot = lastRowPotentialStart + (currentSlot % slotsPerRow + slotsPerRow) % slotsPerRow;
+
+
                 if (currentSlot >= currentInventorySize)
                     currentSlot = currentInventorySize - 1;
                 if (currentSlot < 0)
                     currentSlot = 0;
             }
         }
+
+
         if (currentSlot < 0)
             currentSlot = 0;
         if (currentSlot >= currentInventorySize && currentInventorySize > 0)
@@ -656,7 +747,10 @@ public class KeyHandler implements KeyListener {
             }
         } else {
             if (gp.ui.playerNameInput.length() < gp.ui.playerNameMaxLength) {
+
                 if (Character.isLetterOrDigit(keyChar) || Character.isWhitespace(keyChar)) {
+
+
                     if (keyChar != KeyEvent.CHAR_UNDEFINED && keyCode != KeyEvent.VK_ENTER
                             && keyCode != KeyEvent.VK_BACK_SPACE &&
                             keyCode != KeyEvent.VK_SHIFT && keyCode != KeyEvent.VK_CONTROL && keyCode != KeyEvent.VK_ALT
@@ -775,133 +869,126 @@ public class KeyHandler implements KeyListener {
     }
 
     private void handleInventoryInput(int code, boolean isGifting) {
-        int currentCommandNum = gp.ui.inventoryCommandNum;
-        int newCommandNum = currentCommandNum;
         int maxInventoryItems = gp.player.inventory.size();
-
         if (maxInventoryItems == 0) {
-            gp.ui.inventoryCommandNum = 0;
             if (code == KeyEvent.VK_ESCAPE || (code == KeyEvent.VK_I && !isGifting)) {
-                if (isGifting) {
+                if (isGifting)
                     gp.gameState = gp.interactionMenuState;
-                } else {
+                else
                     gp.gameState = gp.playState;
-                }
                 if (gp.gameClock != null && gp.gameClock.isPaused())
                     gp.gameClock.resumeTime();
                 gp.ui.isSelectingGift = false;
             }
+            enterPressed = false;
             return;
         }
+
+
+        int currentCommandNum = gp.ui.inventoryCommandNum;
+        int newCommandNum = currentCommandNum;
         int frameWidth_inv = gp.screenWidth - (gp.tileSize * 4);
         int slotSize_inv = gp.tileSize + 10;
         int slotGap_inv = 5;
-        int itemsPerRow = (frameWidth_inv - gp.tileSize) / (slotSize_inv + slotGap_inv);
-        if (itemsPerRow <= 0)
-            itemsPerRow = 1;
-
+        int itemsPerRow = Math.max(1, (frameWidth_inv - gp.tileSize) / (slotSize_inv + slotGap_inv));
         int currentRow = currentCommandNum / itemsPerRow;
         int currentCol = currentCommandNum % itemsPerRow;
         int numRows = (maxInventoryItems + itemsPerRow - 1) / itemsPerRow;
 
         if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
-            if (currentRow > 0) {
+            if (currentRow > 0)
                 newCommandNum = currentCommandNum - itemsPerRow;
-            } else {
+            else {
                 newCommandNum = ((numRows - 1) * itemsPerRow) + currentCol;
-                if (newCommandNum >= maxInventoryItems) {
+                if (newCommandNum >= maxInventoryItems)
                     newCommandNum = maxInventoryItems - 1;
-                }
             }
         } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
             if (currentRow < numRows - 1) {
                 newCommandNum = currentCommandNum + itemsPerRow;
-                if (newCommandNum >= maxInventoryItems) {
+                if (newCommandNum >= maxInventoryItems)
                     newCommandNum = maxInventoryItems - 1;
-                }
             } else {
                 newCommandNum = currentCol;
-                if (newCommandNum >= maxInventoryItems) {
+                if (newCommandNum >= maxInventoryItems)
                     newCommandNum = (maxInventoryItems > 0) ? maxInventoryItems - 1 : 0;
-                }
             }
         } else if (code == KeyEvent.VK_A || code == KeyEvent.VK_LEFT) {
-            if (currentCommandNum > 0) {
+            if (currentCommandNum > 0)
                 newCommandNum = currentCommandNum - 1;
-            } else {
+            else
                 newCommandNum = maxInventoryItems - 1;
-            }
         } else if (code == KeyEvent.VK_D || code == KeyEvent.VK_RIGHT) {
-            if (currentCommandNum < maxInventoryItems - 1) {
+            if (currentCommandNum < maxInventoryItems - 1)
                 newCommandNum = currentCommandNum + 1;
-            } else {
+            else
                 newCommandNum = 0;
-            }
-        }
-        if (maxInventoryItems > 0) {
-            if (newCommandNum < 0) {
-                newCommandNum = 0;
-            }
-            if (newCommandNum >= maxInventoryItems) {
-                newCommandNum = maxInventoryItems - 1;
-            }
-        } else {
-            newCommandNum = 0;
         }
 
+        if (maxInventoryItems > 0) {
+            if (newCommandNum < 0)
+                newCommandNum = 0;
+            if (newCommandNum >= maxInventoryItems)
+                newCommandNum = maxInventoryItems - 1;
+        } else
+            newCommandNum = 0;
         gp.ui.inventoryCommandNum = newCommandNum;
+
 
         if (code == KeyEvent.VK_ENTER) {
             enterPressed = false;
             if (isGifting) {
-                NPC currentNPC = (NPC) gp.currentInteractingNPC;
-                if (currentNPC != null && gp.ui.inventoryCommandNum >= 0
-                        && gp.ui.inventoryCommandNum < maxInventoryItems) {
-                    Entity selectedItem = gp.player.inventory.get(gp.ui.inventoryCommandNum);
-                    System.out.println("DEBUG KeyHandler: Gifting item at index: " + gp.ui.inventoryCommandNum
-                            + " which is: " + selectedItem.name);
-                    currentNPC.receiveGift(selectedItem, gp.player);
-                    gp.gameState = gp.interactionMenuState;
-                    gp.ui.isSelectingGift = false;
-                } else if (currentNPC != null) {
-                    System.out.println("DEBUG KeyHandler: Gifting attempt with invalid inventoryCommandNum: "
-                            + gp.ui.inventoryCommandNum);
-                    gp.gameState = gp.interactionMenuState;
+                if (gp.currentInteractingNPC instanceof NPC) {
+                    NPC currentNPC = (NPC) gp.currentInteractingNPC;
+                    if (gp.ui.inventoryCommandNum >= 0 && gp.ui.inventoryCommandNum < maxInventoryItems) {
+                        Entity selectedItem = gp.player.inventory.get(gp.ui.inventoryCommandNum);
+                        System.out
+                                .println("[KeyHandler] Gifting item: " + selectedItem.name + " to " + currentNPC.name);
+
+
+                        gp.ui.isSelectingGift = false;
+
+
+                        currentNPC.receiveGift(selectedItem, gp.player);
+
+
+                        System.out.println("[KeyHandler] After receiveGift, gameState should be: " + gp.gameState
+                                + ", dialogue: " + gp.ui.currentDialogue);
+
+                    } else {
+                        gp.ui.showMessage("Invalid item selection for gift.");
+                        gp.gameState = gp.interactionMenuState;
+                        gp.ui.isSelectingGift = false;
+                    }
+                } else {
+                    gp.ui.showMessage("Cannot give a gift: no valid NPC selected.");
+                    gp.gameState = gp.playState;
+                    if (gp.gameClock != null && gp.gameClock.isPaused())
+                        gp.gameClock.resumeTime();
                     gp.ui.isSelectingGift = false;
                 }
             } else {
                 if (gp.ui.inventoryCommandNum >= 0 && gp.ui.inventoryCommandNum < maxInventoryItems) {
                     gp.player.equipItem(gp.ui.inventoryCommandNum);
-                } else {
-                    System.out.println("DEBUG KeyHandler: Equip/Use attempt with invalid inventoryCommandNum: "
-                            + gp.ui.inventoryCommandNum);
                 }
             }
-        }
-
-        if (code == KeyEvent.VK_E && !isGifting) {
+            enterPressed = false;
+        } else if (code == KeyEvent.VK_E && !isGifting) {
             if (gp.ui.inventoryCommandNum >= 0 && gp.ui.inventoryCommandNum < maxInventoryItems) {
                 Entity selectedItem = gp.player.inventory.get(gp.ui.inventoryCommandNum);
-                if (selectedItem instanceof Edible) {
-                    System.out.println("DEBUG KeyHandler: Eating item from inventory screen: " + selectedItem.name);
+                if (selectedItem instanceof Edible)
                     ((Edible) selectedItem).eat(gp.player);
-                } else {
+                else
                     gp.ui.showMessage(selectedItem.name + " tidak bisa dimakan.");
-                }
             } else {
-                System.out.println("DEBUG KeyHandler: Eat attempt (inventory screen) with invalid commandNum: "
-                        + gp.ui.inventoryCommandNum);
                 gp.ui.showMessage("Tidak ada item valid yang dipilih untuk dimakan.");
             }
             eatPressed = false;
-        }
-
-        if (code == KeyEvent.VK_ESCAPE || (code == KeyEvent.VK_I && !isGifting)) {
-            if (isGifting) {
+        } else if (code == KeyEvent.VK_ESCAPE || (code == KeyEvent.VK_I && !isGifting)) {
+            if (isGifting)
                 gp.gameState = gp.interactionMenuState;
-            } else {
+            else
                 gp.gameState = gp.playState;
-            }
             if (gp.gameClock != null && gp.gameClock.isPaused())
                 gp.gameClock.resumeTime();
             gp.ui.isSelectingGift = false;
@@ -911,8 +998,11 @@ public class KeyHandler implements KeyListener {
     private void handleFarmNameInput(int keyCode, char keyChar) {
         if (keyCode == KeyEvent.VK_ENTER) {
             if (!gp.ui.farmNameInput.trim().isEmpty()) {
+
                 gp.player.setFarmName(gp.ui.farmNameInput.trim());
                 System.out.println("Farm Name Set: " + gp.player.getFarmName());
+
+
                 resetCoreGameDataForNewGameAndLoadPlayerHouse();
                 gp.gameState = gp.playState;
                 if (gp.gameClock != null && gp.gameClock.isPaused()) {
@@ -944,5 +1034,8 @@ public class KeyHandler implements KeyListener {
     private void resetCoreGameDataForNewGameAndLoadPlayerHouse() {
         gp.resetCoreGameDataForNewGame();
         gp.loadMapbyIndex(gp.PLAYER_HOUSE_INDEX);
+
+
+
     }
 }

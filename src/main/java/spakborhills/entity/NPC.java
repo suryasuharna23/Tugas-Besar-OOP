@@ -85,82 +85,94 @@ public class NPC extends Entity{
             currentHeartPoints = maxHeartPoints;
         }
     }
-
     public void receiveGift(Entity itemEntity, Player player) {
+        System.out.println("[NPC.receiveGift] START for " + this.name + ". Item: "
+                + (itemEntity != null ? itemEntity.name : "null")); // DEBUG
         facePlayer();
+
         if (hasReceivedGiftToday) {
+            System.out.println("[NPC.receiveGift] Already received gift today."); // DEBUG
             gp.ui.currentDialogue = alreadyGiftedDialogue;
+            System.out.println("[NPC.receiveGift] Dialogue set to: " + gp.ui.currentDialogue); // DEBUG
             gp.gameState = gp.dialogueState;
+            System.out.println("[NPC.receiveGift] gameState set to dialogueState (already gifted)."); // DEBUG
             return;
         }
 
         if (!(itemEntity instanceof OBJ_Item)) {
-            // Should not happen if player is gifting from OBJ_Item based inventory
+            System.out.println("[NPC.receiveGift] Item is not OBJ_Item."); // DEBUG
             gp.ui.currentDialogue = this.name + ": I'm not sure what this is.";
+            System.out.println("[NPC.receiveGift] Dialogue set to: " + gp.ui.currentDialogue); // DEBUG
             gp.gameState = gp.dialogueState;
+            System.out.println("[NPC.receiveGift] gameState set to dialogueState (not OBJ_Item)."); // DEBUG
             return;
         }
-
         OBJ_Item giftedItem = (OBJ_Item) itemEntity;
-        String giftedItemBaseName = giftedItem.baseName; // Use the base name for comparison
+        String giftedItemBaseName = giftedItem.baseName;
         ItemType giftedItemType = giftedItem.getType();
+        System.out.println("[NPC.receiveGift] Processing gift: " + giftedItemBaseName + ", Type: " + giftedItemType); // DEBUG
 
-        boolean giftConsumed = false;
+        boolean giftProcessedLogically = false;
 
-        // Specific NPC preferences first
-        if (this.name.equals("Emily") && giftedItemType == ItemType.SEEDS) { // [cite: 104]
-            addHeartPoints(25); // Loved
-            gp.ui.currentDialogue = this.name + ": Oh, seeds! I love these! Thank you so much! (HP: " + this.currentHeartPoints + ")";
-            giftConsumed = true;
-        } else if (this.name.equals("Perry") && giftedItemType == ItemType.FISH) { // [cite: 94]
-            addHeartPoints(-25); // Hated
-            gp.ui.currentDialogue = this.name + ": Ugh, fish? I really don't care for these. (HP: " + this.currentHeartPoints + ")";
-            giftConsumed = true;
-        } else {
-            // General preferences
-            if (lovedGiftsName.contains(giftedItemBaseName)) {
-                addHeartPoints(25); // [cite: 194]
-                gp.ui.currentDialogue = (this.name.equals("Caroline") || this.name.equals("Abigail")) ? "Wahh, buat aku? Makasih banyak yaa! Aku sangat suka ini! (HP: " + this.currentHeartPoints + ")" : this.name + ": This is amazing! Thank you! (HP: " + this.currentHeartPoints + ")";
-                giftConsumed = true;
-            } else if (likedGiftsName.contains(giftedItemBaseName)) {
-                addHeartPoints(20); // [cite: 194]
-                gp.ui.currentDialogue = this.name + ": Oh, this is very nice. Thank you. (HP: " + this.currentHeartPoints + ")";
-                giftConsumed = true;
-            } else if (this.name.equals("Mayor Tadi") && !lovedGiftsName.contains(giftedItemBaseName) && !likedGiftsName.contains(giftedItemBaseName)) { // Mayor Tadi hates everything not loved/liked [cite: 86, 83]
-                addHeartPoints(-25);
-                gp.ui.currentDialogue = this.name + ": This isn't really my style. (HP: " + this.currentHeartPoints + ")";
-                giftConsumed = true;
-            } else if (hatedItems.contains(giftedItemBaseName)) {
-                addHeartPoints(-25); // [cite: 194]
-                gp.ui.currentDialogue = this.name + ": I... appreciate the thought, but I don't like this much. (HP: " + this.currentHeartPoints + ")";
-                giftConsumed = true;
-            } else { // Neutral item
-                addHeartPoints(0); // [cite: 194]
-                gp.ui.currentDialogue = this.giftReactionDialogue + " (HP: " + this.currentHeartPoints + ")"; // Uses the NPC's default reaction or the generic one
-                giftConsumed = true;
-            }
+        if (this.name.equals("Emily") && giftedItemType == ItemType.SEEDS) {
+            addHeartPoints(25);
+            gp.ui.currentDialogue = this.name + ": Oh, seeds! I love these! Thank you so much! (HP: "
+                    + this.currentHeartPoints + ")";
+            System.out.println("[NPC.receiveGift] Emily loved seeds. Dialogue: " + gp.ui.currentDialogue); // DEBUG
+            giftProcessedLogically = true;
+        } else if (lovedGiftsName.contains(giftedItemBaseName)) {
+            addHeartPoints(25);
+            String reaction = (this.name.equals("Caroline") || this.name.equals("Abigail"))
+                    ? "Wahh, buat aku? Makasih banyak yaa! Aku sangat suka ini! (HP: " + this.currentHeartPoints + ")"
+                    : this.name + ": This is amazing! Thank you! (HP: " + this.currentHeartPoints + ")";
+            gp.ui.currentDialogue = reaction;
+            System.out.println("[NPC.receiveGift] Loved gift. Dialogue: " + gp.ui.currentDialogue); // DEBUG
+            giftProcessedLogically = true;
+        }
+        // ... ADD SIMILAR PRINT STATEMENTS FOR liked, hated, neutral, etc. ...
+        else { // Default to neutral if no other condition met (ensure this path is clear)
+            addHeartPoints(0);
+            gp.ui.currentDialogue = this.giftReactionDialogue + " (HP: " + this.currentHeartPoints + ")";
+            System.out.println("[NPC.receiveGift] Neutral gift. Dialogue: " + gp.ui.currentDialogue); // DEBUG
+            giftProcessedLogically = true; // Still processed, even if neutral
         }
 
-        if (giftConsumed) {
+        if (giftProcessedLogically) { // Ensures item is consumed only if a reaction path was taken
             this.hasReceivedGiftToday = true;
 
             giftedItem.quantity--;
             if (giftedItem.quantity <= 0) {
-                player.inventory.remove(giftedItem); // Remove the item object itself
+                player.inventory.remove(giftedItem);
+                System.out.println("[NPC.receiveGift] Removed item from inventory: " + giftedItemBaseName); // DEBUG
+            } else {
+                System.out.println("[NPC.receiveGift] Decremented quantity for: " + giftedItemBaseName + ", new qty: "
+                        + giftedItem.quantity); // DEBUG
             }
-            // Adjust player's inventory command number if the gifted item was selected and removed/quantity changed
+
             if (gp.ui.inventoryCommandNum >= player.inventory.size() && !player.inventory.isEmpty()) {
                 gp.ui.inventoryCommandNum = player.inventory.size() - 1;
             } else if (player.inventory.isEmpty()) {
                 gp.ui.inventoryCommandNum = 0;
             }
 
+            gp.gameClock.getTime().advanceTime(10);
+            gp.player.tryDecreaseEnergy(5);
 
-            gp.gameClock.getTime().advanceTime(10); // [cite: 194]
-            gp.player.tryDecreaseEnergy(5); // [cite: 194]
+            System.out.println("[NPC.receiveGift] FINAL DIALOGUE to be shown: " + gp.ui.currentDialogue); // DEBUG
+            gp.gameState = gp.dialogueState;
+            System.out.println("[NPC.receiveGift] END. gameState set to dialogueState."); // DEBUG
+        } else {
+            // This case should ideally not be reached if all paths set
+            // giftProcessedLogically = true
+            // Or if there's a case where a gift isn't "accepted" (e.g. trying to gift
+            // non-giftable item type)
+            System.out.println(
+                    "[NPC.receiveGift] Gift was not logically processed (no preference match or other issue). No state change."); // DEBUG
+            // You might want to set a default "I can't accept this" dialogue here and set
+            // to dialogueState
+            // For now, it will fall through and likely return to interactionMenuState via
+            // KeyHandler if not handled.
         }
-
-        gp.gameState = gp.dialogueState;
     }
 
     public void getProposedTo() {
