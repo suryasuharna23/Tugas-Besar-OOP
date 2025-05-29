@@ -14,9 +14,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-
 public class GamePanel extends JPanel implements Runnable {
-    private static final int OCEAN_MAP_INDEX = 9;
     final int originalTileSize = 16;
     final int scale = 3;
     public final int tileSize = originalTileSize * scale;
@@ -89,15 +87,16 @@ public class GamePanel extends JPanel implements Runnable {
     public int farmMapMaxCols = 0;
     public int farmMapMaxRows = 0;
     public final int FARM_MAP_INDEX = 6;
-    
+
     public static class SimpleFarmLayout {
-        public int houseX = 23; // Fixed position untuk house
-        public int houseY = 21; // Fixed position untuk house
-        public int shippingBinX = 25; // Fixed position untuk shipping bin
-        public int shippingBinY = 15; // Fixed position untuk shipping bin
+        public int houseX = 23;
+        public int houseY = 21;
+        public int shippingBinX = 25;
+        public int shippingBinY = 15;
     }
 
     public SimpleFarmLayout currentFarmLayout = new SimpleFarmLayout();
+
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
         this.setBackground(Color.black);
@@ -404,7 +403,8 @@ public class GamePanel extends JPanel implements Runnable {
                     + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
 
             boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 6) ||
-                    (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX) || this.currentMapIndex == 6 || this.currentMapIndex == PLAYER_HOUSE_INDEX;
+                    (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX) || this.currentMapIndex == 6
+                    || this.currentMapIndex == PLAYER_HOUSE_INDEX;
 
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
                 if (player.tryDecreaseEnergy(10)) {
@@ -492,7 +492,8 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void processShippingBin() {
-        if (player.itemsInShippingBinToday.isEmpty()) {
+
+        if (!player.hasUsedShippingBinToday || player.itemsInShippingBinToday.isEmpty()) {
             player.goldFromShipping = 0;
             return;
         }
@@ -508,11 +509,12 @@ public class GamePanel extends JPanel implements Runnable {
         if (totalEarnings > 0) {
             player.gold += totalEarnings;
             player.goldFromShipping = totalEarnings;
-            System.out.println(
-                    "[GamePanel] Player earned " + totalEarnings + "G from shipped items. Total gold: " + player.gold);
+            System.out.println("[GamePanel] Player earned " + totalEarnings +
+                    "G from shipped items. Total gold: " + player.gold);
         } else {
             player.goldFromShipping = 0;
         }
+
         player.itemsInShippingBinToday.clear();
         player.hasUsedShippingBinToday = false;
         System.out.println("[GamePanel] Shipping bin processed and reset for the new day.");
@@ -606,6 +608,57 @@ public class GamePanel extends JPanel implements Runnable {
         g2.dispose();
     }
 
+    public void completeShippingBinTransaction() {
+        if (player == null) {
+            System.err.println("[GamePanel] Cannot complete shipping: Player is null");
+            return;
+        }
+
+        if (player.itemsInShippingBinToday.isEmpty()) {
+
+            System.out.println("[GamePanel] No items shipped, shipping bin remains available");
+            ui.showMessage("No items placed in shipping bin.");
+        } else {
+
+            player.hasUsedShippingBinToday = true;
+            System.out.println("[GamePanel] Shipping bin transaction completed. " +
+                    player.itemsInShippingBinToday.size() + " items will be sold overnight.");
+            ui.showMessage("Items placed in shipping bin! You'll receive payment tomorrow morning.");
+        }
+
+        gameState = playState;
+
+        if (gameClock != null && gameClock.isPaused()) {
+            gameClock.resumeTime();
+        }
+    }
+
+    public void cancelShippingBinTransaction() {
+        if (player == null) {
+            System.err.println("[GamePanel] Cannot cancel shipping: Player is null");
+            return;
+        }
+
+        if (!player.itemsInShippingBinToday.isEmpty()) {
+            System.out.println("[GamePanel] Returning " + player.itemsInShippingBinToday.size() +
+                    " items from shipping bin to inventory");
+
+            for (Entity item : player.itemsInShippingBinToday) {
+                player.inventory.add(item);
+            }
+            player.itemsInShippingBinToday.clear();
+            ui.showMessage("Items returned from shipping bin.");
+        }
+
+        System.out.println("[GamePanel] Shipping bin transaction cancelled, remains available");
+
+        gameState = playState;
+
+        if (gameClock != null && gameClock.isPaused()) {
+            gameClock.resumeTime();
+        }
+    }
+
     public void playMusic(int i) {
         music.setFile(i);
         music.play();
@@ -620,5 +673,5 @@ public class GamePanel extends JPanel implements Runnable {
         se.setFile(i);
         se.play();
     }
-    
+
 }
