@@ -1,8 +1,8 @@
 package spakborhills.environment;
 
-import spakborhills.GamePanel;
+import java.awt.Graphics2D;
 
-import java.awt.*;
+import spakborhills.GamePanel;
 
 public class EnvironmentManager {
     GamePanel gp;
@@ -14,7 +14,7 @@ public class EnvironmentManager {
     private final int senja = 720;
     private final int malam = 5040;
 
-    private final int full_cycle = +siang + malam + senja;
+    private final int full_cycle = siang + malam + senja;
 
     private final int siang_start = 0;
     private final int senja_start = siang;

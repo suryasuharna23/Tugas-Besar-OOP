@@ -1,8 +1,8 @@
 package spakborhills.cooking;
 
 import spakborhills.GamePanel;
-import spakborhills.object.OBJ_Food;
 import spakborhills.enums.ItemType;
+import spakborhills.object.OBJ_Food;
 
 public class FoodFactory {
     public static OBJ_Food createFood(GamePanel gp, String foodName) {

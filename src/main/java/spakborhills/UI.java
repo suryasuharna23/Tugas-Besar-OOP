@@ -5,13 +5,13 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.FontMetrics;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,16 +27,6 @@ import spakborhills.entity.NPC_EMILY;
 import spakborhills.enums.Season;
 import spakborhills.interfaces.Edible;
 import spakborhills.object.OBJ_Item;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class UI {
     public int mapSelectionState = 0;
@@ -545,129 +535,12 @@ public void drawFarmNameHUD(Graphics2D g2) {
         drawSharedBackground(g2, gp.creditPageState);
         g2.setColor(new Color(0, 0, 0, 0));
         g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
-
-        g2.setColor(Color.white);
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20F));
-
-        String text = "Developer Team";
-        int x = getXForCenteredText(text);
-        int y = gp.tileSize * 5/2;
-        g2.drawString(text, x, y);
-
-        x -= gp.tileSize*2;
-
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 15F));
-        y += gp.tileSize * 2;
-        text = "18223033 | Persada Ramiiza Abyudaya";
-        g2.drawString(text, x, y);
-        y += gp.tileSize;
-        text = "18223039 | Devon Wiraditya Tanumihardja";
-        g2.drawString(text, x, y);
-        y += gp.tileSize;
-        text = "18223075 | Surya Suharna";
-        g2.drawString(text, x, y);
-        y += gp.tileSize;
-        text = "18223085 | Velicia Christina Gabriel";
-        g2.drawString(text, x, y);
-
-        text = "Special thanks to: ";
-        y += gp.tileSize*2;
-        x = getXForCenteredText(text);
-        g2.drawString(text, x, y);
-
-        text = "Jabarano Dago, Rumah Aca, Ryisnow, dan azzAAAm";
-        y += gp.tileSize;
-        x -= gp.tileSize*3;
-        g2.drawString(text, x, y);
     }
 
     public void drawHelp(Graphics2D g2) {
         drawSharedBackground(g2, gp.helpPageState);
         g2.setColor(new Color(0, 0, 0, 0));
         g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
-
-        g2.setColor(Color.white);
-        g2.setFont(silkScreen.deriveFont(Font.BOLD, 15f));
-
-        String text = "Help";
-        int x = getXForCenteredText(text);
-        int y = gp.tileSize * 5 / 2;
-        g2.drawString(text, x, y);
-
-
-        x = gp.tileSize / 2;
-        int lineSpacing = gp.tileSize / 3;
-        g2.setFont(silkScreen.deriveFont(Font.PLAIN, 12f));
-
-        text = "W - Move upward";
-        y += gp.tileSize;
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "A - Move left";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "S - Move downward";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "D - Move right";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "I - Show inventory";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "E - Eat equipped item";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "P - Pause game";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "M - Open world map";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "K - Start fishing";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "R - Till soil";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "G - Water crops";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-
-        text = "F - Plant seeds, Harvest crops, Interact";
-
-        FontMetrics fm = g2.getFontMetrics();
-        if (fm.stringWidth(text) > gp.screenWidth - gp.tileSize) {
-            text = "F - Plant, Harvest, Interact";
-        }
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "Enter - Confirm actions";
-        g2.drawString(text, x, y);
-
-        y += lineSpacing;
-        text = "Escape - Exit current page";
-        g2.drawString(text, x, y);
-
-
-        y += gp.tileSize / 2;
-        g2.setFont(silkScreen.deriveFont(Font.ITALIC, 10f));
-        g2.setColor(Color.LIGHT_GRAY);
-        text = "Press ESC to return to game";
-        int footerX = getXForCenteredText(text);
-        g2.drawString(text, footerX, y);
     }
 
     public void drawPlayerNameInputScreen() {

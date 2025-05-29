@@ -72,7 +72,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     public Recipe selectedRecipeForCooking = null;
 
-    private boolean hasForcedSleepAt2AMToday = false;
+    public boolean hasForcedSleepAt2AMToday = false;
     private boolean isProcessingNewDayDataInTransition = false;
     private long sleepTransitionStartTime = 0;
     private final long SLEEP_TRANSITION_MESSAGE_DURATION = 3500;
@@ -109,6 +109,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(keyH);
         this.setFocusable(true);
         this.requestFocusInWindow();
+
     }
 
     public void setupGame() {
@@ -116,7 +117,8 @@ public class GamePanel extends JPanel implements Runnable {
         gameState = titleState;
         environmentManager.setup();
         assetSetter.initializeAllNPCs();
-
+        gameClock.addObserver(player);
+        weather.addObserver(player);
     }
 
     public void startGameThread() {

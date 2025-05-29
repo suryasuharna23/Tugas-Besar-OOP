@@ -1,7 +1,19 @@
 package spakborhills.entity;
 
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import spakborhills.GamePanel;
 import spakborhills.KeyHandler;
+import spakborhills.Time;
 import spakborhills.action.Command;
 import spakborhills.action.EatCommand;
 import spakborhills.cooking.ActiveCookingProcess;
@@ -10,19 +22,21 @@ import spakborhills.cooking.Recipe;
 import spakborhills.cooking.RecipeManager;
 import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
+import spakborhills.enums.Location;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
-import spakborhills.enums.Location;
 import spakborhills.interfaces.Edible;
-import spakborhills.object.*;
+import spakborhills.interfaces.Observer;
+import spakborhills.object.OBJ_Crop;
+import spakborhills.object.OBJ_Equipment;
+import spakborhills.object.OBJ_Fish;
+import spakborhills.object.OBJ_Food;
+import spakborhills.object.OBJ_Item;
+import spakborhills.object.OBJ_Misc;
+import spakborhills.object.OBJ_Recipe;
+import spakborhills.object.OBJ_Seed;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-
-import java.util.*;
-import java.util.List;
-
-public class Player extends Entity {
+public class Player extends Entity implements Observer{
     KeyHandler keyH;
     public final int screenX;
     public final int screenY;
@@ -372,6 +386,7 @@ public class Player extends Entity {
             spriteCounter = 0;
         }
     }
+
 
     private void updateActiveCookingProcesses() {
         if (activeCookingProcesses.isEmpty() || gp.gameClock == null || gp.gameClock.isPaused()) {
@@ -1145,4 +1160,47 @@ public class Player extends Entity {
         return (equipped instanceof OBJ_Equipment) &&
                 ((OBJ_Equipment) equipped).getName().toLowerCase().contains(keyword.toLowerCase());
     }
-}
+
+    public void update(Object event) {
+        if (event instanceof String) {
+            String eventString = (String) event;
+            switch (eventString) {
+                case "hour_change":
+                case "day_change":
+                    // Logika yang sudah ada dari update() yang berkaitan dengan waktu
+                    if (gp.gameClock != null && gp.gameClock.getTime() != null) {
+                        Time currentTime = gp.gameClock.getTime();
+                        if (currentTime.getHour() == 2 && !this.isCurrentlySleeping() && !gp.hasForcedSleepAt2AMToday) {
+                            gp.ui.currentDialogue = "It's 2 AM! You pass out \n from staying up too late.";
+                            sleep("You tried to work while utterly exhausted and passed out again!");
+                            gp.hasForcedSleepAt2AMToday = true;
+                            gp.gameState = gp.sleepTransitionState;
+                            if (gp.gameClock != null && !gp.gameClock.isPaused()) {
+                                gp.gameClock.pauseTime();
+                            }
+                        }
+                    }
+                    checkAndUnlockRecipes();
+                    break;
+                case "time_tick":
+                    // Logika yang mungkin Anda tambahkan untuk setiap tick waktu
+                    break;
+                default:
+                    System.out.println("[Player] Unhandled time event: " + eventString);
+                    break;
+            }
+        } else if (event instanceof Weather newWeather) {
+            // Logika yang sudah ada dari update() yang berkaitan dengan cuaca
+            if (!newWeather.equals(gp.weather.getCurrentWeather())) {
+                if (newWeather == Weather.RAINY) {
+                    System.out.println("Hujan Turun!");
+                } else {
+                    System.out.println("Cuaca Cerah!");
+                    speed = 4; // Kembalikan kecepatan normal
+                }
+                // Tambahkan efek cuaca lain di sini
+            }
+        } else {
+            System.out.println("[Player] Unhandled event type: " + event.getClass().getSimpleName());
+        }
+    }}
