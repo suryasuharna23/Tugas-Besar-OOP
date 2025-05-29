@@ -156,7 +156,12 @@ public class AssetSetter {
                         house.worldX = gp.tileSize * 23;
                         house.worldY = gp.tileSize * 21;
                         gp.entities.add(house);
+                        
 
+                        Entity pond = new OBJ_Pond(gp);
+                        pond.worldX = gp.tileSize * 15;
+                        pond.worldY = gp.tileSize * 21;
+                        gp.entities.add(pond);
 
                 } else if ("Player's House".equalsIgnoreCase(currentMapName)) {
                         Entity playerSingleBed = new OBJ_Bed(gp);

@@ -182,7 +182,7 @@ public class KeyHandler implements KeyListener {
                 if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                     gp.gameClock.pauseTime();
                 }
-            } else if (code == KeyEvent.VK_K) {
+            }else if (code == KeyEvent.VK_K) {
                 gp.player.startFishing();
             } else if (code == KeyEvent.VK_E) {
                 eatPressed = true;
