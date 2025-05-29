@@ -49,7 +49,7 @@ public class GamePanel extends JPanel implements Runnable {
     public Entity currentInteractingNPC = null;
 
     public int gameState;
-    public final int titleState = 0;
+    public static final int titleState = 0;
     public final int playState = 1;
     public final int pauseState = 2;
     public final int dialogueState = 3;
@@ -68,8 +68,9 @@ public class GamePanel extends JPanel implements Runnable {
     public int previousGameState = -1;
     public int creditPageState = 16;
     public int helpPageState = 17;
+    public int playerStatsState = 18;
 
-    public final int PLAYER_HOUSE_INDEX = 10;
+    public final int PLAYER_HOUSE_INDEX = 9;
 
     public Recipe selectedRecipeForCooking = null;
 
@@ -345,14 +346,15 @@ public class GamePanel extends JPanel implements Runnable {
                 new MapInfo("Mayor Tadi's House", "/maps/mayor_tadi_house_data.txt", "/maps/mayor_tadi_house.txt"));
 
         mapInfos.add(new MapInfo("Perry's House", "/maps/perry_house_data.txt", "/maps/perry_house.txt"));
-        mapInfos.add(new MapInfo("Store", "/maps/store_data.txt", "/maps/store.txt"));
-        mapInfos.add(new MapInfo("Farm", "/maps/farm_map_1_data.txt", "/maps/farm_map_1.txt"));
+       
 
         mapInfos.add(new MapInfo("Forest River", "/maps/forest_river_data.txt", "/maps/forest_river.txt"));
         mapInfos.add(new MapInfo("Mountain Lake", "/maps/mountain_lake_data.txt", "/maps/mountain_lake.txt"));
 
         mapInfos.add(new MapInfo("Ocean", "/maps/ocean_data.txt", "/maps/ocean.txt"));
+        mapInfos.add(new MapInfo("Farm", "/maps/farm_map_1_data.txt", "/maps/farm_map_1.txt"));
         mapInfos.add(new MapInfo("Player's House", "/maps/player_house_data.txt", "/maps/player_house.txt"));
+        mapInfos.add(new MapInfo("Store", "/maps/store_data.txt", "/maps/store.txt"));
 
     }
 
@@ -403,8 +405,8 @@ public class GamePanel extends JPanel implements Runnable {
             System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to "
                     + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
 
-            boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 6) ||
-                    (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX) || this.currentMapIndex == 6 || this.currentMapIndex == PLAYER_HOUSE_INDEX;
+            boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 8) ||
+                    (previousMapIndex == 8 && this.currentMapIndex == PLAYER_HOUSE_INDEX) || this.currentMapIndex == 8 || this.currentMapIndex == PLAYER_HOUSE_INDEX;
 
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
                 if (player.tryDecreaseEnergy(10)) {

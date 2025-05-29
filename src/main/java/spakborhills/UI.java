@@ -1,5 +1,24 @@
 package spakborhills;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
+
 import spakborhills.cooking.Recipe;
 import spakborhills.cooking.RecipeManager;
 import spakborhills.entity.Entity;
@@ -8,17 +27,6 @@ import spakborhills.entity.NPC_EMILY;
 import spakborhills.enums.Season;
 import spakborhills.interfaces.Edible;
 import spakborhills.object.OBJ_Item;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class UI {
     public int mapSelectionState = 0;
@@ -63,6 +71,19 @@ public class UI {
     public int dialogueCurrentPage;
     private int dialogueLinesPerPage;
 
+       private int[][] cachedMapPositions = null;
+    private int lastTileSize = -1;
+    
+    // Cache untuk font metrics
+    private FontMetrics cachedFontMetrics = null;
+    private Font lastCachedFont = null;
+
+    private BufferedImage worldMapUI;
+    Color themecolor = new Color(102, 63, 12);
+    
+    // Cache untuk gambar
+    private static final Map<String, BufferedImage> imageCache = new HashMap<>();
+
     public UI(GamePanel gp, GameClock gameClock) {
         this.gp = gp;
         this.gameClock = gameClock;
@@ -89,7 +110,7 @@ public class UI {
 
     public void loadTitleScreenImage() {
         try {
-            InputStream inputStream = getClass().getResourceAsStream("/background/title.png");
+            InputStream inputStream = getClass().getResourceAsStream("/background/welcome.png");
 
             if (inputStream != null) {
                 titleScreenBackground = ImageIO.read(inputStream);
@@ -104,6 +125,8 @@ public class UI {
     public void draw(Graphics2D g2) {
         this.g2 = g2;
 
+
+
         if (pressStart != null) {
             g2.setFont(pressStart);
         } else {
@@ -112,6 +135,7 @@ public class UI {
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setColor(Color.white);
 
+        drawSharedBackground(g2, gp.gameState);
         if (gp.gameState == gp.titleState) {
             drawTitleScreen();
         } else if (gp.gameState == gp.playerNameInputState) {
@@ -244,13 +268,48 @@ public class UI {
         return lines;
     }
 
-    public void drawSharedBackground(Graphics2D g2) {
-        if (titleScreenBackground != null) {
-            g2.drawImage(titleScreenBackground, 0, 0, gp.screenWidth, gp.screenHeight, null);
-        } else {
-            g2.setColor(new Color(7, 150, 255));
-            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+    public void drawSharedBackground(Graphics2D g2, int gameState) {
+        BufferedImage backgroundImage = null;
+        InputStream inputStream = null;
+
+        try {
+            if (gameState == gp.endGameState) {
+                inputStream = getClass().getResourceAsStream("/background/welcome.png");
+            }
+            else if (gameState == gp.helpPageState) {
+                inputStream = getClass().getResourceAsStream("/background/help.png");
+            }
+            else if (gameState == gp.titleState) {
+                if (this.mapSelectionState == 0) {
+                    inputStream = getClass().getResourceAsStream("/background/welcome.png");
+                } else if (this.mapSelectionState == 1) {
+                    inputStream = getClass().getResourceAsStream("/background/world_map.png");
+                }
+            }
+            else if (gameState == gp.creditPageState) {
+                inputStream = getClass().getResourceAsStream("/background/credits.png");
+            }
+            else if (gameState == gp.playerNameInputState) {
+                inputStream = getClass().getResourceAsStream("/background/input_player.png");
+            }
+            else if (gameState == gp.farmNameInputState) {
+                inputStream = getClass().getResourceAsStream("/background/input_farm.png");
+            }
+
+            if (inputStream != null) {
+                backgroundImage = ImageIO.read(inputStream);
+            } else {
+                System.err.println("Cannot load the background for state: " + gameState);
+//                g2.setColor(new Color(7, 150, 255)); // Warna fallback
+//                g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+                return;
+            }
+            g2.drawImage(backgroundImage, 0, 0, gp.screenWidth, gp.screenHeight, null);
         }
+        catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+
     }
 
     public void drawPlayerGold() {
@@ -280,58 +339,100 @@ public class UI {
         g2.drawString(goldText, x, y);
     }
 
-    public void drawFarmNameHUD(Graphics2D g2) {
-        if (gp.gameState != gp.playState || gp.player == null) {
-            return;
-        }
+public void drawFarmNameHUD(Graphics2D g2) {
+    if (gp.gameState != gp.playState || gp.player == null) {
+        return;
+    }
 
-        String currentLocation = gp.player.getLocation();
-        boolean isInFarm = false;
+    String currentLocation = gp.player.getLocation();
+    boolean isInFarm = false;
 
-        if (currentLocation != null && currentLocation.equalsIgnoreCase("Farm")) {
-            isInFarm = true;
-        } else {
-
-            if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
-                String mapName = gp.mapInfos.get(gp.currentMapIndex).getMapName();
-                if (mapName != null && mapName.equalsIgnoreCase("Farm")) {
-                    isInFarm = true;
-                }
+    if (currentLocation != null && currentLocation.equalsIgnoreCase("Farm")) {
+        isInFarm = true;
+    } else {
+        if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
+            String mapName = gp.mapInfos.get(gp.currentMapIndex).getMapName();
+            if (mapName != null && mapName.equalsIgnoreCase("Farm")) {
+                isInFarm = true;
             }
         }
+    }
 
-        if (!isInFarm) {
-            return;
+    if (!isInFarm) {
+        return;
+    }
+
+    g2.setFont(g2.getFont().deriveFont(Font.BOLD, 15F));
+    g2.setColor(Color.WHITE);
+
+    String farmName = gp.player.getFarmName();
+    if (farmName == null || farmName.trim().isEmpty()) {
+        farmName = "Unnamed Farm";
+    }
+
+    String farmText = farmName;
+    FontMetrics fm = g2.getFontMetrics();
+    int textWidth = fm.stringWidth(farmText);
+    int textHeight = fm.getHeight();
+
+    // Posisi di tengah layar
+    int x = (gp.screenWidth - textWidth) / 2;
+    int y = gp.screenHeight / 2;
+
+    // Background box
+    g2.setColor(new Color(0, 0, 0, 150));
+    g2.fillRoundRect(
+            x - 16,
+            y - textHeight + fm.getDescent() - 8,
+            textWidth + 32,
+            textHeight + 16,
+            15,
+            15);
+
+    // Text
+    g2.setColor(Color.WHITE);
+    g2.drawString(farmText, x, y);
+}
+
+        private int[][] getCachedMapPositions() {
+        // Regenerate cache jika tileSize berubah
+        if (cachedMapPositions == null || gp.tileSize != lastTileSize) {
+            lastTileSize = gp.tileSize;
+            cachedMapPositions = new int[][] {
+                // Row 1: positions 0-3
+                {gp.tileSize * 5/2, gp.tileSize * 5 + 8},
+                {gp.tileSize * 5/2 + gp.tileSize * 5/2 + 4, gp.tileSize * 5 + 8},
+                {gp.tileSize * 5/2 + gp.tileSize * 5/2 + 2 + gp.tileSize * 3 + 5, gp.tileSize * 5 + 8},
+                {gp.tileSize * 5/2 + gp.tileSize * 5/2 + 2 + gp.tileSize * 3 + 1 + gp.tileSize * 3, gp.tileSize * 5 + 8},
+                
+                // Row 2: positions 4-7
+                {gp.tileSize * 5/2, gp.tileSize * 5 + gp.tileSize * 5/2 - 3},
+                {gp.tileSize * 5/2 + gp.tileSize * 5/2 + 2, gp.tileSize * 5 + gp.tileSize * 5/2 - 3},
+                {gp.tileSize * 5/2 + gp.tileSize * 5/2 + 2 + gp.tileSize * 3 ,gp.tileSize * 5 + gp.tileSize * 5/2 - 3},
+                {gp.tileSize * 5/2 + gp.tileSize * 5/2 + 2 + gp.tileSize * 3 + gp.tileSize * 3, gp.tileSize * 5 + gp.tileSize * 5/2 - 3},
+                
+                // Row 3: positions 8-10
+                {gp.tileSize * 5/2 + gp.tileSize + 3, gp.tileSize * 5 + 7 + gp.tileSize * 5/2 + 2 + gp.tileSize * 2},
+                {gp.tileSize * 5/2 + gp.tileSize*4 + 3, gp.tileSize * 5 + 7 + gp.tileSize * 5/2 + 2 + gp.tileSize * 2},
+                {gp.tileSize * 5/2 + gp.tileSize * 3 + gp.tileSize * 2 + gp.tileSize * 2 +3, gp.tileSize * 5 + 7 + gp.tileSize * 5/2 + gp.tileSize * 2 + 2}
+            };
         }
+        return cachedMapPositions;
+    }
+    
+    
+ private void createWorldMapUI() {
+    int width = gp.screenWidth;
+    int height = gp.screenHeight;
+    worldMapUI = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2Buffer = worldMapUI.createGraphics();
+    g2Buffer.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 15F));
-        g2.setColor(Color.WHITE);
+    g2Buffer.setColor(themecolor);
+    g2Buffer.setFont(g2Buffer.getFont().deriveFont(Font.PLAIN, 12F));
 
-        String farmName = gp.player.getFarmName();
-        if (farmName == null || farmName.trim().isEmpty()) {
-            farmName = "Unnamed Farm";
-        }
-
-        String farmText = farmName;
-        FontMetrics fm = g2.getFontMetrics();
-        int textWidth = fm.stringWidth(farmText);
-        int textHeight = fm.getHeight();
-
-        int padding = 10;
-        int x = padding;
-        int y = gp.screenHeight - padding;
-
-        g2.setColor(new Color(0, 0, 0, 160));
-        g2.fillRoundRect(
-                x - 8,
-                y - textHeight + fm.getDescent() - 5,
-                textWidth + 16,
-                textHeight + 10,
-                15,
-                15);
-
-        g2.setColor(Color.WHITE);
-        g2.drawString(farmText, x, y);
+    int[][] positions = getCachedMapPositions();
+        g2Buffer.dispose();
     }
 
     public void drawTitleScreen() {
@@ -345,13 +446,10 @@ public class UI {
 
             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 50F));
             String text = "SPAKBOR HILL'S";
-            int x = getXForCenteredText(text);
-            int y = gp.tileSize * 3;
+            int x = getXForCenteredText(text) + 5;
+            int y = gp.tileSize * 3 + 5;
 
-            g2.setColor(Color.black);
-            g2.drawString(text, x + 5, y + 5);
-            g2.setColor(Color.white);
-            g2.drawString(text, x, y);
+
 
             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 30F));
 
@@ -411,133 +509,17 @@ public class UI {
                 g2.drawString(">", x - gp.tileSize, y);
             }
         } else if (mapSelectionState == 1) {
-            drawSharedBackground(g2);
+            createWorldMapUI(); 
+            g2.drawImage(worldMapUI, 0, 0, null);
+                    Color themecolor = new Color(102, 63, 12);
+        g2.setColor(themecolor);
+        g2.setFont(silkScreen.deriveFont(Font.BOLD, 12F));
 
-            g2.setColor(new Color(0, 0, 0, 200));
-            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
-
-            g2.setColor(Color.white);
-            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20F));
-
-            String text = "World Map";
-            int x = getXForCenteredText(text);
-            int y = gp.tileSize * 2;
-            g2.drawString(text, x, y);
-
-            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 12F));
-            y = gp.tileSize * 4;
-
-            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 12F));
-
-            text = "Abigail's";
-            int x1 = gp.tileSize * 3 / 2;
-            y += gp.tileSize * 2;
-            g2.drawString(text, x1, y);
-            y += gp.tileSize / 4;
-            text = "House";
-            g2.drawString(text, x1, y);
-            y -= gp.tileSize / 4;
-            if (commandNumber == 0) {
-                g2.drawString(">", x1 - gp.tileSize / 4, y + gp.tileSize / 8);
-            }
-
-            text = "Caroline's";
-            int x2 = x1 + gp.tileSize * 3;
-            g2.drawString(text, x2, y);
-            text = "House";
-            y += gp.tileSize / 4;
-            g2.drawString(text, x2, y);
-            y -= gp.tileSize / 4;
-            if (commandNumber == 1) {
-                g2.drawString(">", x2 - gp.tileSize / 4, y + gp.tileSize / 8);
-            }
-
-            text = "Dasco's";
-            int x3 = x2 + gp.tileSize * 3;
-            g2.drawString(text, x3, y);
-            text = "House";
-            y += gp.tileSize / 4;
-            g2.drawString(text, x3, y);
-            y -= gp.tileSize / 4;
-            if (commandNumber == 2) {
-                g2.drawString(">", x3 - gp.tileSize / 4, y + gp.tileSize / 8);
-            }
-
-            text = "MayorTadi's";
-            int x4 = x3 + gp.tileSize * 3;
-            g2.drawString(text, x4, y);
-            text = "House";
-            y += gp.tileSize / 4;
-            g2.drawString(text, x4, y);
-            y -= gp.tileSize / 4;
-            if (commandNumber == 3) {
-                g2.drawString(">", x4 - gp.tileSize / 4, y + gp.tileSize / 8);
-            }
-
-            text = "Perry's";
-            int x5 = x4 + gp.tileSize * 3;
-            g2.drawString(text, x5, y);
-            text = "House";
-            y += gp.tileSize / 4;
-            g2.drawString(text, x5, y);
-            y -= gp.tileSize / 4;
-            if (commandNumber == 4) {
-                g2.drawString(">", x5 - gp.tileSize / 4, y + gp.tileSize / 8);
-            }
-
-            text = "Store";
-            x = x1;
-            y += gp.tileSize * 2;
-            g2.drawString(text, x, y);
-            if (commandNumber == 5) {
-                g2.drawString(">", x - gp.tileSize / 4, y);
-            }
-
-            text = "Farm";
-            x = x2;
-            g2.drawString(text, x, y);
-            if (commandNumber == 6) {
-                g2.drawString(">", x - gp.tileSize / 4, y);
-            }
-
-            text = "Forest";
-            x = x3;
-            g2.drawString(text, x, y);
-            text = "River";
-            y += gp.tileSize / 4;
-            g2.drawString(text, x, y);
-            y -= gp.tileSize / 4;
-            if (commandNumber == 7) {
-                g2.drawString(">", x - gp.tileSize / 4, y);
-            }
-
-            text = "Mountain";
-            x = x4;
-            g2.drawString(text, x, y);
-            text = "Lake";
-            y += gp.tileSize / 4;
-            g2.drawString(text, x, y);
-            y -= gp.tileSize / 4;
-            if (commandNumber == 8) {
-                g2.drawString(">", x - gp.tileSize / 4, y);
-            }
-
-            text = "Ocean";
-            x = x5;
-            g2.drawString(text, x, y);
-            if (commandNumber == 9) {
-                g2.drawString(">", x - gp.tileSize / 4, y);
-            }
-
-            text = "Player's House";
-            x = getXForCenteredText(text);
-            y += gp.tileSize * 2;
-            g2.drawString(text, x, y);
-            if (commandNumber == 10) {
-                g2.drawString(">", x - gp.tileSize / 4, y);
-            }
+        int[][] positions = getCachedMapPositions();
+        if (commandNumber >= 0 && commandNumber < positions.length) {
+            g2.drawString(">", positions[commandNumber][0], positions[commandNumber][1]);
         }
-
+        }
     }
 
     public void drawPauseScreen() {
@@ -549,99 +531,25 @@ public class UI {
     }
 
     public void drawCreditPage(Graphics2D g2) {
-        drawSharedBackground(g2);
-        g2.setColor(new Color(0, 0, 0, 200));
+        drawSharedBackground(g2, gp.creditPageState);
+        g2.setColor(new Color(0, 0, 0, 0));
         g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
-
-        g2.setColor(Color.white);
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20F));
-
-        String text = "Developer Team";
-        int x = getXForCenteredText(text);
-        int y = gp.tileSize * 5/2;
-        g2.drawString(text, x, y);
-
-        x -= gp.tileSize*2;
-
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 12F));
-        y += gp.tileSize * 2;
-        text = "18223033 | Persada Ramiiza Abyudaya";
-        g2.drawString(text, x, y);
-        y += gp.tileSize;
-        text = "18223039 | Devon Wiraditya Tanumihardja";
-        g2.drawString(text, x, y);
-        y += gp.tileSize;
-        text = "18223075 | Surya Suharna";
-        g2.drawString(text, x, y);
-        y += gp.tileSize;
-        text = "18223085 | Velicia Christina Gabriel";
-        g2.drawString(text, x, y);
-
-        text = "Special thanks to: ";
-        y += gp.tileSize*2;
-        x = getXForCenteredText(text);
-        g2.drawString(text, x, y);
-
-        text = "Jabarano Dago, Rumah Aca, Ryisnow, dan azzAAAm";
-        y += gp.tileSize;
-        x -= gp.tileSize*3;
-        g2.drawString(text, x, y);
     }
 
     public void drawHelp(Graphics2D g2) {
-        drawSharedBackground(g2);
-        g2.setColor(new Color(0, 0, 0, 200));
+        drawSharedBackground(g2, gp.helpPageState);
+        g2.setColor(new Color(0, 0, 0, 0));
         g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
-
-
-        g2.setColor(Color.white);
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 18F));
-
-        String text = "Help";
-        int x = getXForCenteredText(text);
-        int y = gp.tileSize * 5/2;
-        g2.drawString(text, x, y);
-
-        x -= gp.tileSize*2;
-
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 12F));
-        text = "W - Move upward";
-        y += gp.tileSize*2;
-        g2.drawString(text, x, y);
-        y += gp.tileSize/2;
-        text = "A - Move left";
-        g2.drawString(text, x, y);
-        y += gp.tileSize/2;
-        text = "S - Move downward";
-        g2.drawString(text, x, y);
-        y += gp.tileSize/2;
-        text = "D - Move right";
-        g2.drawString(text, x, y);
-        y += gp.tileSize/2;
-        text = "I - Show inventory";
-        g2.drawString(text, x, y);
-        y += gp.tileSize/2;
-        text = "F - Fishing, Tilling, Planting, Watering, Harvesting, Eating";
-        g2.drawString(text, x, y);
-        y += gp.tileSize/2;
-        text = "Enter - Various actions";
-        g2.drawString(text, x, y);
-        y += gp.tileSize/2;
-        text = "Escape - Exit current page";
-        g2.drawString(text, x, y);
     }
 
     public void drawPlayerNameInputScreen() {
-        drawSharedBackground(g2);
-        g2.setColor(new Color(0, 0, 0, 200));
+        drawSharedBackground(g2, gp.playerNameInputState);
+        g2.setColor(new Color(0, 0, 0, 0));
         g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 30F));
-        g2.setColor(Color.white);
+        g2.setColor(themecolor);
 
-        int x = getXForCenteredText(playerNamePromptMessage);
-        int y = gp.screenHeight / 2 - gp.tileSize * 2;
-        g2.drawString(playerNamePromptMessage, x, y);
 
         String displayText = playerNameInput;
         if (System.currentTimeMillis() % 1000 < 500) {
@@ -652,46 +560,31 @@ public class UI {
 
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
         int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
-        x = gp.screenWidth / 2 - textWidth / 2;
-        y += gp.tileSize * 2;
+        int x = gp.screenWidth / 2 - textWidth / 2;
+        int y = gp.screenHeight / 2;
         g2.drawString(displayText, x, y);
-
-        g2.setFont(pressStart.deriveFont(Font.PLAIN, 16F));
-        x = getXForCenteredText(playerNameSubMessage);
-        y += gp.tileSize * 1.5;
-        g2.drawString(playerNameSubMessage, x, y);
     }
 
-    public void drawFarmNameInputScreen() {
-        drawSharedBackground(g2);
-        g2.setColor(new Color(0, 0, 0, 200));
-        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+public void drawFarmNameInputScreen() {
+    drawSharedBackground(g2, gp.farmNameInputState);
+    g2.setColor(new Color(0, 0, 0, 0));
+    g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-        g2.setFont(pressStart.deriveFont(Font.PLAIN, 30F));
-        g2.setColor(Color.white);
+    g2.setColor(themecolor);
 
-        int x = getXForCenteredText(farmNamePromptMessage);
-        int y = gp.screenHeight / 2 - gp.tileSize * 2;
-        g2.drawString(farmNamePromptMessage, x, y);
-
-        String displayText = farmNameInput;
-        if (System.currentTimeMillis() % 1000 < 500) {
-            displayText += "_";
-        } else {
-            displayText += " ";
-        }
-
-        g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
-        int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
-        x = gp.screenWidth / 2 - textWidth / 2;
-        y += gp.tileSize * 2;
-        g2.drawString(displayText, x, y);
-
-        g2.setFont(pressStart.deriveFont(Font.PLAIN, 16F));
-        x = getXForCenteredText(farmNameSubMessage);
-        y += gp.tileSize * 1.5;
-        g2.drawString(farmNameSubMessage, x, y);
+    String displayText = farmNameInput;
+    if (System.currentTimeMillis() % 1000 < 500) {
+        displayText += "_";
+    } else {
+        displayText += " ";
     }
+
+    g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
+    int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
+    int x = gp.screenWidth / 2 - textWidth / 2;
+    int y = gp.screenHeight / 2;
+    g2.drawString(displayText, x, y);
+}
 
     public void drawDialogueScreen() {
         int x = gp.tileSize * 2;
@@ -1781,8 +1674,8 @@ public class UI {
 
     public void drawEndGameStatisticsScreen(Graphics2D g2) {
 
-        drawSharedBackground(g2);
-        g2.setColor(new Color(0, 0, 0, 230));
+        drawSharedBackground(g2, gp.endGameState);
+        g2.setColor(new Color(0, 0, 0, 0));
         g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
         g2.setFont(pressStart.deriveFont(Font.BOLD, 24F));

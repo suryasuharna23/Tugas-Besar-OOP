@@ -1,13 +1,28 @@
 package spakborhills;
 
-import spakborhills.entity.*;
+import java.util.Arrays;
+
+import spakborhills.entity.Entity;
+import spakborhills.entity.NPC;
+import spakborhills.entity.NPC_ABIGAIL;
+import spakborhills.entity.NPC_CAROLINE;
+import spakborhills.entity.NPC_DASCO;
+import spakborhills.entity.NPC_EMILY;
+import spakborhills.entity.NPC_MAYOR_TADI;
+import spakborhills.entity.NPC_PERRY;
+import spakborhills.entity.Player;
 import spakborhills.enums.FishType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
-import spakborhills.object.*;
-
-import java.util.Arrays;
+import spakborhills.object.OBJ_Bed;
+import spakborhills.object.OBJ_Chest;
+import spakborhills.object.OBJ_Door;
+import spakborhills.object.OBJ_Fish;
+import spakborhills.object.OBJ_House;
+import spakborhills.object.OBJ_ShippingBin;
+import spakborhills.object.OBJ_Stove;
+import spakborhills.object.OBJ_TV;
 
 public class AssetSetter {
         GamePanel gp;
