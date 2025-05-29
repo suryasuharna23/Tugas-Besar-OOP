@@ -155,6 +155,9 @@ public class UI {
         else if (gp.gameState == gp.creditPageState) {
             drawCreditPage(g2);
         }
+        else if (gp.gameState == gp.helpPageState) {
+            drawHelp(g2);
+        }
     }
 
     public void drawFishingMinigameScreen(Graphics2D g2) {
@@ -585,6 +588,49 @@ public class UI {
         g2.drawString(text, x, y);
     }
 
+    public void drawHelp(Graphics2D g2) {
+        drawSharedBackground(g2);
+        g2.setColor(new Color(0, 0, 0, 200));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+
+        g2.setColor(Color.white);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 18F));
+
+        String text = "Help";
+        int x = getXForCenteredText(text);
+        int y = gp.tileSize * 5/2;
+        g2.drawString(text, x, y);
+
+        x -= gp.tileSize*2;
+
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 12F));
+        text = "W - Move upward";
+        y += gp.tileSize*2;
+        g2.drawString(text, x, y);
+        y += gp.tileSize/2;
+        text = "A - Move left";
+        g2.drawString(text, x, y);
+        y += gp.tileSize/2;
+        text = "S - Move downward";
+        g2.drawString(text, x, y);
+        y += gp.tileSize/2;
+        text = "D - Move right";
+        g2.drawString(text, x, y);
+        y += gp.tileSize/2;
+        text = "I - Show inventory";
+        g2.drawString(text, x, y);
+        y += gp.tileSize/2;
+        text = "F - Fishing, Tilling, Planting, Watering, Harvesting, Eating";
+        g2.drawString(text, x, y);
+        y += gp.tileSize/2;
+        text = "Enter - Various actions";
+        g2.drawString(text, x, y);
+        y += gp.tileSize/2;
+        text = "Escape - Exit current page";
+        g2.drawString(text, x, y);
+    }
+
     public void drawPlayerNameInputScreen() {
         drawSharedBackground(g2);
         g2.setColor(new Color(0, 0, 0, 200));
@@ -920,6 +966,7 @@ public class UI {
         g2.setColor(Color.white);
         Font titleFont = (pressStart != null) ? pressStart.deriveFont(24F) : new Font("Arial", Font.BOLD, 24);
         g2.setFont(titleFont);
+
         g2.drawString("INVENTORY", getXForInventoryTitle("INVENTORY", frameX, frameWidth), frameY + gp.tileSize - 10);
 
         final int slotStartX = frameX + gp.tileSize / 2;
@@ -929,6 +976,7 @@ public class UI {
         final int slotSize = gp.tileSize + 10;
         final int slotGap = 5;
         final int itemsPerRow = (frameWidth - gp.tileSize) / (slotSize + slotGap);
+
 
         int currentItemIndexInList = 0;
 

@@ -92,14 +92,23 @@ public class KeyHandler implements KeyListener {
                     gp.ui.commandNumber = 0;
                 }
             }
+
         } else if (gp.gameState == gp.creditPageState) {
             if (code == KeyEvent.VK_ESCAPE) {
                 enterPressed = false;
                 gp.gameState = gp.titleState;
-                gp.ui.commandNumber = 0;
-                //gp.repaint();
+                gp.ui.commandNumber = 0;;
             }
         }
+
+        else if (gp.gameState == gp.helpPageState) {
+            if (code == KeyEvent.VK_ESCAPE) {
+                //enterPressed = false;
+                gp.gameState = gp.playState;
+                //gp.ui.commandNumber = 0;
+            }
+        }
+
         else if (gp.gameState == gp.playerNameInputState) {
             handlePlayerNameInput(code, e.getKeyChar());
         }
@@ -202,6 +211,12 @@ public class KeyHandler implements KeyListener {
                 if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                     gp.gameClock.pauseTime();
                 }
+            }
+            else if (code == KeyEvent.VK_H) {
+                gp.gameState = gp.helpPageState;
+                //enterPressed = true;
+
+
             }
         }
         else if (gp.gameState == gp.pauseState) {

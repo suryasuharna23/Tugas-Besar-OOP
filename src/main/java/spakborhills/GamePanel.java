@@ -67,6 +67,7 @@ public class GamePanel extends JPanel implements Runnable {
     public final int endGameState = 15;
     public int previousGameState = -1;
     public int creditPageState = 16;
+    public int helpPageState = 17;
 
     public final int PLAYER_HOUSE_INDEX = 10;
 
@@ -237,7 +238,9 @@ public class GamePanel extends JPanel implements Runnable {
                     environmentManager.update();
                 }
             }
-        } else if (gameState == endGameState) {
+        }
+
+        else if (gameState == endGameState) {
             if (environmentManager != null) {
                 environmentManager.update();
             }
@@ -571,6 +574,11 @@ public class GamePanel extends JPanel implements Runnable {
 
         if (gameState == titleState) {
             ui.draw(g2);
+        }
+
+        else if (gameState == helpPageState) {
+            ui.drawHelp(g2);
+            System.out.println("[GamePanel] Help page drawn.");
         }
 
         else {
