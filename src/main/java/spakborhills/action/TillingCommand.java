@@ -3,9 +3,6 @@ package spakborhills.action;
 import spakborhills.GamePanel;
 import spakborhills.entity.Player;
 import spakborhills.enums.TileState;
-import spakborhills.object.OBJ_Equipment;
-import spakborhills.object.OBJ_Item;
-import spakborhills.entity.Entity;
 
 public class TillingCommand implements Command {
     private final Player player;

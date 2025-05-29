@@ -8,6 +8,7 @@ import spakborhills.Weather;
 public class OBJ_TV extends Entity {
     public OBJ_TV(GamePanel gp) {
         super(gp);
+
         type = EntityType.INTERACTIVE_OBJECT;
         name = "TV";
         collision = true;

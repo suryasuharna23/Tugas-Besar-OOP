@@ -1,13 +1,21 @@
 package spakborhills;
 
-import spakborhills.entity.*;
+import java.util.Arrays;
+
+import spakborhills.entity.Entity;
+import spakborhills.entity.NPC;
+import spakborhills.entity.NPC_ABIGAIL;
+import spakborhills.entity.NPC_CAROLINE;
+import spakborhills.entity.NPC_DASCO;
+import spakborhills.entity.NPC_EMILY;
+import spakborhills.entity.NPC_MAYOR_TADI;
+import spakborhills.entity.NPC_PERRY;
+import spakborhills.entity.Player;
 import spakborhills.enums.FishType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.object.*;
-
-import java.util.Arrays;
 
 public class AssetSetter {
         GamePanel gp;
@@ -157,6 +165,10 @@ public class AssetSetter {
                         house.worldY = gp.tileSize * 21;
                         gp.entities.add(house);
 
+                        Entity pond = new OBJ_Pond(gp);
+                        pond.worldX = gp.tileSize * 15;
+                        pond.worldY = gp.tileSize * 21;
+                        gp.entities.add(pond);
 
                 } else if ("Player's House".equalsIgnoreCase(currentMapName)) {
                         Entity playerSingleBed = new OBJ_Bed(gp);
