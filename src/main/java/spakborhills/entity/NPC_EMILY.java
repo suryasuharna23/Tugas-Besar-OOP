@@ -1,4 +1,4 @@
-// NPC_EMILY.java
+
 package spakborhills.entity;
 
 import spakborhills.GamePanel;
@@ -6,8 +6,10 @@ import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
+import spakborhills.object.OBJ_Crop;
 import spakborhills.object.OBJ_Food;
 import spakborhills.object.OBJ_Item;
+import spakborhills.object.OBJ_Misc;
 import spakborhills.object.OBJ_Recipe;
 import spakborhills.object.OBJ_Seed;
 
@@ -37,24 +39,19 @@ public class NPC_EMILY extends NPC {
         public void initializeShopInventory() {
                 shopInventory = new ArrayList<>();
 
-                // Add Seeds [cite: 114, 117]
                 shopInventory
                                 .add(new OBJ_Seed(gp, ItemType.SEEDS, "Parsnip", false, 20, 10, 1, 1, Season.SPRING,
                                                 Weather.RAINY));
                 shopInventory.add(
                                 new OBJ_Seed(gp, ItemType.SEEDS, "Cauliflower", false, 80, 40, 2, 5, Season.SPRING,
-                                                Weather.SUNNY)); // Assuming
-                                                                 // sunny
-                                                                 // default
-                                                                 // for
-                                                                 // simplicity
+                                                Weather.SUNNY));
+
                 shopInventory
                                 .add(new OBJ_Seed(gp, ItemType.SEEDS, "Potato", false, 50, 25, 2, 3, Season.SPRING,
                                                 Weather.SUNNY));
                 shopInventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Wheat", false, 60, 30, 2, 1, Season.SPRING,
-                                Weather.SUNNY)); // Spring/Fall,
-                                                 // using
-                                                 // Spring
+                                Weather.SUNNY));
+
                 shopInventory
                                 .add(new OBJ_Seed(gp, ItemType.SEEDS, "Blueberry", false, 80, 40, 2, 7, Season.SUMMER,
                                                 Weather.SUNNY));
@@ -75,7 +72,6 @@ public class NPC_EMILY extends NPC {
                 shopInventory.add(new OBJ_Seed(gp, ItemType.SEEDS, "Grape", false, 60, 30, 2, 3, Season.FALL,
                                 Weather.SUNNY));
 
-                // Add Food with buy prices [cite: 142, 145]
                 shopInventory.add(new OBJ_Food(gp, ItemType.FOOD, "Fish n' Chips", true, 150, 135, 50));
                 shopInventory.add(new OBJ_Food(gp, ItemType.FOOD, "Baguette", true, 100, 80, 25));
                 shopInventory.add(new OBJ_Food(gp, ItemType.FOOD, "Sashimi", true, 300, 275, 70));
@@ -86,8 +82,23 @@ public class NPC_EMILY extends NPC {
                 shopInventory.add(new OBJ_Food(gp, ItemType.FOOD, "Fish Sandwich", true, 200, 180, 50));
                 shopInventory.add(new OBJ_Food(gp, ItemType.FOOD, "Cooked Pig's Head", true, 1000, 0, 100));
 
+
+                shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Parsnip", true, 50, 35, 1, 3));
+                shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Cauliflower", true, 200, 150, 1, 3));
+                shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Wheat", true, 50, 30, 3, 3));
+                shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Blueberry", true, 150, 40, 3, 3));
+                shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Tomato", true, 90, 60, 1, 3));
+                shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Pumpkin", true, 300, 250, 1, 3));
+                shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true, 100, 10, 20, 3));
+
+
                 shopInventory.add(new OBJ_Recipe(gp, "Recipe: Fish n' Chips", 500, "recipe_1"));
                 shopInventory.add(new OBJ_Recipe(gp, "Recipe: Fish Sandwich", 500, "recipe_10"));
+
+                shopInventory.add(new OBJ_Misc(gp, ItemType.MISC, "Proposal Ring", false, 1500, 750));
+                shopInventory.add(new OBJ_Misc(gp, ItemType.MISC, "Firewood", false, 50, 25));
+                shopInventory.add(new OBJ_Misc(gp, ItemType.MISC, "Coal", false, 100, 50));
+
         }
 
         public void getNPCImage() {
@@ -113,6 +124,6 @@ public class NPC_EMILY extends NPC {
                 gp.currentInteractingNPC = this;
                 gp.gameState = gp.interactionMenuState;
                 gp.ui.npcMenuCommandNum = 0;
-                // Additional logic for shop if needed on menu open
+
         }
 }

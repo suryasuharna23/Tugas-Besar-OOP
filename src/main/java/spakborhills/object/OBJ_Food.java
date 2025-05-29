@@ -50,10 +50,15 @@ public class OBJ_Food extends OBJ_Item implements Edible {
             case "Wine":
                 down1 = setup("/objects/wine");
                 break;
+            case "Cooked Pig's Head":
+                down1 = setup("/objects/cooked_pig_head");
         }
         if (down1 != null) {
             image = down1;
         }
+        up1 = down1;
+        left1 = down1;
+        right1 = down1;
     }
 
     public int getEnergy() {

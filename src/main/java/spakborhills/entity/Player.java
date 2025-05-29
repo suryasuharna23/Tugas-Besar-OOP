@@ -152,14 +152,13 @@ public class Player extends Entity {
         type = EntityType.PLAYER;
         currentEnergy = MAX_POSSIBLE_ENERGY;
         this.isCurrentlySleeping = false;
-        gold = 500;
+        gold = 500000000;
         initializeRecipeStatus();
 
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
-        addItemToInventory(new OBJ_Misc(gp, ItemType.MISC, "Proposal Ring", false, 1500, 750));
     }
 
     private void initializeRecipeStatus() {
@@ -502,11 +501,8 @@ public class Player extends Entity {
                 gp.ui.showMessage(
                         "Kamu mendapatkan: " + newItem.name + (newItem.quantity > 1 ? " x" + newItem.quantity : ""));
             return true;
-        } else {
-            if (gp.ui != null)
-                gp.ui.showMessage("Inventaris penuh! Tidak dapat menambahkan " + newItem.name);
-            return false;
         }
+        return false;
     }
 
     public void removeItemFromInventory(int itemIndex) {
@@ -577,11 +573,20 @@ public class Player extends Entity {
                             seedTemplate.name.replace(" seeds", ""), seedTemplate.isEdible(),
                             seedTemplate.getBuyPrice(), seedTemplate.getSellPrice(),
                             1, 1, Season.SPRING, Weather.SUNNY);
-                    purchasedItemInstance = itemToBuy;
-
                 } else if (itemToBuy instanceof OBJ_Food) {
                     OBJ_Food foodTemplate = (OBJ_Food) itemToBuy;
                     purchasedItemInstance = FoodFactory.createFood(gp, foodTemplate.name.replace(" food", ""));
+                } else if (itemToBuy instanceof OBJ_Misc) {
+                    OBJ_Misc miscTemplate = (OBJ_Misc) itemToBuy;
+                    purchasedItemInstance = new OBJ_Misc(gp, miscTemplate.getType(),
+                            miscTemplate.baseName, miscTemplate.isEdible(),
+                            miscTemplate.getBuyPrice(), miscTemplate.getSellPrice());
+                } else if (itemToBuy instanceof OBJ_Crop) {
+                    OBJ_Crop cropTemplate = (OBJ_Crop) itemToBuy;
+                    purchasedItemInstance = new OBJ_Crop(gp, cropTemplate.getType(),
+                            cropTemplate.baseName, true,
+                            cropTemplate.getBuyPrice(), cropTemplate.getSellPrice(),
+                            cropTemplate.getHarvestAmount(), cropTemplate.getEnergy());
                 }
                 if (purchasedItemInstance != null) {
                     addItemToInventory(purchasedItemInstance);

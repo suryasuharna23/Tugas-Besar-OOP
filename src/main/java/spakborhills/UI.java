@@ -1922,136 +1922,176 @@ public class UI {
         int frameY = gp.tileSize;
         int frameWidth = gp.screenWidth - (gp.tileSize * 2);
         int frameHeight = gp.screenHeight - (gp.tileSize * 2);
-        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
 
-        g2.setColor(Color.white);
-        Font baseFont = pressStart != null ? pressStart : new Font("Arial", Font.PLAIN, 20);
-        g2.setFont(baseFont.deriveFont(Font.BOLD, 24F));
-        String title = "Emily's Shop";
-        g2.drawString(title, getXForCenteredTextInFrame(title, frameX, frameWidth), frameY + gp.tileSize - 5);
+        g2.setColor(new Color(15, 25, 35, 240));
+        g2.fillRoundRect(frameX, frameY, frameWidth, frameHeight, 20, 20);
 
-        g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
-        g2.drawString("Your Gold: " + gp.player.gold + "G", frameX + gp.tileSize / 2,
-                (int) (frameY + gp.tileSize * 1.5f));
-        int padding = 20;
-        int listStartX = frameX + padding;
-        int listStartY = (int) (frameY + gp.tileSize * 2.5f);
-        int itemLineHeight = 22;
-        int usableWidth = frameWidth - (padding * 2);
-        int itemListWidth = usableWidth * 2 / 5;
-        int detailAreaWidth = usableWidth * 3 / 5 - padding;
+        g2.setStroke(new BasicStroke(3f));
+        g2.setColor(new Color(200, 180, 120, 180));
+        g2.drawRoundRect(frameX + 2, frameY + 2, frameWidth - 4, frameHeight - 4, 18, 18);
 
-        int detailsStartX = listStartX + itemListWidth + padding;
-        int maxDetailWidth = Math.min(detailAreaWidth, frameX + frameWidth - detailsStartX - padding);
+        g2.setStroke(new BasicStroke(1f));
+        g2.setColor(new Color(255, 255, 255, 50));
+        g2.drawRoundRect(frameX + 6, frameY + 6, frameWidth - 12, frameHeight - 12, 15, 15);
+
+        Font titleFont = pressStart != null ? pressStart.deriveFont(Font.BOLD, 24F) : new Font("Arial", Font.BOLD, 24);
+        Font headerFont = pressStart != null ? pressStart.deriveFont(Font.BOLD, 14F) : new Font("Arial", Font.BOLD, 14);
+        Font bodyFont = pressStart != null ? pressStart.deriveFont(Font.PLAIN, 12F) : new Font("Arial", Font.PLAIN, 12);
+
+        int headerY = frameY + gp.tileSize - 10;
+
+        g2.setFont(titleFont);
+        g2.setColor(new Color(255, 220, 120));
+        String title = "Emily's General Store";
+        int titleX = getXForCenteredTextInFrame(title, frameX, frameWidth);
+        g2.drawString(title, titleX, headerY);
+
+        g2.setFont(headerFont);
+        g2.setColor(new Color(255, 215, 0));
+        String goldText = "Gold: " + gp.player.gold + "G";
+        int goldX = frameX + frameWidth - g2.getFontMetrics().stringWidth(goldText) - 30;
+        g2.drawString(goldText, goldX, headerY + 30);
 
         if (emily.shopInventory.isEmpty()) {
-            g2.setFont(baseFont.deriveFont(Font.PLAIN, 18F));
-            String noItemMsg = "Sorry, nothing in stock right now!";
-            g2.drawString(noItemMsg, getXForCenteredTextInFrame(noItemMsg, frameX, frameWidth),
-                    frameY + frameHeight / 2);
-        } else {
+            g2.setFont(bodyFont.deriveFont(Font.ITALIC, 16F));
+            g2.setColor(Color.LIGHT_GRAY);
+            String noItemMsg = "Store is closed today!";
+            int msgX = getXForCenteredTextInFrame(noItemMsg, frameX, frameWidth);
+            g2.drawString(noItemMsg, msgX, frameY + frameHeight / 2);
 
-            int availableListHeight = frameHeight - gp.tileSize * 4;
-            int maxVisibleItems = availableListHeight / itemLineHeight;
-            int scrollOffset = 0;
-            if (storeCommandNum >= maxVisibleItems) {
-                scrollOffset = storeCommandNum - maxVisibleItems + 1;
+            g2.setFont(bodyFont);
+            String exitMsg = "Press ESC to leave";
+            int exitX = getXForCenteredTextInFrame(exitMsg, frameX, frameWidth);
+            g2.drawString(exitMsg, exitX, frameY + frameHeight / 2 + 30);
+            return;
+        }
+
+        int contentStartY = headerY + 60;
+        int leftPanelX = frameX + 20;
+        int leftPanelWidth = (frameWidth - 60) / 2;
+        int rightPanelX = leftPanelX + leftPanelWidth + 20;
+        int rightPanelWidth = leftPanelWidth;
+
+        g2.setColor(new Color(25, 35, 45, 200));
+        g2.fillRoundRect(leftPanelX - 10, contentStartY - 20, leftPanelWidth + 20, frameHeight - 150, 15, 15);
+        g2.setColor(new Color(100, 120, 140, 100));
+        g2.drawRoundRect(leftPanelX - 10, contentStartY - 20, leftPanelWidth + 20, frameHeight - 150, 15, 15);
+
+        g2.setFont(headerFont);
+        g2.setColor(new Color(180, 200, 220));
+        g2.drawString("Items for Sale", leftPanelX - 5, contentStartY - 5);
+
+        int itemY = contentStartY + 20;
+        int itemSpacing = 28;
+        int maxVisibleItems = (frameHeight - 200) / itemSpacing;
+        int scrollOffset = Math.max(0, storeCommandNum - maxVisibleItems + 1);
+
+        for (int i = scrollOffset; i < Math.min(scrollOffset + maxVisibleItems, emily.shopInventory.size()); i++) {
+            OBJ_Item item = emily.shopInventory.get(i);
+            boolean isSelected = (i == storeCommandNum);
+
+            if (isSelected) {
+                g2.setColor(new Color(255, 215, 0, 120));
+                g2.fillRoundRect(leftPanelX - 8, itemY - 14, leftPanelWidth + 16, 24, 8, 8);
+                g2.setColor(new Color(255, 215, 0, 200));
+                g2.drawRoundRect(leftPanelX - 8, itemY - 14, leftPanelWidth + 16, 24, 8, 8);
             }
 
-            for (int i = 0; i < emily.shopInventory.size(); i++) {
-                if (i < scrollOffset || i >= scrollOffset + maxVisibleItems) {
-                    continue;
-                }
-                OBJ_Item shopItem = emily.shopInventory.get(i);
-                String itemName = shopItem.name;
-                int itemPrice = shopItem.getBuyPrice();
-                String displayText = itemName + " - " + itemPrice + "G";
+            g2.setFont(bodyFont);
+            g2.setColor(isSelected ? Color.WHITE : new Color(200, 200, 200));
 
-                int currentY = listStartY + ((i - scrollOffset) * itemLineHeight);
+            String itemName = item.name;
+            if (itemName.length() > 15) {
+                itemName = itemName.substring(0, 12) + "...";
+            }
 
-                if (i == storeCommandNum) {
-                    g2.setColor(Color.YELLOW);
-                    g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
-                    g2.drawString("> " + displayText, listStartX, currentY);
+            String itemText = (isSelected ? "> " : "  ") + itemName;
+            g2.drawString(itemText, leftPanelX, itemY);
 
-                    int detailBackgroundHeight = gp.tileSize * 2 + 40;
-                    g2.setColor(new Color(50, 50, 50, 150));
-                    g2.fillRoundRect(detailsStartX - 10, listStartY - 10,
-                            maxDetailWidth + 20, detailBackgroundHeight, 10, 10);
-                    g2.setColor(Color.WHITE);
-                    g2.drawRoundRect(detailsStartX - 10, listStartY - 10,
-                            maxDetailWidth + 20, detailBackgroundHeight, 10, 10);
+            String priceText = item.getBuyPrice() + "G";
+            FontMetrics fm = g2.getFontMetrics();
+            int priceX = leftPanelX + leftPanelWidth - fm.stringWidth(priceText) - 5;
+            g2.setColor(isSelected ? new Color(255, 215, 0) : new Color(150, 150, 150));
+            g2.drawString(priceText, priceX, itemY);
 
-                    int imageSize = gp.tileSize;
-                    if (shopItem.down1 != null) {
-                        g2.drawImage(shopItem.down1, detailsStartX, listStartY + 5, imageSize, imageSize, null);
-                    } else {
+            itemY += itemSpacing;
+        }
 
-                        g2.setColor(Color.GRAY);
-                        g2.fillRect(detailsStartX, listStartY + 5, imageSize, imageSize);
-                        g2.setColor(Color.WHITE);
-                        g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
-                        g2.drawString("No", detailsStartX + 5, listStartY + imageSize / 2);
-                        g2.drawString("Image", detailsStartX + 5, listStartY + imageSize / 2 + 12);
-                    }
+        if (storeCommandNum >= 0 && storeCommandNum < emily.shopInventory.size()) {
+            OBJ_Item selectedItem = emily.shopInventory.get(storeCommandNum);
 
-                    int textStartX = detailsStartX + imageSize + 15;
-                    int textStartY = listStartY + 20;
-                    int maxTextWidth = maxDetailWidth - imageSize - 25;
+            g2.setColor(new Color(35, 45, 55, 220));
+            g2.fillRoundRect(rightPanelX - 10, contentStartY - 20, rightPanelWidth + 20, 180, 15, 15);
+            g2.setColor(new Color(120, 140, 160, 120));
+            g2.drawRoundRect(rightPanelX - 10, contentStartY - 20, rightPanelWidth + 20, 180, 15, 15);
 
-                    if (textStartX + maxTextWidth > frameX + frameWidth - padding) {
-                        maxTextWidth = frameX + frameWidth - padding - textStartX;
-                    }
+            g2.setFont(headerFont);
+            g2.setColor(new Color(180, 200, 220));
+            g2.drawString("Item Details", rightPanelX - 5, contentStartY - 5);
 
-                    g2.setColor(Color.WHITE);
-                    g2.setFont(baseFont.deriveFont(Font.BOLD, 14F));
+            int imageSize = gp.tileSize;
+            int imageX = rightPanelX + 5;
+            int imageY = contentStartY + 10;
 
-                    String displayName = shopItem.name;
-                    FontMetrics fm = g2.getFontMetrics();
-                    if (fm.stringWidth(displayName) > maxTextWidth) {
-                        while (fm.stringWidth(displayName + "...") > maxTextWidth && displayName.length() > 1) {
-                            displayName = displayName.substring(0, displayName.length() - 1);
-                        }
-                        displayName += "...";
-                    }
-                    g2.drawString(displayName, textStartX, textStartY);
+            g2.setColor(new Color(60, 70, 80, 150));
+            g2.fillRoundRect(imageX - 3, imageY - 3, imageSize + 6, imageSize + 6, 8, 8);
 
-                    g2.setFont(baseFont.deriveFont(Font.PLAIN, 12F));
-                    g2.setColor(Color.YELLOW);
-                    g2.drawString("Price: " + itemPrice + "G", textStartX, textStartY + 18);
+            if (selectedItem.down1 != null) {
+                g2.drawImage(selectedItem.down1, imageX, imageY, imageSize, imageSize, null);
+            } else {
+                g2.setColor(Color.GRAY);
+                g2.fillRoundRect(imageX, imageY, imageSize, imageSize, 6, 6);
+                g2.setColor(Color.WHITE);
+                g2.setFont(bodyFont.deriveFont(Font.PLAIN, 9F));
+                String noImgText = "No Image";
+                FontMetrics noImgFm = g2.getFontMetrics();
+                int noImgX = imageX + (imageSize - noImgFm.stringWidth(noImgText)) / 2;
+                int noImgY = imageY + (imageSize + noImgFm.getHeight()) / 2;
+                g2.drawString(noImgText, noImgX, noImgY);
+            }
 
-                    g2.setColor(Color.LIGHT_GRAY);
-                    g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
-                    String itemInfo = "";
+            int detailX = imageX + imageSize + 15;
+            int detailY = contentStartY + 25;
 
-                    if (fm.stringWidth(itemInfo) > maxTextWidth) {
-                        while (fm.stringWidth(itemInfo + "...") > maxTextWidth && itemInfo.length() > 1) {
-                            itemInfo = itemInfo.substring(0, itemInfo.length() - 1);
-                        }
-                        itemInfo += "...";
-                    }
-                    g2.drawString(itemInfo, textStartX, textStartY + 36);
+            g2.setFont(headerFont.deriveFont(Font.BOLD, 14F));
+            g2.setColor(Color.WHITE);
+            String fullName = selectedItem.name;
+            if (fullName.length() > 12) {
+                fullName = fullName.substring(0, 9) + "...";
+            }
+            g2.drawString(fullName, detailX, detailY);
 
-                } else {
-                    g2.setColor(Color.WHITE);
-                    g2.setFont(baseFont.deriveFont(Font.PLAIN, 16F));
+            g2.setFont(bodyFont.deriveFont(Font.BOLD, 12F));
+            g2.setColor(new Color(255, 215, 0));
+            g2.drawString("Price: " + selectedItem.getBuyPrice() + "G", detailX, detailY + 20);
 
-                    FontMetrics fm = g2.getFontMetrics();
-                    if (fm.stringWidth(displayText) > itemListWidth - 30) {
-                        while (fm.stringWidth(displayText + "...") > itemListWidth - 30 && displayText.length() > 1) {
-                            displayText = displayText.substring(0, displayText.length() - 1);
-                        }
-                        displayText += "...";
-                    }
-                    g2.drawString("  " + displayText, listStartX, currentY);
-                }
+            if (selectedItem.isEdible()) {
+                g2.setFont(bodyFont.deriveFont(Font.PLAIN, 10F));
+                g2.setColor(new Color(144, 238, 144));
+                g2.drawString("+ Restores Energy", detailX, detailY + 35);
+            }
+
+            g2.setFont(bodyFont.deriveFont(Font.ITALIC, 10F));
+            if (gp.player.gold >= selectedItem.getBuyPrice()) {
+                g2.setColor(new Color(144, 238, 144));
+                g2.drawString("You can afford this", detailX, detailY + 50);
+            } else {
+                g2.setColor(new Color(255, 100, 100));
+                g2.drawString("Not enough gold", detailX, detailY + 50);
             }
         }
 
-        g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
+        int footerY = frameY + frameHeight - 30;
+        g2.setColor(new Color(20, 30, 40, 200));
+        g2.fillRoundRect(frameX + 15, footerY - 10, frameWidth - 30, 25, 8, 8);
+
+        g2.setFont(bodyFont.deriveFont(Font.PLAIN, 10F));
         g2.setColor(Color.WHITE);
-        String instructions = "[Up/Down] Select | [Enter] Buy | [Esc] Exit";
-        g2.drawString(instructions, listStartX, frameY + frameHeight - padding);
+        String instructions = "UP/DOWN: Navigate  |  ENTER: Buy  |  ESC: Exit";
+        int instrX = getXForCenteredTextInFrame(instructions, frameX, frameWidth);
+        g2.drawString(instructions, instrX, footerY + 5);
+
+        g2.setStroke(new BasicStroke(1f));
     }
 
     public void resetDialoguePagination() {
