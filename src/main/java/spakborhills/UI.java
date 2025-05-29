@@ -630,7 +630,7 @@ public void drawFarmNameHUD(Graphics2D g2) {
             g2.drawImage(worldMapUI, 0, 0, null);
                     Color themecolor = new Color(102, 63, 12);
         g2.setColor(themecolor);
-        g2.setFont(silkScreen.deriveFont(Font.BOLD, 12F));
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 12F));
 
         int[][] positions = getCachedMapPositions();
         if (commandNumber >= 0 && commandNumber < positions.length) {
@@ -919,7 +919,7 @@ public void drawFarmNameInputScreen() {
         }
 
 
-        g2.setFont(silkScreen.deriveFont(Font.BOLD, 14f));
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 14f));
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         String labelText = "ENERGY";
