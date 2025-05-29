@@ -14,9 +14,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-
 public class GamePanel extends JPanel implements Runnable {
-    private static final int OCEAN_MAP_INDEX = 9;
     final int originalTileSize = 16;
     final int scale = 3;
     public final int tileSize = originalTileSize * scale;
@@ -78,6 +76,10 @@ public class GamePanel extends JPanel implements Runnable {
     private boolean isProcessingNewDayDataInTransition = false;
     private long sleepTransitionStartTime = 0;
     private final long SLEEP_TRANSITION_MESSAGE_DURATION = 3500;
+    public boolean shouldTeleportToPlayerHouse = false;
+    public int playerHouseTeleportX = 0;
+    public int playerHouseTeleportY = 0;
+    private boolean isInMapTransition = false;
 
     private boolean hasTriggeredEndgame = false;
 
@@ -90,15 +92,16 @@ public class GamePanel extends JPanel implements Runnable {
     public int farmMapMaxCols = 0;
     public int farmMapMaxRows = 0;
     public final int FARM_MAP_INDEX = 6;
-    
+
     public static class SimpleFarmLayout {
-        public int houseX = 23; // Fixed position untuk house
-        public int houseY = 21; // Fixed position untuk house
-        public int shippingBinX = 25; // Fixed position untuk shipping bin
-        public int shippingBinY = 15; // Fixed position untuk shipping bin
+        public int houseX = 23;
+        public int houseY = 21;
+        public int shippingBinX = 25;
+        public int shippingBinY = 15;
     }
 
     public SimpleFarmLayout currentFarmLayout = new SimpleFarmLayout();
+
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
         this.setBackground(Color.black);
@@ -179,7 +182,20 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update() {
+        if (shouldTeleportToPlayerHouse) {
+            System.out.println("[GamePanel] Processing shouldTeleportToPlayerHouse flag in update()");
+            if (currentMapIndex != PLAYER_HOUSE_INDEX) {
+                loadMapbyIndex(PLAYER_HOUSE_INDEX);
+            } else {
+                player.worldX = (playerHouseTeleportX != 0) ? playerHouseTeleportX : tileSize * 7;
+                player.worldY = (playerHouseTeleportY != 0) ? playerHouseTeleportY : tileSize * 6;
+                player.direction = "down";
 
+                shouldTeleportToPlayerHouse = false;
+                playerHouseTeleportX = 0;
+                playerHouseTeleportY = 0;
+            }
+        }
         if (gameState != titleState && gameState != sleepTransitionState && gameClock != null && player != null) {
             if (gameClock.getTime().getHour() == 2 && !player.isCurrentlySleeping()) {
                 if (!hasForcedSleepAt2AMToday) {
@@ -346,7 +362,7 @@ public class GamePanel extends JPanel implements Runnable {
                 new MapInfo("Mayor Tadi's House", "/maps/mayor_tadi_house_data.txt", "/maps/mayor_tadi_house.txt"));
 
         mapInfos.add(new MapInfo("Perry's House", "/maps/perry_house_data.txt", "/maps/perry_house.txt"));
-       
+
 
         mapInfos.add(new MapInfo("Forest River", "/maps/forest_river_data.txt", "/maps/forest_river.txt"));
         mapInfos.add(new MapInfo("Mountain Lake", "/maps/mountain_lake_data.txt", "/maps/mountain_lake.txt"));
@@ -360,6 +376,11 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void loadMapbyIndex(int newMapIndex) {
         if (newMapIndex >= 0 && newMapIndex < mapInfos.size()) {
+            if (isInMapTransition) {
+                System.out.println("[GamePanel] Already in map transition, ignoring loadMapbyIndex call");
+                return;
+            }
+            isInMapTransition = true;
 
             if (this.currentMapIndex == FARM_MAP_INDEX && newMapIndex != FARM_MAP_INDEX) {
                 System.out.println("[GamePanel] Unloading Farm map. Saving its tile data.");
@@ -406,13 +427,33 @@ public class GamePanel extends JPanel implements Runnable {
                     + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
 
             boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 8) ||
-                    (previousMapIndex == 8 && this.currentMapIndex == PLAYER_HOUSE_INDEX) || this.currentMapIndex == 8 || this.currentMapIndex == PLAYER_HOUSE_INDEX;
+                    (previousMapIndex == 8 && this.currentMapIndex == PLAYER_HOUSE_INDEX) || this.currentMapIndex == 8
+                    || this.currentMapIndex == PLAYER_HOUSE_INDEX;
 
+            boolean playerCollapsedFromTravel = false;
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
                 if (player.tryDecreaseEnergy(10)) {
                     this.time.advanceTime(-15);
                     ui.showMessage("Travel tired you out. -10 Energy.");
                 }
+
+                if (player.isCurrentlySleeping()) {
+                    playerCollapsedFromTravel = true;
+                    System.out.println(
+                            "[GamePanel] Player collapsed from travel exhaustion. Redirecting to Player House instead of destination.");
+                    this.currentMapIndex = PLAYER_HOUSE_INDEX;
+                    selectedMap = mapInfos.get(this.currentMapIndex);
+                    mapName = selectedMap.getMapName();
+                }
+            }
+
+            if (shouldTeleportToPlayerHouse) {
+                System.out.println("[GamePanel] Teleport to Player House requested");
+                this.currentMapIndex = PLAYER_HOUSE_INDEX;
+                selectedMap = mapInfos.get(this.currentMapIndex);
+                mapName = selectedMap.getMapName();
+                playerCollapsedFromTravel = true;
+                shouldTeleportToPlayerHouse = false;
             }
 
             tileManager.loadMap(selectedMap);
@@ -423,26 +464,40 @@ public class GamePanel extends JPanel implements Runnable {
             int targetY = this.tileSize * 29;
             String targetDir = "down";
 
-            if (this.currentMapIndex == PLAYER_HOUSE_INDEX) {
-                targetX = this.tileSize * 10;
-                targetY = this.tileSize * 10;
-                targetDir = "down";
-            } else if (this.currentMapIndex == FARM_MAP_INDEX) {
-                if (previousMapIndex == PLAYER_HOUSE_INDEX) {
-                    targetX = this.tileSize * 20;
-                    targetY = this.tileSize * 28;
-                    targetDir = "up";
-                } else {
+            if (playerCollapsedFromTravel) {
 
-                    targetX = this.tileSize * 25;
-                    targetY = this.tileSize * 25;
-                    targetDir = "down";
-                }
-            } else if (selectedMap.getMapName().equalsIgnoreCase("Ocean")) {
-                targetX = this.tileSize * 1;
-                targetY = this.tileSize * 1;
+                targetX = this.tileSize * 7;
+                targetY = this.tileSize * 6;
                 targetDir = "down";
-                System.out.println("[GamePanel] Player spawning in Ocean at tile (1,1) based on map name.");
+                System.out.println("[GamePanel] Player collapsed - positioned at Player House bed");
+            }
+
+            else {
+
+                targetX = this.tileSize * 20;
+                targetY = this.tileSize * 29;
+                targetDir = "down";
+
+                if (this.currentMapIndex == PLAYER_HOUSE_INDEX) {
+                    targetX = this.tileSize * 10;
+                    targetY = this.tileSize * 10;
+                    targetDir = "down";
+                } else if (this.currentMapIndex == FARM_MAP_INDEX) {
+                    if (previousMapIndex == PLAYER_HOUSE_INDEX) {
+                        targetX = this.tileSize * 20;
+                        targetY = this.tileSize * 28;
+                        targetDir = "up";
+                    } else {
+                        targetX = this.tileSize * 25;
+                        targetY = this.tileSize * 25;
+                        targetDir = "down";
+                    }
+                } else if (selectedMap.getMapName().equalsIgnoreCase("Ocean")) {
+                    targetX = this.tileSize * 1;
+                    targetY = this.tileSize * 1;
+                    targetDir = "down";
+                    System.out.println("[GamePanel] Player spawning in Ocean at tile (1,1) based on map name.");
+                }
             }
 
             player.setPositionForMapEntry(targetX, targetY, targetDir);
@@ -471,9 +526,11 @@ public class GamePanel extends JPanel implements Runnable {
             System.out.println("[GamePanel] Player location verified: " + player.getLocation());
 
             gameState = playState;
+            isInMapTransition = false;
         } else {
             System.err.println("[GamePanel] Invalid map index: " + newMapIndex + ". Cannot load map.");
             gameState = titleState;
+            isInMapTransition = false;
         }
     }
 
@@ -494,7 +551,8 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void processShippingBin() {
-        if (player.itemsInShippingBinToday.isEmpty()) {
+
+        if (!player.hasUsedShippingBinToday || player.itemsInShippingBinToday.isEmpty()) {
             player.goldFromShipping = 0;
             return;
         }
@@ -510,11 +568,12 @@ public class GamePanel extends JPanel implements Runnable {
         if (totalEarnings > 0) {
             player.gold += totalEarnings;
             player.goldFromShipping = totalEarnings;
-            System.out.println(
-                    "[GamePanel] Player earned " + totalEarnings + "G from shipped items. Total gold: " + player.gold);
+            System.out.println("[GamePanel] Player earned " + totalEarnings +
+                    "G from shipped items. Total gold: " + player.gold);
         } else {
             player.goldFromShipping = 0;
         }
+
         player.itemsInShippingBinToday.clear();
         player.hasUsedShippingBinToday = false;
         System.out.println("[GamePanel] Shipping bin processed and reset for the new day.");
@@ -608,6 +667,57 @@ public class GamePanel extends JPanel implements Runnable {
         g2.dispose();
     }
 
+    public void completeShippingBinTransaction() {
+        if (player == null) {
+            System.err.println("[GamePanel] Cannot complete shipping: Player is null");
+            return;
+        }
+
+        if (player.itemsInShippingBinToday.isEmpty()) {
+
+            System.out.println("[GamePanel] No items shipped, shipping bin remains available");
+            ui.showMessage("No items placed in shipping bin.");
+        } else {
+
+            player.hasUsedShippingBinToday = true;
+            System.out.println("[GamePanel] Shipping bin transaction completed. " +
+                    player.itemsInShippingBinToday.size() + " items will be sold overnight.");
+            ui.showMessage("Items placed in shipping bin! You'll receive payment tomorrow morning.");
+        }
+
+        gameState = playState;
+
+        if (gameClock != null && gameClock.isPaused()) {
+            gameClock.resumeTime();
+        }
+    }
+
+    public void cancelShippingBinTransaction() {
+        if (player == null) {
+            System.err.println("[GamePanel] Cannot cancel shipping: Player is null");
+            return;
+        }
+
+        if (!player.itemsInShippingBinToday.isEmpty()) {
+            System.out.println("[GamePanel] Returning " + player.itemsInShippingBinToday.size() +
+                    " items from shipping bin to inventory");
+
+            for (Entity item : player.itemsInShippingBinToday) {
+                player.inventory.add(item);
+            }
+            player.itemsInShippingBinToday.clear();
+            ui.showMessage("Items returned from shipping bin.");
+        }
+
+        System.out.println("[GamePanel] Shipping bin transaction cancelled, remains available");
+
+        gameState = playState;
+
+        if (gameClock != null && gameClock.isPaused()) {
+            gameClock.resumeTime();
+        }
+    }
+
     public void playMusic(int i) {
         music.setFile(i);
         music.play();
@@ -622,5 +732,5 @@ public class GamePanel extends JPanel implements Runnable {
         se.setFile(i);
         se.play();
     }
-    
+
 }

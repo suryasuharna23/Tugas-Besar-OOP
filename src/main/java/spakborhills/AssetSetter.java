@@ -15,14 +15,7 @@ import spakborhills.enums.FishType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
-import spakborhills.object.OBJ_Bed;
-import spakborhills.object.OBJ_Chest;
-import spakborhills.object.OBJ_Door;
-import spakborhills.object.OBJ_Fish;
-import spakborhills.object.OBJ_House;
-import spakborhills.object.OBJ_ShippingBin;
-import spakborhills.object.OBJ_Stove;
-import spakborhills.object.OBJ_TV;
+import spakborhills.object.*;
 
 public class AssetSetter {
         GamePanel gp;
@@ -172,6 +165,10 @@ public class AssetSetter {
                         house.worldY = gp.tileSize * 21;
                         gp.entities.add(house);
 
+                        Entity pond = new OBJ_Pond(gp);
+                        pond.worldX = gp.tileSize * 15;
+                        pond.worldY = gp.tileSize * 21;
+                        gp.entities.add(pond);
 
                 } else if ("Player's House".equalsIgnoreCase(currentMapName)) {
                         Entity playerSingleBed = new OBJ_Bed(gp);

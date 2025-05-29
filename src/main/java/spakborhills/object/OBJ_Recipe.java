@@ -13,7 +13,7 @@ public class OBJ_Recipe extends OBJ_Item {
         super(gp, ItemType.RECIPE, name, false, buyPrice, 0, 1); 
         this.name = name; 
         this.recipeIdToUnlock = recipeIdToUnlock;
-        down1 = setup("/objects/recipe_scroll"); 
+        down1 = setup("/objects/recipe"); 
         if (down1 != null) {
             image = down1;
         } else {       

@@ -1,6 +1,6 @@
 package spakborhills.cooking;
 
-import spakborhills.GamePanel; // Perlu GamePanel jika resep bergantung pada instance gp
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
