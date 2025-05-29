@@ -639,11 +639,6 @@ public class GamePanel extends JPanel implements Runnable {
             ui.draw(g2);
         }
 
-        else if (gameState == helpPageState) {
-            ui.drawHelp(g2);
-            System.out.println("[GamePanel] Help page drawn.");
-        }
-
         else {
             tileManager.draw(g2);
 
