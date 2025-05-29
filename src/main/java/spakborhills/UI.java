@@ -24,7 +24,7 @@ public class UI {
     public int mapSelectionState = 0;
     GamePanel gp;
     GameClock gameClock;
-    Font silkScreen, pressStart;
+    Font silkScreen, pressStart, mineCraftia;
     public boolean messageOn = false;
     public String message = "";
     int messageCounter = 0;
@@ -67,9 +67,9 @@ public class UI {
         this.gp = gp;
         this.gameClock = gameClock;
 
-        InputStream inputStream = getClass().getResourceAsStream("/fonts/SilkscreenRegular.ttf");
+        InputStream inputStream = getClass().getResourceAsStream("/fonts/Minecraftia-Regular.ttf");
         try {
-            silkScreen = Font.createFont(Font.TRUETYPE_FONT, inputStream);
+            mineCraftia = Font.createFont(Font.TRUETYPE_FONT, inputStream);
             inputStream = getClass().getResourceAsStream("/fonts/PressStart2PRegular.ttf");
             pressStart = Font.createFont(Font.TRUETYPE_FONT, inputStream);
         } catch (FontFormatException | IOException e) {
@@ -155,60 +155,144 @@ public class UI {
     }
 
     public void drawFishingMinigameScreen(Graphics2D g2) {
+        // Mengurangi tinggi box secara lebih signifikan
+        int frameBaseWidth = gp.screenWidth - (gp.tileSize * 6); // Lebar tetap sama seperti sebelumnya
+        int frameBaseHeight = (int)(gp.tileSize * 3.75); // Tinggi box dikurangi menjadi lebih pendek lagi
 
-        int frameX = gp.tileSize * 3;
-        int frameY = gp.screenHeight / 2 - gp.tileSize * 3;
-        int frameWidth = gp.screenWidth - (gp.tileSize * 6);
-        int frameHeight = gp.tileSize * 6;
-        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+        // Warna-warna styling
+        Color stardewOuterBorder = new Color(101, 67, 33);
+        Color stardewThinBlackLine = Color.BLACK;
+        Color stardewMainBackground = new Color(245, 222, 179);
+        Color stardewTextColor = Color.BLACK;
 
-        g2.setColor(Color.white);
-        Font baseFont = pressStart != null ? pressStart : new Font("Arial", Font.PLAIN, 12);
-        int currentTextY = frameY + gp.tileSize;
+        // Padding dan ketebalan border
+        int textPadding = 6; // Mengurangi padding internal agar muat di box yang lebih kecil
+        int innerLinePadding = 2;
+        int outerBorderThickness = 3;
 
-        g2.setFont(baseFont.deriveFont(Font.PLAIN, 14F));
+        // Kalkulasi dimensi box
+        int totalBoxWidth = frameBaseWidth;
+        int totalBoxHeight = frameBaseHeight;
+
+        int totalBoxX = (gp.screenWidth - totalBoxWidth) / 2;
+        int totalBoxY = (gp.screenHeight / 2) - (totalBoxHeight / 2) - (int)(gp.tileSize * 2.0); // Naikkan posisi Y box lebih tinggi lagi
+        if (totalBoxY < gp.tileSize / 2) totalBoxY = gp.tileSize / 2;
+
+
+        int blackLineAreaX = totalBoxX + outerBorderThickness;
+        int blackLineAreaY = totalBoxY + outerBorderThickness;
+
+        int mainContentBoxWidth = totalBoxWidth - (outerBorderThickness * 2) - (innerLinePadding * 2);
+        int mainContentBoxHeight = totalBoxHeight - (outerBorderThickness * 2) - (innerLinePadding * 2);
+        int mainContentBoxX = blackLineAreaX + innerLinePadding;
+        int mainContentBoxY = blackLineAreaY + innerLinePadding;
+
+        // 1. Gambar border luar
+        g2.setColor(stardewOuterBorder);
+        g2.fillRoundRect(totalBoxX, totalBoxY, totalBoxWidth, totalBoxHeight, 8, 8);
+
+        // 2. Gambar latar utama
+        g2.setColor(stardewMainBackground);
+        g2.fillRoundRect(mainContentBoxX, mainContentBoxY, mainContentBoxWidth, mainContentBoxHeight, 5, 5);
+
+        // 3. Gambar garis hitam tipis
+        g2.setColor(stardewThinBlackLine);
+        g2.setStroke(new BasicStroke(1));
+        g2.drawRoundRect(mainContentBoxX -1, mainContentBoxY -1, mainContentBoxWidth +2, mainContentBoxHeight +2, 6, 6);
+        g2.setStroke(new BasicStroke(1));
+
+        // --- Area untuk Teks dan Gambar Ikan ---
+        int contentAreaX = mainContentBoxX + textPadding;
+        int contentAreaY = mainContentBoxY + textPadding;
+        int contentAreaWidth = mainContentBoxWidth - (textPadding * 2);
+        int contentAreaHeight = mainContentBoxHeight - (textPadding * 2);
+
+        // Gambar Ikan
+        int fishImageSize = (int)(gp.tileSize * 1.25); // Ukuran gambar ikan dikecilkan
+
+        // Alokasi ruang untuk gambar ikan di sisi kanan
+        int imageAreaWidth = fishImageSize + textPadding; // Lebar area untuk ikan + sedikit padding
+        int textBlockMaxWidth = contentAreaWidth - imageAreaWidth; // Lebar sisa untuk teks
+
+        int fishImageX = contentAreaX + textBlockMaxWidth + (imageAreaWidth - fishImageSize) / 2 ; // Pusatkan ikan di area kanannya
+        int fishImageY = contentAreaY + (contentAreaHeight - fishImageSize) / 2; // Pusatkan ikan secara vertikal
+
+
+        if (gp.player.fishToCatchInMinigame != null && gp.player.fishToCatchInMinigame.down1 != null) {
+            BufferedImage fishImage = gp.player.fishToCatchInMinigame.down1;
+            g2.drawImage(fishImage, fishImageX, fishImageY, fishImageSize, fishImageSize, null);
+        } else {
+            g2.setColor(stardewThinBlackLine);
+            Font placeholderFont = pressStart != null ? pressStart.deriveFont(Font.PLAIN, 7F) : new Font("Arial", Font.PLAIN, 7); // Font placeholder lebih kecil
+            g2.setFont(placeholderFont);
+            String noImgTxt = "Fish?";
+            FontMetrics pfm = g2.getFontMetrics(placeholderFont);
+            int sLen = pfm.stringWidth(noImgTxt);
+            g2.drawString(noImgTxt, fishImageX + (fishImageSize - sLen)/2, fishImageY + fishImageSize/2 + pfm.getAscent()/2);
+        }
+
+        g2.setColor(stardewTextColor);
+        Font baseFont = pressStart != null ? pressStart : new Font("Arial", Font.PLAIN, 10); // Base font lebih kecil
+        FontMetrics fmSmall = g2.getFontMetrics(baseFont.deriveFont(Font.PLAIN, 7F)); // Untuk teks bawah (instruksi, percobaan)
+        FontMetrics fmInfo = g2.getFontMetrics(baseFont.deriveFont(Font.PLAIN, 9F)); // Untuk info utama
+
+        int currentTextY = contentAreaY + fmInfo.getAscent();
+        int textBlockX = contentAreaX; // Teks mulai dari kiri content area
+
+        int spaceForBottomText = fmSmall.getHeight() * 2 + 4; // Perkiraan tinggi untuk 2 baris teks bawah
+
+        // Pesan Info
+        g2.setFont(baseFont.deriveFont(Font.PLAIN, 9F));
         if (gp.player.fishingInfoMessage != null && !gp.player.fishingInfoMessage.isEmpty()) {
-
-            List<String> infoLines = wrapText(gp.player.fishingInfoMessage, frameWidth - gp.tileSize,
-                    g2.getFontMetrics());
+            List<String> infoLines = wrapText(gp.player.fishingInfoMessage, textBlockMaxWidth, fmInfo);
             for (String line : infoLines) {
-                int lineX = getXForCenteredTextInFrame(line, frameX, frameWidth);
-                g2.drawString(line, lineX, currentTextY);
-                currentTextY += g2.getFontMetrics().getHeight() + 2;
+                if (currentTextY + fmInfo.getHeight() > contentAreaY + contentAreaHeight - spaceForBottomText) break;
+                g2.drawString(line, textBlockX , currentTextY);
+                currentTextY += fmInfo.getHeight();
             }
         }
-        currentTextY += gp.tileSize / 2;
+        currentTextY += gp.tileSize / 6; // Spasi minimal
 
-        g2.setFont(baseFont.deriveFont(Font.BOLD, 16F));
+        // Input Player
+        g2.setFont(baseFont.deriveFont(Font.BOLD, 11F));
         String displayInput = gp.player.fishingPlayerInput;
         if (System.currentTimeMillis() % 1000 < 500) {
             displayInput += "_";
         } else {
             displayInput += " ";
         }
-        int inputX = getXForCenteredTextInFrame(displayInput, frameX, frameWidth);
-        g2.drawString(displayInput, inputX, currentTextY);
-        currentTextY += gp.tileSize;
-
-        g2.setFont(baseFont.deriveFont(Font.ITALIC, 14F));
-        if (gp.player.fishingFeedbackMessage != null && !gp.player.fishingFeedbackMessage.isEmpty()) {
-            int feedbackX = getXForCenteredTextInFrame(gp.player.fishingFeedbackMessage, frameX, frameWidth);
-            g2.drawString(gp.player.fishingFeedbackMessage, feedbackX, currentTextY);
+        if (currentTextY + g2.getFontMetrics().getHeight() <= contentAreaY + contentAreaHeight - spaceForBottomText) {
+            g2.drawString(displayInput, textBlockX, currentTextY);
+            currentTextY += g2.getFontMetrics().getHeight() + gp.tileSize / 6;
         }
-        currentTextY += gp.tileSize / 2;
 
-        g2.setFont(baseFont.deriveFont(Font.PLAIN, 12F));
+        // Feedback Message
+        g2.setFont(baseFont.deriveFont(Font.ITALIC, 9F));
+        if (gp.player.fishingFeedbackMessage != null && !gp.player.fishingFeedbackMessage.isEmpty()) {
+            List<String> feedbackLines = wrapText(gp.player.fishingFeedbackMessage, textBlockMaxWidth, g2.getFontMetrics());
+            for (String line : feedbackLines) {
+                if (currentTextY + g2.getFontMetrics().getHeight() > contentAreaY + contentAreaHeight - spaceForBottomText) break;
+                g2.drawString(line, textBlockX, currentTextY);
+                currentTextY += g2.getFontMetrics().getHeight();
+            }
+        }
+
+        // Posisi untuk teks di bagian bawah
+        int bottomAreaStartY = mainContentBoxY + mainContentBoxHeight - textPadding;
+
+        // Instruksi (paling bawah)
+        g2.setFont(baseFont.deriveFont(Font.PLAIN, 7F)); // Font sangat kecil
+        String instructions = "[0-9] [Ent] [Esc]"; // Instruksi sangat singkat
+        int instructionsY = bottomAreaStartY - fmSmall.getDescent() + 1; // Penyesuaian Y
+        g2.drawString(instructions, textBlockX, instructionsY);
+
+        // Percobaan Tersisa (di atas instruksi)
+        g2.setFont(baseFont.deriveFont(Font.PLAIN, 8F)); // Font kecil
         int attemptsLeft = gp.player.fishingMaxTry - gp.player.fishingCurrentAttempts;
-        String attemptsText = "Percobaan tersisa: " + attemptsLeft + "/" + gp.player.fishingMaxTry;
-        int attemptsX = frameX + gp.tileSize / 2;
-        g2.drawString(attemptsText, attemptsX, frameY + frameHeight - gp.tileSize + 15);
-
-        g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
-        String instructions = "[0-9] Angka | [Enter] Tebak | [Backspace] Hapus | [Esc] Menyerah";
-        int instructionX = getXForCenteredTextInFrame(instructions, frameX, frameWidth);
-        g2.drawString(instructions, instructionX, frameY + frameHeight - gp.tileSize / 2);
+        String attemptsText = "Try: " + attemptsLeft + "/" + gp.player.fishingMaxTry;
+        int attemptsY = instructionsY - fmSmall.getHeight(); // Spasi minimal
+        g2.drawString(attemptsText, textBlockX, attemptsY);
     }
-
     private List<String> wrapText(String text, int maxWidth, FontMetrics fm) {
         List<String> lines = new ArrayList<>();
         if (text == null || text.isEmpty()) {
@@ -791,10 +875,10 @@ public class UI {
                 filledSegments = (int) (gp.player.currentEnergy / energyPerSegments);
             }
         }
-        g2.setFont(silkScreen);
+        g2.setFont(mineCraftia);
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 25f));
         g2.setColor(Color.black);
-        FontMetrics fmLabel = g2.getFontMetrics(silkScreen);
+        FontMetrics fmLabel = g2.getFontMetrics(mineCraftia);
         String labelText = "Energy";
         g2.drawString(labelText, x, y - fmLabel.getDescent());
         y += 5;
@@ -820,7 +904,7 @@ public class UI {
         String energyText = gp.player.currentEnergy + "/" + gp.player.MAX_POSSIBLE_ENERGY;
         g2.setColor(Color.BLACK);
         int segmentsBarTotalWidth = totalSegments * (segmentWidth + segmentSpacing) - segmentSpacing;
-        FontMetrics fmText = g2.getFontMetrics(silkScreen);
+        FontMetrics fmText = g2.getFontMetrics(mineCraftia);
         int textHeightOffset = (segmenHeight - fmText.getAscent() - fmText.getDescent()) / 2 + fmText.getAscent();
         g2.drawString(energyText, x + segmentsBarTotalWidth + 10, y + textHeightOffset);
     }
@@ -1137,8 +1221,8 @@ public class UI {
     private void drawTimedMessage(Graphics2D g2) {
         if (messageOn && this.message != null && !this.message.isEmpty()) {
 
-            float timedMessageFontSize = 15F;
-            Font messageFont = (silkScreen != null) ? silkScreen.deriveFont(Font.PLAIN, timedMessageFontSize)
+            float timedMessageFontSize = 12F;
+            Font messageFont = (mineCraftia != null) ? mineCraftia.deriveFont(Font.PLAIN, timedMessageFontSize)
                     : new Font("Arial", Font.PLAIN, (int) timedMessageFontSize);
             g2.setFont(messageFont);
             FontMetrics fm = g2.getFontMetrics(messageFont);
