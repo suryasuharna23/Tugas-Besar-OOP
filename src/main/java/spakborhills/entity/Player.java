@@ -610,6 +610,17 @@ public class Player extends Entity {
     public void consumeItemFromInventory(Entity itemToConsume) {
         Entity equippedItemBeforeConsumption = getEquippedItem();
         boolean wasEquippedAndIsTheSameItem = (equippedItemBeforeConsumption == itemToConsume);
+
+        if (itemToConsume instanceof OBJ_Item) {
+            OBJ_Item objItem = (OBJ_Item) itemToConsume;
+            if (objItem.quantity > 1) {
+                objItem.quantity--;
+                System.out.println(
+                        "DEBUG: Consumed 1 " + itemToConsume.name + ". Remaining quantity: " + objItem.quantity);
+                return;
+            }
+        }
+
         boolean removed = this.inventory.remove(itemToConsume);
         if (removed) {
             System.out.println("DEBUG: Consumed and removed from inventory: " + itemToConsume.name);
