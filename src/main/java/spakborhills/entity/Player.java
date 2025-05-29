@@ -278,7 +278,6 @@ public class Player extends Entity {
         gp.ui.currentDialogue = sleepMessagePrefix + "\n" + energyRecoveryMessage;
         System.out.println("[Player] Sleeping. Message: " + gp.ui.currentDialogue);
         teleportToPlayerHouse();
-
     }
 
     private void teleportToPlayerHouse() {
@@ -286,12 +285,17 @@ public class Player extends Entity {
         int houseY = gp.tileSize * 6;
 
         if (gp.currentMapIndex != gp.PLAYER_HOUSE_INDEX) {
-            gp.loadMapbyIndex(10);
-        }
-        this.worldX = houseX;
-        this.worldY = houseY;
-        this.direction = "down";
+            System.out.println("[Player] Requesting teleport to Player House due to sleep/collapse");
 
+            gp.shouldTeleportToPlayerHouse = true;
+            gp.playerHouseTeleportX = houseX;
+            gp.playerHouseTeleportY = houseY;
+        } else {
+
+            this.worldX = houseX;
+            this.worldY = houseY;
+        }
+        this.direction = "down";
     }
 
     public boolean isMarried() {
