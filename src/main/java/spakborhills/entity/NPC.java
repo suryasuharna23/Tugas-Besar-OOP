@@ -216,7 +216,6 @@ public class NPC extends Entity{
             this.engaged = false; 
             gp.player.setMarried(true);
             gp.player.partner = this; 
-            boolean energySpent = gp.player.tryDecreaseEnergy(80); 
             gp.ui.currentDialogue = marriageDialogue;             
             gp.player.justGotMarried = true; 
             gp.gameState = gp.dialogueState;

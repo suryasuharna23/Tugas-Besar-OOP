@@ -10,13 +10,13 @@ import spakborhills.interfaces.Edible;
 public class OBJ_Food extends OBJ_Item implements Edible {
     private int energy;
 
-
-    public OBJ_Food(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice, int energy){
+    public OBJ_Food(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice,
+            int energy) {
         super(gp, itemType, name, isEdible, buyPrice, sellPrice, 1);
         this.energy = energy;
         this.type = EntityType.INTERACTIVE_OBJECT;
 
-        switch(name) {
+        switch (name) {
             case "Fish n' Chips":
                 down1 = setup("/objects/fish_chips");
                 break;
@@ -56,44 +56,41 @@ public class OBJ_Food extends OBJ_Item implements Edible {
         }
     }
 
-    public int getEnergy() { return energy; }
+    public int getEnergy() {
+        return energy;
+    }
 
-    public void update() {}
+    public void update() {
+    }
 
     @Override
     public boolean use(Entity entity) {
-        if (isEdible() && entity instanceof Player) { 
-            Player player = (Player) entity;
-            
+        if (isEdible() && entity instanceof Player) {
             gp.ui.showMessage(this.name + " is now held. Press 'E' to eat.");
             return false;
         }
         return false;
     }
 
-    @Override 
+    @Override
     public void eat(Player player) {
-        System.out.println("DEBUG: OBJ_Food.eat() called for " + this.name); 
+        System.out.println("DEBUG: OBJ_Food.eat() called for " + this.name);
         if (player.gp.ui != null) {
-            player.gp.ui.showMessage("You are eating " + this.name + "."); 
+            player.gp.ui.showMessage("You are eating " + this.name + ".");
         }
 
-        if (this.getEnergy() != 0) { 
-            player.increaseEnergy(this.getEnergy()); 
+        if (this.getEnergy() != 0) {
+            player.increaseEnergy(this.getEnergy());
         }
 
-        
         if (player.gp.gameClock != null && player.gp.gameClock.getTime() != null) {
-            player.gp.gameClock.getTime().advanceTime(-5); 
+            player.gp.gameClock.getTime().advanceTime(-5);
             System.out.println("DEBUG: Game time advanced by 5 minutes due to eating.");
         } else {
             System.out.println("DEBUG: GameClock or Time is null, cannot advance time.");
         }
 
-        
-        
-
-        player.consumeItemFromInventory(this); 
+        player.consumeItemFromInventory(this);
     }
 
 }

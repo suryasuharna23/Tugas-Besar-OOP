@@ -2,7 +2,6 @@ package spakborhills.object;
 
 import spakborhills.GamePanel;
 import spakborhills.entity.Entity;
-import spakborhills.entity.Player;
 import spakborhills.enums.ItemType;
 
 public class OBJ_Crop extends OBJ_Item {

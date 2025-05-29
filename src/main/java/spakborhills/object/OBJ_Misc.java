@@ -7,7 +7,7 @@ import spakborhills.enums.ItemType;
 
 public class OBJ_Misc extends OBJ_Item {
     public OBJ_Misc (GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice) {
-        super(gp, itemType.MISC, name, false, 0, 0, 1);
+        super(gp, ItemType.MISC, name, false, 0, 0, 1);
 
         switch (name) {
             case "Firewood":
@@ -25,8 +25,6 @@ public class OBJ_Misc extends OBJ_Item {
     @Override
     public boolean use(Entity entity) {
         if (isEdible() && entity instanceof Player) { 
-            Player player = (Player) entity;
-            
             gp.ui.showMessage("You can use " + this.name + " now.");
             return false;
         }

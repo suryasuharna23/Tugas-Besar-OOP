@@ -2,12 +2,11 @@ package spakborhills.object;
 
 import spakborhills.GamePanel;
 import spakborhills.entity.Entity;
-import spakborhills.entity.Player;
 import spakborhills.enums.ItemType;
 
 public class OBJ_Equipment extends OBJ_Item {
     public OBJ_Equipment(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice) {
-        super(gp, itemType.EQUIPMENT, name, false, 0, 0);
+        super(gp, ItemType.EQUIPMENT, name, false, 0, 0);
 
         switch (name) {
             case "Hoe":
@@ -27,10 +26,8 @@ public class OBJ_Equipment extends OBJ_Item {
 
     @Override
     public boolean use(Entity user) {
-        Boolean isEquipped = false;
         if (gp != null && gp.ui != null) {
             gp.ui.showMessage("Equipped: " + this.name);
-            isEquipped = true;
         } else {
             System.out.println("[UI Not Available] Equipped: " + this.name);
         }
