@@ -644,6 +644,37 @@ public class Player extends Entity {
         }
     }
 
+    public String getActiveCookingInfo() {
+        if (activeCookingProcesses.isEmpty()) {
+            return null;
+        }
+
+        ActiveCookingProcess process = activeCookingProcesses.get(0);
+        spakborhills.Time currentTime = gp.gameClock.getTime();
+
+        int timeRemainingMinutes = 0;
+        if (currentTime.getDay() == process.gameDayFinish) {
+            int currentTotalMinutes = currentTime.getHour() * 60 + currentTime.getMinute();
+            int finishTotalMinutes = process.gameHourFinish * 60 + process.gameMinuteFinish;
+            timeRemainingMinutes = finishTotalMinutes - currentTotalMinutes;
+        } else if (currentTime.getDay() < process.gameDayFinish) {
+
+            int remainingTodayMinutes = (24 - currentTime.getHour()) * 60 - currentTime.getMinute();
+            int tomorrowMinutes = process.gameHourFinish * 60 + process.gameMinuteFinish;
+            timeRemainingMinutes = remainingTodayMinutes + tomorrowMinutes;
+        }
+
+        if (timeRemainingMinutes <= 0) {
+            return process.foodNameToProduce + " sudah siap!";
+        }
+
+        int hoursRemaining = timeRemainingMinutes / 60;
+        int minutesRemaining = timeRemainingMinutes % 60;
+
+        return "Sedang memasak: " + process.foodNameToProduce +
+                " (selesai dalam " + hoursRemaining + "h " + minutesRemaining + "m)";
+    }
+
     public void pickUpObject(int i) {
         if (i != 999) {
             Entity object = gp.entities.get(i);
