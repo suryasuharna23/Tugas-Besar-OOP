@@ -148,7 +148,6 @@ public class UI {
             drawLocationHUD(g2);
             drawEnergyBar(g2);
             drawPlayerGold();
-            drawFarmNameHUD(g2);
             drawTimedMessage(g2);
         } else if (gp.gameState == gp.pauseState) {
             drawPauseScreen();
@@ -372,7 +371,7 @@ public class UI {
     }
 
     public void drawPlayerGold() {
-        String goldText = "Gold: " + gp.player.gold;
+        String goldText = "" + gp.player.gold;
         float scale = 0.8f;
         int padding = Math.round(18 * scale);
         int iconPadding = Math.round(8 * scale);
@@ -395,7 +394,7 @@ public class UI {
         int barTotalHeight = segmentWidth - 5;
 
         int x = energyBarX - 7;
-        int y = energyBarY + 8 + barTotalHeight + 8;
+        int y = energyBarY + 8 + barTotalHeight + 3;
 
         g2.setColor(new Color(0, 0, 0, 110));
         g2.fillRoundRect(x + 3, y + 4, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
@@ -428,58 +427,6 @@ public class UI {
         g2.drawString(goldText, textX + 2, textY + 2);
         g2.setColor(Color.WHITE);
         g2.drawString(goldText, textX, textY);
-    }
-
-    public void drawFarmNameHUD(Graphics2D g2) {
-        if (gp.gameState != gp.playState || gp.player == null) {
-            return;
-        }
-
-        String currentLocation = gp.player.getLocation();
-        boolean isInFarm = false;
-
-        if (currentLocation != null && currentLocation.equalsIgnoreCase("Farm")) {
-            isInFarm = true;
-        } else {
-            if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
-                String mapName = gp.mapInfos.get(gp.currentMapIndex).getMapName();
-                if (mapName != null && mapName.equalsIgnoreCase("Farm")) {
-                    isInFarm = true;
-                }
-            }
-        }
-
-        if (!isInFarm) {
-            return;
-        }
-
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 15F));
-        g2.setColor(Color.WHITE);
-
-        String farmName = gp.player.getFarmName();
-        if (farmName == null || farmName.trim().isEmpty()) {
-            farmName = "Unnamed Farm";
-        }
-
-        String farmText = farmName;
-        FontMetrics fm = g2.getFontMetrics();
-        int textWidth = fm.stringWidth(farmText);
-        int textHeight = fm.getHeight();
-
-        int x = (gp.screenWidth - textWidth) / 2;
-        int y = gp.screenHeight / 2;
-
-        g2.setColor(new Color(0, 0, 0, 150));
-        g2.fillRoundRect(
-                x - 16,
-                y - textHeight + fm.getDescent() - 8,
-                textWidth + 32,
-                textHeight + 16,
-                15,
-                15);
-
-        g2.setColor(Color.WHITE);
-        g2.drawString(farmText, x, y);
     }
 
     private int[][] getCachedMapPositions() {
@@ -863,11 +810,13 @@ public class UI {
     public void drawEnergyBar(Graphics2D g2) {
 
         int x = gp.tileSize / 2;
-        int y = gp.tileSize / 2;
+        int y = gp.tileSize / 2 - 15;
         int segmentWidth = gp.tileSize / 2;
         int segmentHeight = gp.tileSize / 2 - 5;
         int segmentSpacing = 2;
         int totalSegments = 10;
+        int barTotalWidth = totalSegments * (segmentWidth + segmentSpacing) - segmentSpacing;
+        int barTotalHeight = segmentHeight;
 
         int filledSegments = 0;
         if (gp.player.MAX_POSSIBLE_ENERGY > 0) {
@@ -876,6 +825,27 @@ public class UI {
                 filledSegments = (int) Math.ceil(gp.player.currentEnergy / energyPerSegment);
             }
         }
+
+        // --- SHADOW & BACKGROUND: Ikuti style gold box ---
+        int boxX = x - 7;
+        int boxY = y;
+        int boxWidth = barTotalWidth + 14;
+        int boxHeight = barTotalHeight + 16;
+
+        // Shadow
+        g2.setColor(new Color(0, 0, 0, 110));
+        g2.fillRoundRect(boxX + 3, boxY + 4, boxWidth, boxHeight, 18, 18);
+
+        // Background
+        g2.setColor(new Color(30, 30, 40, 200));
+        g2.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 18, 18);
+
+        // Border
+        g2.setColor(new Color(255, 255, 255, 60));
+        g2.setStroke(new BasicStroke(2f));
+        g2.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 18, 18);
+
+        // --- END SHADOW & BACKGROUND ---
 
         double partialFill = 0;
         if (gp.player.MAX_POSSIBLE_ENERGY > 0) {
@@ -889,28 +859,9 @@ public class UI {
         g2.setFont(pressStart.deriveFont(Font.BOLD, 14f));
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-        String labelText = "ENERGY";
-        FontMetrics fmLabel = g2.getFontMetrics();
-        int labelWidth = fmLabel.stringWidth(labelText);
-
-        int titlePadding = 8;
-        g2.setColor(new Color(0, 0, 0, 120));
-        g2.fillRoundRect(x - titlePadding, y - fmLabel.getHeight() - titlePadding,
-                labelWidth + titlePadding * 2, fmLabel.getHeight() + titlePadding * 2, 8, 8);
-
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(labelText, x + 2, y - fmLabel.getDescent() + 2);
-        g2.setColor(new Color(255, 255, 255, 230));
-        g2.drawString(labelText, x, y - fmLabel.getDescent());
-
         y += 8;
 
-        int barTotalWidth = totalSegments * (segmentWidth + segmentSpacing) - segmentSpacing;
-        int barTotalHeight = segmentHeight;
-
-        g2.setColor(new Color(0, 0, 0, 150));
-        g2.fillRoundRect(x - 6, y - 4, barTotalWidth + 12, barTotalHeight + 8, 12, 12);
-
+        // Segments
         for (int i = 0; i < totalSegments; i++) {
             int currentSegmentX = x + (i * (segmentWidth + segmentSpacing));
 
@@ -922,11 +873,9 @@ public class UI {
             g2.drawRoundRect(currentSegmentX, y, segmentWidth, segmentHeight, 4, 4);
 
             if (i < filledSegments - 1) {
-
                 Color segmentColor = getEnergyColor(i, totalSegments, 1.0);
                 drawGradientSegment(g2, currentSegmentX, y, segmentWidth, segmentHeight, segmentColor, 1.0);
             } else if (i == filledSegments - 1 && partialFill > 0) {
-
                 Color segmentColor = getEnergyColor(i, totalSegments, partialFill);
                 drawGradientSegment(g2, currentSegmentX, y, segmentWidth, segmentHeight, segmentColor, partialFill);
             }
@@ -937,20 +886,23 @@ public class UI {
             }
         }
 
-        g2.setFont(pressStart.deriveFont(Font.BOLD, 12F));
+        // ...existing code...
+
+        // Setelah loop segmen bar
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 14F));
         String energyText = gp.player.currentEnergy + "/" + gp.player.MAX_POSSIBLE_ENERGY;
         FontMetrics fmText = g2.getFontMetrics();
         int textWidth = fmText.stringWidth(energyText);
 
-        int textX = x + barTotalWidth + 15;
-        int textY = y + (segmentHeight + fmText.getAscent()) / 2;
+        // Posisi angka di luar box, rata kiri dengan bar, sedikit jarak ke kanan
+        int textX = boxX + boxWidth + 14;
+        int textY = boxY + (boxHeight + fmText.getAscent()) / 2 - 2;
 
-        g2.setColor(new Color(0, 0, 0, 120));
-        g2.fillRoundRect(textX - 6, textY - fmText.getAscent() - 2,
-                textWidth + 12, fmText.getHeight() + 4, 6, 6);
-
+        // Shadow tipis untuk teks
         g2.setColor(new Color(0, 0, 0, 180));
-        g2.drawString(energyText, textX + 1, textY + 1);
+        g2.drawString(energyText, textX + 2, textY + 2);
+
+        // Teks utama
         g2.setColor(Color.WHITE);
         g2.drawString(energyText, textX, textY);
 
@@ -1766,7 +1718,7 @@ public class UI {
         int totalHeight = contentHeight + (innerPadding * 2);
 
         int x = gp.screenWidth - totalWidth - padding;
-        int y = padding;
+        int y = padding - 6;
 
         GradientPaint backgroundGradient = new GradientPaint(
                 x, y, new Color(20, 25, 35, 220),
@@ -1899,13 +1851,35 @@ public class UI {
         if (gp.player != null) {
             String playerLocation = gp.player.getLocation();
             if (playerLocation != null && !playerLocation.isEmpty() && !playerLocation.equals("Unknown")) {
-                currentLocation = playerLocation;
+                // Jika di farm, pakai nama farm hasil input
+                if (playerLocation.equalsIgnoreCase("Farm")) {
+                    String farmName = gp.player.getFarmName();
+                    if (farmName != null && !farmName.trim().isEmpty()) {
+                        currentLocation = farmName.toUpperCase();
+                    } else {
+                        currentLocation = "FARM";
+                    }
+                } else {
+                    currentLocation = playerLocation;
+                }
             } else if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
-                currentLocation = gp.mapInfos.get(gp.currentMapIndex).getMapName();
+                String mapName = gp.mapInfos.get(gp.currentMapIndex).getMapName();
+                // Jika di farm, pakai nama farm hasil input
+                if (mapName != null && mapName.equalsIgnoreCase("Farm")) {
+                    String farmName = gp.player.getFarmName();
+                    if (farmName != null && !farmName.trim().isEmpty()) {
+                        currentLocation = farmName.toUpperCase();
+                    } else {
+                        currentLocation = "FARM";
+                    }
+                } else if (mapName != null) {
+                    currentLocation = mapName;
+                }
             }
         }
 
         String locationText = currentLocation.replace("'", "’").toUpperCase();
+
 
         FontMetrics fm = g2.getFontMetrics();
         int textWidth = fm.stringWidth(locationText);
