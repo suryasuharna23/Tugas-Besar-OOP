@@ -275,13 +275,7 @@ public class GamePanel extends JPanel implements Runnable {
                         character.update();
                     }
                 }
-                // Update entitas non-NPC dan non-Player (termasuk tanaman)
-                for (int i = 0; i < npcs.size(); i++) {
-                    NPC character = npcs.get(i);
-                    if (character != null) {
-                        character.update();
-                    }
-                }
+
                 ArrayList<Entity> entitiesCopy = new ArrayList<>(entities);
                 for (Entity entity : entitiesCopy) {
                     if (entity != null && !(entity instanceof Player) && !(entity instanceof NPC)) {
