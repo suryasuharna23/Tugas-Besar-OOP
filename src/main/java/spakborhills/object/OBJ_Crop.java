@@ -5,62 +5,97 @@ import spakborhills.entity.Entity;
 import spakborhills.entity.Player;
 import spakborhills.enums.ItemType;
 import spakborhills.interfaces.Edible;
+import spakborhills.interfaces.Harvestable;
 
-public class OBJ_Crop extends OBJ_Item implements Edible {
+public class OBJ_Crop extends OBJ_Item implements Edible, Harvestable {
     private int harvestAmount;
     private int energy;
+    private int daysToGrow;
+    private int currentGrowthDays;
+    private boolean isPlanted;
 
     public OBJ_Crop(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice,
             int harvestAmount, int energy) {
         super(gp, itemType, name, true, buyPrice, sellPrice);
         this.harvestAmount = harvestAmount;
         this.energy = 3;
+        this.currentGrowthDays = 0;
+        this.isPlanted = false;
+        setupCropProperties();
+        setupImages();
+    }
+    
+    private void setupCropProperties() {
         if (this.baseName.equals("Parsnip")) {
             this.buyPrice = 50;
             this.sellPrice = 35;
             this.harvestAmount = 1;
+            this.energy = 5;
+            this.daysToGrow = 4;
         } else if (this.baseName.equals("Cauliflower")) {
             this.buyPrice = 200;
             this.sellPrice = 150;
             this.harvestAmount = 1;
+            this.energy = 8;
+            this.daysToGrow = 12;
         } else if (this.baseName.equals("Potato")) {
             this.buyPrice = 0;
             this.sellPrice = 80;
             this.harvestAmount = 1;
+            this.energy = 6;
+            this.daysToGrow = 6;
         } else if (this.baseName.equals("Wheat")) {
             this.buyPrice = 50;
             this.sellPrice = 30;
             this.harvestAmount = 3;
+            this.energy = 4;
+            this.daysToGrow = 4;
         } else if (this.baseName.equals("Blueberry")) {
             this.buyPrice = 0;
             this.sellPrice = 100;
             this.harvestAmount = 3;
+            this.energy = 7;
+            this.daysToGrow = 13;
         } else if (this.baseName.equals("Tomato")) {
             this.buyPrice = 90;
             this.sellPrice = 60;
             this.harvestAmount = 1;
+            this.energy = 5;
+            this.daysToGrow = 11;
         } else if (this.baseName.equals("Hot Pepper")) {
             this.buyPrice = 0;
             this.sellPrice = 40;
             this.harvestAmount = 1;
+            this.energy = 3;
+            this.daysToGrow = 5;
         } else if (this.baseName.equals("Melon")) {
             this.buyPrice = 0;
             this.sellPrice = 250;
             this.harvestAmount = 1;
+            this.energy = 10;
+            this.daysToGrow = 12;
         } else if (this.baseName.equals("Cranberry")) {
             this.buyPrice = 0;
             this.sellPrice = 25;
             this.harvestAmount = 1;
+            this.energy = 4;
+            this.daysToGrow = 7;
         } else if (this.baseName.equals("Pumpkin")) {
             this.buyPrice = 300;
             this.sellPrice = 250;
             this.harvestAmount = 1;
+            this.energy = 12;
+            this.daysToGrow = 13;
         } else if (this.baseName.equals("Grape")) {
             this.buyPrice = 100;
             this.sellPrice = 10;
             this.harvestAmount = 20;
+            this.energy = 2;
+            this.daysToGrow = 10;
         }
+    }
 
+    private void setupImages() {
         switch (baseName) {
             case "Parsnip":
                 down1 = setup("/objects/parsnip");
@@ -96,19 +131,14 @@ public class OBJ_Crop extends OBJ_Item implements Edible {
                 down1 = setup("/objects/grape");
                 break;
         }
-    }
 
-    public void update() {
-    }
-
-    @Override
-    public boolean use(Entity user) {
-
-        if (isEdible() && user instanceof Player) {
-            gp.ui.showMessage(this.name + " is now held. Press 'E' to eat.");
-            return false;
+        if (down1 != null) {
+            up1 = down1;
+            left1 = down1;
+            right1 = down1;
         }
-        return false;
+    }
+    public void update() {
     }
 
     public int getHarvestAmount() {
@@ -117,6 +147,87 @@ public class OBJ_Crop extends OBJ_Item implements Edible {
 
     public int getEnergy() {
         return energy;
+    }
+
+
+    
+    @Override
+    public boolean isReadyToHarvest() {
+        return isPlanted && currentGrowthDays >= daysToGrow;
+    }
+
+    @Override
+    public OBJ_Item harvest(Player player) {
+        if (!isReadyToHarvest()) {
+            return null;
+        }
+
+        
+        OBJ_Crop harvestedCrop = new OBJ_Crop(gp, this.getType(), this.baseName, true,
+                this.getBuyPrice(), this.getSellPrice(),
+                this.harvestAmount, this.energy);
+        harvestedCrop.quantity = this.harvestAmount;
+
+        
+        if (player.firstHarvestByName != null && !player.firstHarvestByName.containsKey(this.baseName)) {
+            player.firstHarvestByName.put(this.baseName, true);
+            gp.ui.showMessage("First " + this.baseName + " harvest!");
+        }
+
+        
+        if ("Hot Pepper".equals(this.baseName)) {
+            player.hasObtainedHotPepper = true;
+        }
+
+        return harvestedCrop;
+    }
+
+    @Override
+    public int getDaysUntilHarvest() {
+        if (!isPlanted)
+            return -1;
+        return Math.max(0, daysToGrow - currentGrowthDays);
+    }
+
+    
+    public void plant() {
+        isPlanted = true;
+        currentGrowthDays = 0;
+    }
+
+    public void grow() {
+        if (isPlanted && currentGrowthDays < daysToGrow) {
+            currentGrowthDays++;
+        }
+    }
+
+    public double getGrowthProgress() {
+        if (!isPlanted)
+            return 0.0;
+        return (double) currentGrowthDays / daysToGrow;
+    }
+
+
+
+    public boolean isPlanted() {
+        return isPlanted;
+    }
+
+    public int getCurrentGrowthDays() {
+        return currentGrowthDays;
+    }
+
+    public int getDaysToGrow() {
+        return daysToGrow;
+    }
+
+    @Override
+    public boolean use(Entity user) {
+        if (isEdible() && user instanceof Player) {
+            gp.ui.showMessage(this.name + " is now held. Press 'E' to eat.");
+            return false;
+        }
+        return false;
     }
 
     @Override

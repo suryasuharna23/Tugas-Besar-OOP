@@ -1,5 +1,6 @@
 package spakborhills;
 
+import java.awt.RenderingHints.Key;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import spakborhills.action.HarvestCommand;
 import spakborhills.action.PlantingCommand;
 import spakborhills.action.RecoverLandCommand;
 import spakborhills.action.TillingCommand;
@@ -22,10 +24,13 @@ import spakborhills.interfaces.Edible;
 import spakborhills.object.OBJ_Fish;
 import spakborhills.object.OBJ_Item;
 import spakborhills.object.OBJ_Misc;
+import spakborhills.object.OBJ_PlantedCrop;
 import spakborhills.object.OBJ_Recipe;
+import spakborhills.object.OBJ_Seed;
 
 public class KeyHandler implements KeyListener {
-    public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, inventoryPressed, eatPressed;
+    public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, inventoryPressed, eatPressed,
+            plantPressed, harvestPressed;
     GamePanel gp;
 
     public KeyHandler(GamePanel gp) {
@@ -182,6 +187,27 @@ public class KeyHandler implements KeyListener {
                 if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                     gp.gameClock.pauseTime();
                 }
+            } else if (code == KeyEvent.VK_Z) {
+
+                System.out.println("=== DEBUG TEST KEY Z ===");
+                int cropCount = 0;
+                for (Entity entity : gp.entities) {
+                    if (entity instanceof OBJ_PlantedCrop) {
+                        cropCount++;
+                        OBJ_PlantedCrop crop = (OBJ_PlantedCrop) entity;
+                        System.out.println("Crop #" + cropCount + ": " + crop.getCropType() +
+                                " - Growth: " + crop.getCurrentGrowthDays() + "/" + crop.getDaysToGrow() +
+                                " - Watered: " + crop.isWatered() +
+                                " - Ready: " + crop.isReadyToHarvest());
+                    }
+                }
+                gp.ui.showMessage("Found " + cropCount + " crops (check console for details)");
+
+            } else if (code == KeyEvent.VK_X) {
+
+                System.out.println("=== FORCE DAILY RESETS ===");
+                gp.performDailyResets();
+                gp.ui.showMessage("Daily resets triggered!");
             } else if (code == KeyEvent.VK_K) {
                 gp.player.startFishing();
             } else if (code == KeyEvent.VK_E) {
@@ -193,7 +219,14 @@ public class KeyHandler implements KeyListener {
             } else if (code == KeyEvent.VK_G) {
                 new WateringCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_F) {
+                plantPressed = true;
                 new PlantingCommand(gp.player).execute(gp);
+                plantPressed = false;
+
+            } else if (code == KeyEvent.VK_C) {
+                harvestPressed = true;
+                new HarvestCommand(gp.player).execute(gp);
+                harvestPressed = false;
             } else if (code == KeyEvent.VK_I) {
                 if (gp.player != null) {
                     gp.gameState = gp.inventoryState;
@@ -929,6 +962,12 @@ public class KeyHandler implements KeyListener {
         if (code == KeyEvent.VK_I) {
             inventoryPressed = false;
         }
+        if (code == KeyEvent.VK_C) {
+            harvestPressed = false;
+        }
+        if (code == KeyEvent.VK_F) {
+            plantPressed = false;
+        }
     }
 
     private void handleInventoryInput(int code, boolean isGifting) {
@@ -1092,5 +1131,23 @@ public class KeyHandler implements KeyListener {
         gp.resetCoreGameDataForNewGame();
         gp.loadMapbyIndex(gp.PLAYER_HOUSE_INDEX);
 
+    }
+
+    private Entity findNearbyHarvestableEntity() {
+        int checkDistance = gp.tileSize + 10;
+        Player player = gp.player;
+
+        for (Entity entity : gp.entities) {
+            if (entity instanceof OBJ_PlantedCrop) {
+
+                int dx = Math.abs(entity.worldX - player.worldX);
+                int dy = Math.abs(entity.worldY - player.worldY);
+
+                if (dx <= checkDistance && dy <= checkDistance) {
+                    return entity;
+                }
+            }
+        }
+        return null;
     }
 }

@@ -4,6 +4,7 @@ import spakborhills.GamePanel;
 import spakborhills.KeyHandler;
 import spakborhills.action.Command;
 import spakborhills.action.EatCommand;
+import spakborhills.action.PlantingCommand;
 import spakborhills.cooking.ActiveCookingProcess;
 import spakborhills.cooking.FoodFactory;
 import spakborhills.cooking.Recipe;
@@ -152,13 +153,18 @@ public class Player extends Entity {
         type = EntityType.PLAYER;
         currentEnergy = MAX_POSSIBLE_ENERGY;
         this.isCurrentlySleeping = false;
-        gold = 500000000;
+        gold = 1500;
         initializeRecipeStatus();
 
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
+        for (int i = 0; i < 100; i++) {
+            addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Parsnip", false, 20, 10, 1, 99, Season.SPRING,
+                    Weather.RAINY));
+        }
+
     }
 
     private void initializeRecipeStatus() {
@@ -335,7 +341,6 @@ public class Player extends Entity {
                 gp.gameState = gp.playState;
             }
         }
-
         if (gp.gameState == gp.playState) {
             updateActiveCookingProcesses();
             checkAndUnlockRecipes();
@@ -364,10 +369,8 @@ public class Player extends Entity {
             if (this.keyH != null && this.keyH.enterPressed
                     && !(keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed)) {
                 checkCollisionAndMove();
-
             }
         } else if (gp.gameState == gp.dialogueState || gp.gameState == gp.inventoryState) {
-
             spriteNum = 1;
             spriteCounter = 0;
         }
@@ -402,6 +405,23 @@ public class Player extends Entity {
                 iterator.remove();
             }
         }
+    }
+
+    private Entity findNearbyHarvestableEntity() {
+        int checkDistance = gp.tileSize + 10;
+
+        for (Entity entity : gp.entities) {
+            if (entity instanceof OBJ_PlantedCrop) {
+
+                int dx = Math.abs(entity.worldX - this.worldX);
+                int dy = Math.abs(entity.worldY - this.worldY);
+
+                if (dx <= checkDistance && dy <= checkDistance) {
+                    return entity;
+                }
+            }
+        }
+        return null;
     }
 
     public void setPositionForMapEntry(int worldX, int worldY, String direction) {

@@ -5,6 +5,7 @@ import spakborhills.entity.Player;
 import spakborhills.enums.Season;
 import spakborhills.enums.TileState;
 import spakborhills.object.OBJ_Seed;
+import spakborhills.object.OBJ_PlantedCrop;
 import spakborhills.entity.Entity;
 
 public class PlantingCommand implements Command {
@@ -18,22 +19,19 @@ public class PlantingCommand implements Command {
     public void execute(GamePanel gp) {
         Entity equipped = player.getEquippedItem();
 
-        // Validasi: harus seed
         if (!(equipped instanceof OBJ_Seed)) {
-            System.out.println("Anda harus memegang benih untuk menanam.");
+            gp.ui.showMessage("You need to hold seeds to plant.");
             return;
         }
 
         OBJ_Seed seed = (OBJ_Seed) equipped;
 
-        // Validasi musim
-        Season currentSeason = gp.gameClock.getCurrentSeason(); // sesuaikan jika kamu simpan musim di tempat lain
+        Season currentSeason = gp.gameClock.getCurrentSeason();
         if (seed.getSeason() != currentSeason) {
-            System.out.println("Benih ini hanya bisa ditanam pada musim " + seed.getSeason() + ".");
+            gp.ui.showMessage("These seeds can only be planted in " + seed.getSeason() + ".");
             return;
         }
 
-        // Hitung posisi tile di depan player
         int tileSize = gp.tileSize;
         int playerCol = (player.worldX + player.solidArea.x) / tileSize;
         int playerRow = (player.worldY + player.solidArea.y) / tileSize;
@@ -45,29 +43,59 @@ public class PlantingCommand implements Command {
             case "right" -> playerCol++;
         }
 
-        // Validasi map
-        if (playerCol < 0 || playerCol >= gp.maxWorldCol || playerRow < 0 || playerRow >= gp.maxWorldRow)
+        if (playerCol < 0 || playerCol >= gp.maxWorldCol || playerRow < 0 || playerRow >= gp.maxWorldRow) {
+            gp.ui.showMessage("Cannot plant outside map boundaries.");
             return;
+        }
 
         int tileIndex = gp.tileManager.mapTileNum[playerCol][playerRow];
 
         if (tileIndex == getTileIndexFromState(TileState.SOIL)) {
+
+            if (isLocationOccupied(gp, playerCol * tileSize, playerRow * tileSize)) {
+                gp.ui.showMessage("Something is already planted here!");
+                return;
+            }
+
             boolean success = player.tryDecreaseEnergy(5);
-            if (!success) return;
+            if (!success) {
+                gp.ui.showMessage("Too tired to plant!");
+                return;
+            }
 
-            // Ubah tile jadi PLANTED
             gp.tileManager.mapTileNum[playerCol][playerRow] = getTileIndexFromState(TileState.PLANTED);
-            gp.gameClock.getTime().advanceTime(5);
 
-            // Catat penanaman
-            System.out.println("Benih " + seed.getName() + " berhasil ditanam.");
+            String cropType = seed.name.replace(" seeds", "").replace(" seed", "");
+            int worldX = playerCol * tileSize;
+            int worldY = playerRow * tileSize;
+            OBJ_PlantedCrop plantedCrop = new OBJ_PlantedCrop(gp, cropType, worldX, worldY);
+            gp.entities.add(plantedCrop);
 
-            // Kurangi jumlah seed dari inventory
+            gp.gameClock.getTime().advanceTime(-5);
+
+            gp.ui.showMessage("Planted " + cropType + " seeds!");
+            System.out.println("DEBUG: Planted " + cropType + " at tile (" + playerCol + "," + playerRow + ")");
+
             player.consumeItemFromInventory(seed);
 
         } else {
-            System.out.println("Tile ini tidak bisa ditanami (bukan SOIL).");
+            gp.ui.showMessage("This tile cannot be planted (need tilled soil).");
+            System.out.println(
+                    "DEBUG: Tile index " + tileIndex + " is not SOIL (" + getTileIndexFromState(TileState.SOIL) + ")");
         }
+    }
+
+    private boolean isLocationOccupied(GamePanel gp, int worldX, int worldY) {
+
+        for (Entity entity : gp.entities) {
+            if (entity instanceof OBJ_PlantedCrop) {
+                int distance = Math.abs(entity.worldX - worldX) + Math.abs(entity.worldY - worldY);
+                if (distance < gp.tileSize / 2) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private int getTileIndexFromState(TileState state) {
