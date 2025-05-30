@@ -88,7 +88,10 @@ public class GamePanel extends JPanel implements Runnable {
     public int helpPageState = 17;
     public int playerStatsState = 18;
 
-    public final int PLAYER_HOUSE_INDEX = 9;
+    // Update konstanta sesuai urutan di initializeMapInfos():
+    public final int FARM_MAP_INDEX = 8; // Farm sekarang di index 8
+    public final int PLAYER_HOUSE_INDEX = 9; // Player House di index 9
+    public final int STORE_INDEX = 10; // Store di index 10
 
     public Recipe selectedRecipeForCooking = null;
 
@@ -111,7 +114,6 @@ public class GamePanel extends JPanel implements Runnable {
     public int[][] farmMapTileData = null;
     public int farmMapMaxCols = 0;
     public int farmMapMaxRows = 0;
-    public final int FARM_MAP_INDEX = 6;
 
     public static class SimpleFarmLayout {
         public int houseX = 23;
@@ -274,9 +276,23 @@ public class GamePanel extends JPanel implements Runnable {
                     }
                 }
                 // Update entitas non-NPC dan non-Player (termasuk tanaman)
-                for (Entity entity : entities) {
+                for (int i = 0; i < npcs.size(); i++) {
+                    NPC character = npcs.get(i);
+                    if (character != null) {
+                        character.update();
+                    }
+                }
+                ArrayList<Entity> entitiesCopy = new ArrayList<>(entities);
+                for (Entity entity : entitiesCopy) {
                     if (entity != null && !(entity instanceof Player) && !(entity instanceof NPC)) {
-                        entity.update(); // Pastikan method update di OBJ_PlantedCrop tidak melakukan pertumbuhan harian
+                        try {
+                            entity.update(); // Safe update karena menggunakan copy
+                        } catch (Exception e) {
+                            System.err.println("[GamePanel] Error updating entity " + entity.getClass().getSimpleName()
+                                    + ": " + e.getMessage());
+                            // Remove problematic entity
+                            entities.remove(entity);
+                        }
                     }
                 }
 
@@ -410,45 +426,47 @@ public class GamePanel extends JPanel implements Runnable {
             }
             isInMapTransition = true;
 
-            // SAVE FARM DATA before switching away from farm
+            // SAVE FARM DATA when leaving farm
             if (this.currentMapIndex == FARM_MAP_INDEX && newMapIndex != FARM_MAP_INDEX) {
-                System.out.println("[GamePanel] Leaving Farm map. Saving crop data and tile data...");
+                System.out.println("[GamePanel] Leaving farm - saving tiles and crops");
+
+                // Save farm tiles
+                if (tileManager.mapTileNum != null && maxWorldCol > 0 && maxWorldRow > 0) {
+                    farmMapTileData = new int[maxWorldCol][maxWorldRow];
+                    for (int col = 0; col < maxWorldCol; col++) {
+                        for (int row = 0; row < maxWorldRow; row++) {
+                            farmMapTileData[col][row] = tileManager.mapTileNum[col][row];
+                        }
+                    }
+                    farmMapMaxCols = maxWorldCol;
+                    farmMapMaxRows = maxWorldRow;
+                    System.out.println(
+                            "[GamePanel] Farm tiles saved - dimensions: " + farmMapMaxCols + "x" + farmMapMaxRows);
+                }
 
                 // Save crop entities
                 farmCropData.clear();
                 for (Entity entity : entities) {
                     if (entity instanceof OBJ_PlantedCrop) {
                         OBJ_PlantedCrop crop = (OBJ_PlantedCrop) entity;
-                        farmCropData.add(new CropSaveData(
+                        CropSaveData saveData = new CropSaveData(
                                 crop.getCropType(),
                                 crop.worldX,
                                 crop.worldY,
                                 crop.getCurrentGrowthDays(),
-                                crop.isWatered(), // Simpan status siram terakhir
-                                crop.getGrewToday() // Simpan apakah sudah tumbuh hari itu
-                        ));
+                                crop.isWatered(),
+                                crop.getGrewToday());
+                        farmCropData.add(saveData);
+                        System.out.println("[GamePanel] Saved crop: " + crop.getCropType() +
+                                " at (" + (crop.worldX / tileSize) + "," + (crop.worldY / tileSize) + ")" +
+                                " - Growth: " + crop.getCurrentGrowthDays() +
+                                ", Watered: " + crop.isWatered());
                     }
                 }
-                System.out.println("[GamePanel] Saved " + farmCropData.size() + " crops from farm");
-
-                // Save tile data
-                if (tileManager.mapTileNum != null && this.maxWorldCol > 0 && this.maxWorldRow > 0) {
-                    this.farmMapTileData = new int[this.maxWorldCol][this.maxWorldRow];
-                    for (int col = 0; col < this.maxWorldCol; col++) {
-                        for (int row = 0; row < this.maxWorldRow; row++) {
-                            this.farmMapTileData[col][row] = tileManager.mapTileNum[col][row];
-                        }
-                    }
-                    this.farmMapMaxCols = this.maxWorldCol;
-                    this.farmMapMaxRows = this.maxWorldRow;
-                    System.out.println(
-                            "[GamePanel] Farm tile data saved. Dimensions: " + farmMapMaxCols + "x" + farmMapMaxRows);
-                } else {
-                    System.err.println(
-                            "[GamePanel] WARNING: Cannot save farm tile data - tileManager.mapTileNum is null or invalid dimensions");
-                }
+                System.out.println("[GamePanel] Farm data saved successfully - " + farmCropData.size() + " crops");
             }
 
+            // Update map indices
             this.previousMapIndex = this.currentMapIndex;
             this.currentMapIndex = newMapIndex;
             MapInfo selectedMap = mapInfos.get(this.currentMapIndex);
@@ -473,73 +491,70 @@ public class GamePanel extends JPanel implements Runnable {
             System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to "
                     + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
 
-            boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 8) ||
-                    (previousMapIndex == 8 && this.currentMapIndex == PLAYER_HOUSE_INDEX) || this.currentMapIndex == 8
-                    || this.currentMapIndex == PLAYER_HOUSE_INDEX;
+            // Handle travel energy cost and collapse
+            boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 6) ||
+                    (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX) ||
+                    this.currentMapIndex == 6 || this.currentMapIndex == PLAYER_HOUSE_INDEX;
 
             boolean playerCollapsedFromTravel = false;
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
-                // Hanya kurangi energi jika bukan transisi aman dan bukan kembali ke map yang
-                // sama
-                if (player.tryDecreaseEnergy(10)) { // Biaya energi untuk travel
-                    this.time.advanceTime(-15); // Travel memakan waktu (mundur agar terasa seperti biaya)
+                if (player.tryDecreaseEnergy(10)) {
+                    this.time.advanceTime(-15);
                     ui.showMessage("Travel tired you out. -10 Energy.");
                 }
-                // Cek apakah pemain pingsan SETELAH pengurangan energi
-                if (player.isCurrentlySleeping()) { // isCurrentlySleeping akan true jika energi < MIN_ENERGY_THRESHOLD
+                if (player.isCurrentlySleeping()) {
                     playerCollapsedFromTravel = true;
                     System.out.println(
                             "[GamePanel] Player collapsed from travel exhaustion. Redirecting to Player House instead of destination.");
-                    this.currentMapIndex = PLAYER_HOUSE_INDEX; // Paksa ke rumah pemain
+                    this.currentMapIndex = PLAYER_HOUSE_INDEX;
                     selectedMap = mapInfos.get(this.currentMapIndex);
-                    mapName = selectedMap.getMapName(); // Update mapName
+                    mapName = selectedMap.getMapName();
                 }
             }
 
-            // Handle teleport to player house (misal karena pingsan)
+            // Handle teleport to player house
             if (shouldTeleportToPlayerHouse) {
                 System.out.println("[GamePanel] Teleport to Player House requested");
                 this.currentMapIndex = PLAYER_HOUSE_INDEX;
                 selectedMap = mapInfos.get(this.currentMapIndex);
                 mapName = selectedMap.getMapName();
-                playerCollapsedFromTravel = true; // Anggap pingsan jika diteleport paksa
-                shouldTeleportToPlayerHouse = false; // Reset flag
+                playerCollapsedFromTravel = true;
+                shouldTeleportToPlayerHouse = false;
             }
 
             // Load new map
-            tileManager.loadMap(selectedMap); // Ini akan mengatur maxWorldCol/Row gp
-            entities.clear(); // Hapus entitas lama (kecuali player & NPC master list)
-            npcs.clear(); // Hapus NPC dari map saat ini
+            tileManager.loadMap(selectedMap);
+            entities.clear();
+            npcs.clear();
 
             // Calculate player spawn position
             int targetX = this.tileSize * 20; // Default spawn X
             int targetY = this.tileSize * 29; // Default spawn Y
-            String targetDir = "down"; // Default arah hadap
+            String targetDir = "down"; // Default direction
 
             if (playerCollapsedFromTravel) {
-                targetX = this.tileSize * 7; // Posisi di kasur
+                targetX = this.tileSize * 7; // Bed position
                 targetY = this.tileSize * 6;
                 targetDir = "down";
                 System.out.println("[GamePanel] Player collapsed - positioned at Player House bed");
             } else {
-                // Logika spawn normal
-                if (this.currentMapIndex == PLAYER_HOUSE_INDEX) { // Masuk ke Rumah Pemain
-                    if (previousMapIndex == FARM_MAP_INDEX) { // Dari Farm
-                        targetX = this.tileSize * 25; // Di depan pintu dalam rumah
+                // Normal spawn logic
+                if (this.currentMapIndex == PLAYER_HOUSE_INDEX) { // Entering Player House
+                    if (previousMapIndex == FARM_MAP_INDEX) { // From Farm
+                        targetX = this.tileSize * 25; // Inside house door
                         targetY = this.tileSize * 32;
                         targetDir = "up";
-                    } else { // Dari map lain (misal, via menu peta)
-                        targetX = this.tileSize * 10; // Tengah rumah
+                    } else { // From other map
+                        targetX = this.tileSize * 10; // Center of house
                         targetY = this.tileSize * 10;
                         targetDir = "down";
                     }
-                } else if (this.currentMapIndex == FARM_MAP_INDEX) { // Masuk ke Farm
-                    if (previousMapIndex == PLAYER_HOUSE_INDEX) { // Dari Rumah Pemain
-                        targetX = currentFarmLayout.houseX * tileSize + (3 * tileSize); // Di depan pintu luar
-                                                                                                 // rumah
+                } else if (this.currentMapIndex == FARM_MAP_INDEX) { // Entering Farm
+                    if (previousMapIndex == PLAYER_HOUSE_INDEX) { // From Player House
+                        targetX = currentFarmLayout.houseX * tileSize + (3 * tileSize); // Outside house door
                         targetY = currentFarmLayout.houseY * tileSize + (7 * tileSize);
                         targetDir = "down";
-                    } else { // Dari map lain
+                    } else { // From other map
                         targetX = this.tileSize * 25; // Default Farm spawn
                         targetY = this.tileSize * 25;
                         targetDir = "down";
@@ -550,7 +565,6 @@ public class GamePanel extends JPanel implements Runnable {
                     targetDir = "down";
                     System.out.println("[GamePanel] Player spawning in Ocean at tile (1,1) based on map name.");
                 }
-                // Tambahkan else if untuk map lain jika perlu posisi spawn spesifik
             }
 
             player.setPositionForMapEntry(targetX, targetY, targetDir);
@@ -559,44 +573,42 @@ public class GamePanel extends JPanel implements Runnable {
             assetSetter.setObject(selectedMap.getMapName());
             assetSetter.setNPC(selectedMap.getMapName());
 
-            // RESTORE FARM DATA when loading farm
+            // RESTORE FARM DATA when entering farm
             if (this.currentMapIndex == FARM_MAP_INDEX) {
+                System.out.println("[GamePanel] Entering farm - restoring tiles and crops");
+
                 // Restore tile data first
-                if (this.farmMapTileData != null && this.farmMapMaxCols > 0 && this.farmMapMaxRows > 0) {
+                if (farmMapTileData != null && farmMapMaxCols > 0 && farmMapMaxRows > 0) {
                     System.out.println("[GamePanel] Restoring farm tile data...");
-                    // Pastikan dimensi tileManager.mapTileNum sudah sesuai dengan
-                    // farmMapMaxCols/Rows
-                    if (tileManager.mapTileNum == null || tileManager.mapTileNum.length != this.farmMapMaxCols
-                            || tileManager.mapTileNum[0].length != this.farmMapMaxRows) {
-                        tileManager.mapTileNum = new int[this.farmMapMaxCols][this.farmMapMaxRows];
+
+                    // Ensure tileManager.mapTileNum has correct dimensions
+                    if (tileManager.mapTileNum == null ||
+                            tileManager.mapTileNum.length != farmMapMaxCols ||
+                            (tileManager.mapTileNum.length > 0 && tileManager.mapTileNum[0].length != farmMapMaxRows)) {
+
+                        // Update maxWorldCol/Row to match saved farm data
+                        maxWorldCol = farmMapMaxCols;
+                        maxWorldRow = farmMapMaxRows;
+                        tileManager.mapTileNum = new int[farmMapMaxCols][farmMapMaxRows];
                     }
 
-                    for (int col = 0; col < this.farmMapMaxCols; col++) {
-                        for (int row = 0; row < this.farmMapMaxRows; row++) {
-                            tileManager.mapTileNum[col][row] = this.farmMapTileData[col][row];
-                        }
-                    }
-                    System.out.println("[GamePanel] Farm tile data restored");
-                } else {
-                    // First time loading farm - save initial state
-                    System.out.println("[GamePanel] Farm map loaded for the first time. Storing initial tile data.");
-                    if (tileManager.mapTileNum != null && this.maxWorldCol > 0 && this.maxWorldRow > 0) {
-                        this.farmMapTileData = new int[this.maxWorldCol][this.maxWorldRow];
-                        for (int col = 0; col < this.maxWorldCol; col++) {
-                            for (int row = 0; row < this.maxWorldRow; row++) {
-                                this.farmMapTileData[col][row] = tileManager.mapTileNum[col][row];
+                    for (int col = 0; col < farmMapMaxCols; col++) {
+                        for (int row = 0; row < farmMapMaxRows; row++) {
+                            if (col < farmMapTileData.length && row < farmMapTileData[col].length) {
+                                tileManager.mapTileNum[col][row] = farmMapTileData[col][row];
                             }
                         }
-                        this.farmMapMaxCols = this.maxWorldCol;
-                        this.farmMapMaxRows = this.maxWorldRow;
-                        System.out.println("[GamePanel] Initial Farm tile data stored. Dimensions: " + farmMapMaxCols
-                                + "x" + farmMapMaxRows);
                     }
+                    System.out
+                            .println("[GamePanel] Farm tile data restored - " + farmMapMaxCols + "x" + farmMapMaxRows);
+                } else {
+                    System.out.println("[GamePanel] No saved farm tile data to restore");
                 }
 
                 // Restore crop entities
                 if (!farmCropData.isEmpty()) {
                     System.out.println("[GamePanel] Restoring " + farmCropData.size() + " farm crops...");
+
                     for (CropSaveData cropData : farmCropData) {
                         // Create new planted crop
                         OBJ_PlantedCrop restoredCrop = new OBJ_PlantedCrop(this, cropData.cropType, cropData.worldX,
@@ -605,16 +617,25 @@ public class GamePanel extends JPanel implements Runnable {
                         // Restore crop state
                         restoredCrop.setCurrentGrowthDays(cropData.currentGrowthDays);
                         restoredCrop.setWatered(cropData.isWatered);
-                        restoredCrop.setGrewToday(cropData.grewToday); // Muat status grewToday
+                        restoredCrop.setGrewToday(cropData.grewToday);
 
                         // Add to entities
                         entities.add(restoredCrop);
 
-                        System.out.println("[GamePanel] Restored " + cropData.cropType + " at tile(" +
-                                (cropData.worldX / tileSize) + "," + (cropData.worldY / tileSize) +
-                                ") - Growth: " + cropData.currentGrowthDays +
-                                ", Watered: " + cropData.isWatered +
-                                ", GrewToday: " + cropData.grewToday);
+                        // Ensure tile state matches crop watered status
+                        int tileX = cropData.worldX / tileSize;
+                        int tileY = cropData.worldY / tileSize;
+                        if (tileX >= 0 && tileX < maxWorldCol && tileY >= 0 && tileY < maxWorldRow) {
+                            if (cropData.isWatered) {
+                                tileManager.mapTileNum[tileX][tileY] = 80; // WATERED_PLANT
+                            } else {
+                                tileManager.mapTileNum[tileX][tileY] = 55; // PLANTED
+                            }
+                        }
+
+                        System.out.println("[GamePanel] Restored " + cropData.cropType + " at (" + tileX + "," + tileY +
+                                ") - Growth: " + cropData.currentGrowthDays + ", Watered: " + cropData.isWatered +
+                                ", Tile: " + tileManager.mapTileNum[tileX][tileY]);
                     }
                     System.out.println("[GamePanel] All farm crops restored successfully");
                 } else {
@@ -623,14 +644,12 @@ public class GamePanel extends JPanel implements Runnable {
             }
 
             System.out.println("[GamePanel] Map loaded successfully: " + selectedMap.getMapName());
-            System.out.println("[GamePanel] Player location verified: " + player.getLocation());
-
             gameState = playState;
             isInMapTransition = false;
 
         } else {
             System.err.println("[GamePanel] Invalid map index: " + newMapIndex + ". Cannot load map.");
-            gameState = titleState; // Kembali ke title screen jika map tidak valid
+            gameState = titleState;
             isInMapTransition = false;
         }
     }

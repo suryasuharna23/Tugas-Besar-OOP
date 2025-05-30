@@ -28,14 +28,7 @@ import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.interfaces.Edible;
 import spakborhills.interfaces.Observer;
-import spakborhills.object.OBJ_Crop;
-import spakborhills.object.OBJ_Equipment;
-import spakborhills.object.OBJ_Fish;
-import spakborhills.object.OBJ_Food;
-import spakborhills.object.OBJ_Item;
-import spakborhills.object.OBJ_Misc;
-import spakborhills.object.OBJ_Recipe;
-import spakborhills.object.OBJ_Seed;
+import spakborhills.object.*;
 
 public class Player extends Entity implements Observer{
     KeyHandler keyH;
