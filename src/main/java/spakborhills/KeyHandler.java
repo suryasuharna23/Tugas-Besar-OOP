@@ -1,6 +1,5 @@
 package spakborhills;
 
-import java.awt.RenderingHints.Key;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
@@ -157,7 +156,7 @@ public class KeyHandler implements KeyListener {
             } else if (code == KeyEvent.VK_ESCAPE) {
                 System.out.println("[KeyHandler] DEBUG - ESC key detected in endGameState");
 
-                gp.gameState = gp.titleState;
+                gp.gameState = GamePanel.titleState;
                 gp.ui.mapSelectionState = 0;
                 gp.ui.commandNumber = 0;
                 if (gp.gameClock != null && !gp.gameClock.isPaused()) {
@@ -189,14 +188,33 @@ public class KeyHandler implements KeyListener {
                 gp.gameState = gp.pauseState;
                 if (gp.gameClock != null)
                     gp.gameClock.pauseTime();
+            } else if (code == KeyEvent.VK_C) {
+                System.out.println("[KeyHandler] Collision debugging toggled");
             } else if (code == KeyEvent.VK_ENTER) {
                 enterPressed = true;
             } else if (code == KeyEvent.VK_M) {
-                gp.gameState = gp.titleState;
-                gp.ui.mapSelectionState = 1;
-                gp.ui.commandNumber = gp.currentMapIndex != -1 ? gp.currentMapIndex : 0;
-                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
-                    gp.gameClock.pauseTime();
+                if (gp.currentMapIndex == gp.FARM_MAP_INDEX) {
+
+                    if (isPlayerAtFarmMapEdge()) {
+                        gp.gameState = GamePanel.titleState;
+                        gp.ui.mapSelectionState = 1;
+                        gp.ui.commandNumber = gp.currentMapIndex != -1 ? gp.currentMapIndex : 0;
+                        if (gp.gameClock != null && !gp.gameClock.isPaused()) {
+                            gp.gameClock.pauseTime();
+                        }
+                        gp.ui.showMessage("World Map opened from farm edge!");
+                    } else {
+                        gp.ui.showMessage("You need to go to the farm edge to access the world map!");
+                    }
+                } else if (gp.currentMapIndex == gp.PLAYER_HOUSE_INDEX) {
+                    gp.ui.showMessage("You need to go out to the farm first!");
+                } else {
+                    gp.gameState = GamePanel.titleState;
+                    gp.ui.mapSelectionState = 1;
+                    gp.ui.commandNumber = gp.currentMapIndex != -1 ? gp.currentMapIndex : 0;
+                    if (gp.gameClock != null && !gp.gameClock.isPaused()) {
+                        gp.gameClock.pauseTime();
+                    }
                 }
             } else if (code == KeyEvent.VK_Z) {
 
@@ -473,7 +491,6 @@ public class KeyHandler implements KeyListener {
                             if (gp.player.inventory.isEmpty()) {
                                 gp.ui.showMessage("Inventory empty. Press Esc to close bin.");
                             }
-
                         } else {
                             gp.ui.showMessage(itemToShip.name + " cannot be sold.");
                         }
@@ -483,6 +500,7 @@ public class KeyHandler implements KeyListener {
                 } else {
                     gp.ui.showMessage("Shipping bin is full (16 different item types max).");
                 }
+                gp.gameClock.getTime().advanceTime(15);
             } else if (gp.player.inventory.isEmpty()) {
                 gp.ui.showMessage("Inventory is empty. Nothing to ship.");
             }
@@ -1257,7 +1275,7 @@ public class KeyHandler implements KeyListener {
         if (keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_A ||
             keyCode == KeyEvent.VK_RIGHT || keyCode == KeyEvent.VK_D) {
             gp.ui.genderSelectionIndex = 1 - gp.ui.genderSelectionIndex; // 0 <-> 1
-        } 
+        }
         else if (keyCode == KeyEvent.VK_ENTER) {
             if (gp.ui.genderSelectionIndex == 0) {
                 gp.player.setGender(spakborhills.enums.Gender.MALE);
@@ -1268,5 +1286,23 @@ public class KeyHandler implements KeyListener {
             gp.gameState = gp.farmNameInputState;
             gp.ui.farmNameInput = "";
         }
+    }
+
+    private boolean isPlayerAtFarmMapEdge() {
+        int playerTileX = gp.player.worldX / gp.tileSize;
+        int playerTileY = gp.player.worldY / gp.tileSize;
+
+        int edgeThreshold = 2;
+
+        boolean atLeftEdge = playerTileX <= edgeThreshold;
+        boolean atRightEdge = playerTileX >= (gp.maxWorldCol - edgeThreshold - 1);
+        boolean atTopEdge = playerTileY <= edgeThreshold;
+        boolean atBottomEdge = playerTileY >= (gp.maxWorldRow - edgeThreshold - 1);
+
+        System.out.println("[KeyHandler] Player at farm tile (" + playerTileX + "," + playerTileY + ")");
+        System.out.println("[KeyHandler] Edge check - Left:" + atLeftEdge + ", Right:" + atRightEdge +
+                ", Top:" + atTopEdge + ", Bottom:" + atBottomEdge);
+
+        return atLeftEdge || atRightEdge || atTopEdge || atBottomEdge;
     }
 }

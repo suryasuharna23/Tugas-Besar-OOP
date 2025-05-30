@@ -1,9 +1,9 @@
 package spakborhills.object;
 
 import spakborhills.GamePanel;
+import spakborhills.Weather;
 import spakborhills.entity.Entity;
 import spakborhills.enums.EntityType;
-import spakborhills.Weather;
 
 public class OBJ_TV extends Entity {
     public OBJ_TV(GamePanel gp) {
@@ -47,6 +47,9 @@ public class OBJ_TV extends Entity {
         if (gp.gameClock != null && !gp.gameClock.isPaused()) {
             gp.gameClock.pauseTime();
         }
+
+        gp.gameClock.getTime().advanceTime(-15);
+        gp.player.tryDecreaseEnergy(5);
     }
 
     private String getWeatherReport() {

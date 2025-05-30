@@ -16,7 +16,6 @@ import spakborhills.KeyHandler;
 import spakborhills.Time;
 import spakborhills.action.Command;
 import spakborhills.action.EatCommand;
-import spakborhills.action.PlantingCommand;
 import spakborhills.cooking.ActiveCookingProcess;
 import spakborhills.cooking.FoodRegistry;
 import spakborhills.cooking.Recipe;
@@ -29,7 +28,15 @@ import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.interfaces.Edible;
 import spakborhills.interfaces.Observer;
-import spakborhills.object.*;
+import spakborhills.object.OBJ_Crop;
+import spakborhills.object.OBJ_Equipment;
+import spakborhills.object.OBJ_Fish;
+import spakborhills.object.OBJ_Food;
+import spakborhills.object.OBJ_Item;
+import spakborhills.object.OBJ_Misc;
+import spakborhills.object.OBJ_PlantedCrop;
+import spakborhills.object.OBJ_Recipe;
+import spakborhills.object.OBJ_Seed;
 
 public class Player extends Entity implements Observer {
     KeyHandler keyH;
@@ -175,7 +182,7 @@ public class Player extends Entity implements Observer {
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 15; i++) {
             addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Parsnip", false, 20, 10, 1, 99, Season.SPRING,
                     Weather.RAINY));
         }
@@ -283,7 +290,7 @@ public class Player extends Entity implements Observer {
         setCurrentlySleeping(true);
 
         String energyRecoveryMessage;
-        if (currentEnergy == 0) {
+        if (currentEnergy <= 0) {
             currentEnergy = ENERGY_REFILL_AT_ZERO;
             energyRecoveryMessage = "You slept right on the brink and only recovered " + ENERGY_REFILL_AT_ZERO
                     + " energy.";
@@ -388,6 +395,10 @@ public class Player extends Entity implements Observer {
         } else if (gp.gameState == gp.dialogueState || gp.gameState == gp.inventoryState) {
             spriteNum = 1;
             spriteCounter = 0;
+        }
+
+        if (gp.gameClock != null) {
+            // System.out.println("Game Time: " + gp.gameClock.getFormattedTime());
         }
     }
 
@@ -611,7 +622,7 @@ public class Player extends Entity implements Observer {
                     purchasedItemInstance = new OBJ_Seed(gp, seedTemplate.getType(),
                             seedTemplate.name.replace(" seeds", ""), seedTemplate.isEdible(),
                             seedTemplate.getBuyPrice(), seedTemplate.getSellPrice(),
-                            1, 1, Season.SPRING, Weather.SUNNY);
+                            seedTemplate.getCountWater(), seedTemplate.getDayToHarvest(), seedTemplate.getSeason(), seedTemplate.getWeather());
                 } else if (itemToBuy instanceof OBJ_Food) {
                     OBJ_Food foodTemplate = (OBJ_Food) itemToBuy;
                     purchasedItemInstance = FoodRegistry.createFood(gp, foodTemplate.name.replace(" food", ""));

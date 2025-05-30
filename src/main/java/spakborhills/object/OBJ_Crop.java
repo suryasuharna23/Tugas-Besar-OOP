@@ -9,7 +9,7 @@ import spakborhills.interfaces.Harvestable;
 
 public class OBJ_Crop extends OBJ_Item implements Edible, Harvestable {
     private int harvestAmount;
-    private int energy;
+    private final int energy = 3;
     private int daysToGrow;
     private int currentGrowthDays;
     private boolean isPlanted;
@@ -18,7 +18,6 @@ public class OBJ_Crop extends OBJ_Item implements Edible, Harvestable {
             int harvestAmount, int energy) {
         super(gp, itemType, name, true, buyPrice, sellPrice);
         this.harvestAmount = harvestAmount;
-        this.energy = 3;
         this.currentGrowthDays = 0;
         this.isPlanted = false;
         setupCropProperties();
@@ -30,67 +29,56 @@ public class OBJ_Crop extends OBJ_Item implements Edible, Harvestable {
             this.buyPrice = 50;
             this.sellPrice = 35;
             this.harvestAmount = 1;
-            this.energy = 5;
             this.daysToGrow = 4;
         } else if (this.baseName.equals("Cauliflower")) {
             this.buyPrice = 200;
             this.sellPrice = 150;
             this.harvestAmount = 1;
-            this.energy = 8;
             this.daysToGrow = 12;
         } else if (this.baseName.equals("Potato")) {
             this.buyPrice = 0;
             this.sellPrice = 80;
             this.harvestAmount = 1;
-            this.energy = 6;
             this.daysToGrow = 6;
         } else if (this.baseName.equals("Wheat")) {
             this.buyPrice = 50;
             this.sellPrice = 30;
             this.harvestAmount = 3;
-            this.energy = 4;
             this.daysToGrow = 4;
         } else if (this.baseName.equals("Blueberry")) {
             this.buyPrice = 0;
             this.sellPrice = 100;
             this.harvestAmount = 3;
-            this.energy = 7;
             this.daysToGrow = 13;
         } else if (this.baseName.equals("Tomato")) {
             this.buyPrice = 90;
             this.sellPrice = 60;
             this.harvestAmount = 1;
-            this.energy = 5;
             this.daysToGrow = 11;
         } else if (this.baseName.equals("Hot Pepper")) {
             this.buyPrice = 0;
             this.sellPrice = 40;
             this.harvestAmount = 1;
-            this.energy = 3;
             this.daysToGrow = 5;
         } else if (this.baseName.equals("Melon")) {
             this.buyPrice = 0;
             this.sellPrice = 250;
             this.harvestAmount = 1;
-            this.energy = 10;
             this.daysToGrow = 12;
         } else if (this.baseName.equals("Cranberry")) {
             this.buyPrice = 0;
             this.sellPrice = 25;
             this.harvestAmount = 1;
-            this.energy = 4;
             this.daysToGrow = 7;
         } else if (this.baseName.equals("Pumpkin")) {
             this.buyPrice = 300;
             this.sellPrice = 250;
             this.harvestAmount = 1;
-            this.energy = 12;
             this.daysToGrow = 13;
         } else if (this.baseName.equals("Grape")) {
             this.buyPrice = 100;
             this.sellPrice = 10;
             this.harvestAmount = 20;
-            this.energy = 2;
             this.daysToGrow = 10;
         }
     }
