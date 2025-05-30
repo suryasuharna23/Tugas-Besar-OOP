@@ -22,6 +22,7 @@ import spakborhills.entity.NPC_EMILY;
 import spakborhills.entity.Player;
 import spakborhills.interfaces.Edible;
 import spakborhills.object.OBJ_Fish;
+import spakborhills.object.OBJ_Food;
 import spakborhills.object.OBJ_Item;
 import spakborhills.object.OBJ_Misc;
 import spakborhills.object.OBJ_PlantedCrop;
@@ -248,12 +249,10 @@ public class KeyHandler implements KeyListener {
                 if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                     gp.gameClock.pauseTime();
                 }
-            }
-            else if (code == KeyEvent.VK_BACK_QUOTE) {
+            } else if (code == KeyEvent.VK_BACK_QUOTE) {
                 gp.gameState = gp.helpPageState;
-                //enterPressed = true;
-            }
-            else if (code == KeyEvent.VK_TAB) {
+
+            } else if (code == KeyEvent.VK_TAB) {
                 gp.gameState = gp.playerStatsState;
             }
         } else if (gp.gameState == gp.pauseState) {
@@ -390,7 +389,6 @@ public class KeyHandler implements KeyListener {
 
     private void handleSellScreenInput(int code) {
         if (code == KeyEvent.VK_ESCAPE) {
-
             if (!gp.player.itemsInShippingBinToday.isEmpty()) {
                 gp.completeShippingBinTransaction();
             } else {
@@ -400,25 +398,77 @@ public class KeyHandler implements KeyListener {
         } else if (code == KeyEvent.VK_ENTER) {
             if (!gp.player.inventory.isEmpty() && gp.ui.commandNumber < gp.player.inventory.size()
                     && gp.ui.commandNumber >= 0) {
+
                 if (gp.player.itemsInShippingBinToday.size() < 16) {
                     Entity itemEntityToShip = gp.player.inventory.get(gp.ui.commandNumber);
 
                     if (itemEntityToShip instanceof OBJ_Item) {
                         OBJ_Item itemToShip = (OBJ_Item) itemEntityToShip;
                         if (itemToShip.getSellPrice() > 0) {
-                            gp.player.itemsInShippingBinToday.add(itemToShip);
-                            gp.player.inventory.remove(gp.ui.commandNumber);
+                            boolean stackedSuccessfully = false;
 
-                            gp.ui.showMessage(itemToShip.name + " moved to bin. ("
-                                    + gp.player.itemsInShippingBinToday.size() + "/16)");
+                            for (Entity binEntity : gp.player.itemsInShippingBinToday) {
+                                if (binEntity instanceof OBJ_Item) {
+                                    OBJ_Item binItem = (OBJ_Item) binEntity;
 
-                            if (gp.ui.commandNumber >= gp.player.inventory.size()
-                                    && !gp.player.inventory.isEmpty()) {
-                                gp.ui.commandNumber = gp.player.inventory.size() - 1;
-                            } else if (gp.player.inventory.isEmpty()) {
-                                gp.ui.commandNumber = 0;
+                                    if (binItem.name.equals(itemToShip.name) &&
+                                            binItem.getType() == itemToShip.getType()) {
+
+                                        binItem.quantity += 1;
+                                        itemToShip.quantity -= 1;
+
+                                        System.out.println("[KeyHandler] Stacked 1 " + itemToShip.name +
+                                                " to existing bin stack. Bin stack now: " + binItem.quantity);
+
+                                        if (itemToShip.quantity <= 0) {
+                                            gp.player.inventory.remove(gp.ui.commandNumber);
+
+                                            if (gp.ui.commandNumber >= gp.player.inventory.size()
+                                                    && !gp.player.inventory.isEmpty()) {
+                                                gp.ui.commandNumber = gp.player.inventory.size() - 1;
+                                            } else if (gp.player.inventory.isEmpty()) {
+                                                gp.ui.commandNumber = 0;
+                                            }
+                                        }
+
+                                        stackedSuccessfully = true;
+                                        gp.ui.showMessage(itemToShip.name + " moved to bin (x" + binItem.quantity +
+                                                "). Inventory: x" + itemToShip.quantity + " remaining");
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!stackedSuccessfully) {
+                                OBJ_Item binItem = createSingleBinItem(itemToShip);
+
+                                if (binItem != null) {
+                                    gp.player.itemsInShippingBinToday.add(binItem);
+
+                                    itemToShip.quantity--;
+
+                                    if (itemToShip.quantity <= 0) {
+                                        gp.player.inventory.remove(gp.ui.commandNumber);
+
+                                        if (gp.ui.commandNumber >= gp.player.inventory.size()
+                                                && !gp.player.inventory.isEmpty()) {
+                                            gp.ui.commandNumber = gp.player.inventory.size() - 1;
+                                        } else if (gp.player.inventory.isEmpty()) {
+                                            gp.ui.commandNumber = 0;
+                                        }
+                                    }
+
+                                    gp.ui.showMessage(binItem.name + " moved to bin (new stack). Inventory: x" +
+                                            itemToShip.quantity + " remaining");
+                                    System.out.println("[KeyHandler] Added new item to bin: " + binItem.name +
+                                            " (quantity: 1)");
+                                }
+                            }
+
+                            if (gp.player.inventory.isEmpty()) {
                                 gp.ui.showMessage("Inventory empty. Press Esc to close bin.");
                             }
+
                         } else {
                             gp.ui.showMessage(itemToShip.name + " cannot be sold.");
                         }
@@ -426,13 +476,51 @@ public class KeyHandler implements KeyListener {
                         gp.ui.showMessage(itemEntityToShip.name + " is not a sellable item type.");
                     }
                 } else {
-                    gp.ui.showMessage("Shipping bin is full (16 items max).");
+                    gp.ui.showMessage("Shipping bin is full (16 different item types max).");
                 }
             } else if (gp.player.inventory.isEmpty()) {
                 gp.ui.showMessage("Inventory is empty. Nothing to ship.");
             }
         }
         sellScreenControls(code);
+    }
+
+    private OBJ_Item createSingleBinItem(OBJ_Item original) {
+        try {
+            if (original instanceof OBJ_Seed) {
+                OBJ_Seed seedOriginal = (OBJ_Seed) original;
+                return new OBJ_Seed(gp, seedOriginal.getType(), seedOriginal.name,
+                        seedOriginal.isEdible(), seedOriginal.getBuyPrice(),
+                        seedOriginal.getSellPrice(), 1,
+                        seedOriginal.dayToHarvest, seedOriginal.getSeason(),
+                        seedOriginal.weather);
+            } else if (original instanceof OBJ_Food) {
+                OBJ_Food foodOriginal = (OBJ_Food) original;
+                OBJ_Food newFood = new OBJ_Food(gp, foodOriginal.getType(), foodOriginal.name,
+                        foodOriginal.isEdible(), foodOriginal.getBuyPrice(),
+                        foodOriginal.getSellPrice(), foodOriginal.getEnergy());
+                newFood.quantity = 1;
+                return newFood;
+            } else if (original instanceof OBJ_Fish) {
+                OBJ_Fish fishOriginal = (OBJ_Fish) original;
+                OBJ_Fish newFish = new OBJ_Fish(gp, fishOriginal.getType(), fishOriginal.name,
+                        fishOriginal.isEdible(), fishOriginal.getBuyPrice(),
+                        fishOriginal.getSellPrice(), fishOriginal.getSeasons(),
+                        fishOriginal.getWeathers(), fishOriginal.getLocations(),
+                        fishOriginal.getFishType(), fishOriginal.getStartHour(),
+                        fishOriginal.getEndHour());
+                newFish.quantity = 1;
+                return newFish;
+            } else {
+
+                return new OBJ_Item(gp, original.getType(), original.name,
+                        original.isEdible(), original.getBuyPrice(),
+                        original.getSellPrice(), 1);
+            }
+        } catch (Exception e) {
+            System.err.println("[KeyHandler] Error creating single bin item: " + e.getMessage());
+            return null;
+        }
     }
 
     private void handleFishingMinigameInput(KeyEvent e) {

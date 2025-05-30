@@ -52,17 +52,17 @@ public class GamePanel extends JPanel implements Runnable {
         public String cropType;
         public int worldX, worldY;
         public int currentGrowthDays;
-        public boolean isWatered; // Status siram terakhir sebelum save
-        public boolean grewToday; // Apakah sudah tumbuh pada hari saat di-save
+        public boolean isWatered;
+        public boolean grewToday;
 
         public CropSaveData(String cropType, int worldX, int worldY, int currentGrowthDays, boolean isWatered,
-                boolean grewToday) { // Tambahkan grewToday
+                boolean grewToday) {
             this.cropType = cropType;
             this.worldX = worldX;
             this.worldY = worldY;
             this.currentGrowthDays = currentGrowthDays;
             this.isWatered = isWatered;
-            this.grewToday = grewToday; // Simpan status grewToday
+            this.grewToday = grewToday;
         }
     }
 
@@ -88,10 +88,9 @@ public class GamePanel extends JPanel implements Runnable {
     public int helpPageState = 17;
     public int playerStatsState = 18;
 
-    // Update konstanta sesuai urutan di initializeMapInfos():
-    public final int FARM_MAP_INDEX = 8; // Farm sekarang di index 8
-    public final int PLAYER_HOUSE_INDEX = 9; // Player House di index 9
-    public final int STORE_INDEX = 10; // Store di index 10
+    public final int FARM_MAP_INDEX = 8;
+    public final int PLAYER_HOUSE_INDEX = 9;
+    public final int STORE_INDEX = 10;
 
     public Recipe selectedRecipeForCooking = null;
 
@@ -198,7 +197,7 @@ public class GamePanel extends JPanel implements Runnable {
             }
 
             if (timer >= 1000000000) {
-                // System.out.println("FPS: " + drawCount); // Kurangi logging FPS
+
                 drawCount = 0;
                 timer = 0;
             }
@@ -258,8 +257,6 @@ public class GamePanel extends JPanel implements Runnable {
 
                 if (gameClock != null && gameClock.isPaused() && !hasTriggeredEndgame) {
 
-                    // System.out.println("[GamePanel] Resuming GameClock in playState."); //
-                    // Logging dikurangi
                     gameClock.resumeTime();
                 }
 
@@ -280,11 +277,11 @@ public class GamePanel extends JPanel implements Runnable {
                 for (Entity entity : entitiesCopy) {
                     if (entity != null && !(entity instanceof Player) && !(entity instanceof NPC)) {
                         try {
-                            entity.update(); // Safe update karena menggunakan copy
+                            entity.update();
                         } catch (Exception e) {
                             System.err.println("[GamePanel] Error updating entity " + entity.getClass().getSimpleName()
                                     + ": " + e.getMessage());
-                            // Remove problematic entity
+
                             entities.remove(entity);
                         }
                     }
@@ -301,8 +298,6 @@ public class GamePanel extends JPanel implements Runnable {
                 environmentManager.update();
             }
 
-            // System.out.println("[GamePanel] Currently in endGameState, waiting for user
-            // input..."); // Logging dikurangi
         } else if (gameState == sleepTransitionState) {
 
             if (!isProcessingNewDayDataInTransition) {
@@ -312,10 +307,10 @@ public class GamePanel extends JPanel implements Runnable {
                 currentTime.forceStartNewDay();
 
                 gameClock.updateSeasonBasedOnDay(currentTime.getDay());
-                if ((currentTime.getDay() - 1) % 10 == 0) { // Setiap awal musim (1, 11, 21, 31)
+                if ((currentTime.getDay() - 1) % 10 == 0) {
                     gameClock.getWeather().resetRainyCount();
                 }
-                performDailyResets(); // Ini akan memanggil growAllCrops
+                performDailyResets();
 
                 if (player.goldFromShipping > 0) {
                     if (ui.currentDialogue == null)
@@ -391,19 +386,18 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void initializeMapInfos() {
-        mapInfos.add(new MapInfo("Abigail's House", "/maps/abigail_house_data.txt", "/maps/abigail_house.txt")); // 0
+        mapInfos.add(new MapInfo("Abigail's House", "/maps/abigail_house_data.txt", "/maps/abigail_house.txt"));
 
-        mapInfos.add(new MapInfo("Caroline's House", "/maps/caroline_house_data.txt", "/maps/caroline_house.txt")); // 1
+        mapInfos.add(new MapInfo("Caroline's House", "/maps/caroline_house_data.txt", "/maps/caroline_house.txt"));
 
-        mapInfos.add(new MapInfo("Dasco's House", "/maps/dasco_house_data.txt", "/maps/dasco_house.txt")); // 2
+        mapInfos.add(new MapInfo("Dasco's House", "/maps/dasco_house_data.txt", "/maps/dasco_house.txt"));
         mapInfos.add(
-                new MapInfo("Mayor Tadi's House", "/maps/mayor_tadi_house_data.txt", "/maps/mayor_tadi_house.txt")); // 3
+                new MapInfo("Mayor Tadi's House", "/maps/mayor_tadi_house_data.txt", "/maps/mayor_tadi_house.txt"));
 
         mapInfos.add(new MapInfo("Perry's House", "/maps/perry_house_data.txt", "/maps/perry_house.txt"));
 
-
-        mapInfos.add(new MapInfo("Forest River", "/maps/forest_river_data.txt", "/maps/forest_river.txt")); // 7
-        mapInfos.add(new MapInfo("Mountain Lake", "/maps/mountain_lake_data.txt", "/maps/mountain_lake.txt")); // 8
+        mapInfos.add(new MapInfo("Forest River", "/maps/forest_river_data.txt", "/maps/forest_river.txt"));
+        mapInfos.add(new MapInfo("Mountain Lake", "/maps/mountain_lake_data.txt", "/maps/mountain_lake.txt"));
 
         mapInfos.add(new MapInfo("Ocean", "/maps/ocean_data.txt", "/maps/ocean.txt"));
         mapInfos.add(new MapInfo("Farm", "/maps/farm_map_1_data.txt", "/maps/farm_map_1.txt"));
@@ -420,11 +414,9 @@ public class GamePanel extends JPanel implements Runnable {
             }
             isInMapTransition = true;
 
-            // SAVE FARM DATA when leaving farm
             if (this.currentMapIndex == FARM_MAP_INDEX && newMapIndex != FARM_MAP_INDEX) {
                 System.out.println("[GamePanel] Leaving farm - saving tiles and crops");
 
-                // Save farm tiles
                 if (tileManager.mapTileNum != null && maxWorldCol > 0 && maxWorldRow > 0) {
                     farmMapTileData = new int[maxWorldCol][maxWorldRow];
                     for (int col = 0; col < maxWorldCol; col++) {
@@ -438,7 +430,6 @@ public class GamePanel extends JPanel implements Runnable {
                             "[GamePanel] Farm tiles saved - dimensions: " + farmMapMaxCols + "x" + farmMapMaxRows);
                 }
 
-                // Save crop entities
                 farmCropData.clear();
                 for (Entity entity : entities) {
                     if (entity instanceof OBJ_PlantedCrop) {
@@ -460,14 +451,12 @@ public class GamePanel extends JPanel implements Runnable {
                 System.out.println("[GamePanel] Farm data saved successfully - " + farmCropData.size() + " crops");
             }
 
-            // Update map indices
             this.previousMapIndex = this.currentMapIndex;
             this.currentMapIndex = newMapIndex;
             MapInfo selectedMap = mapInfos.get(this.currentMapIndex);
             String mapName = selectedMap.getMapName();
             System.out.println("[GamePanel] Loading map: " + mapName + " (Index: " + newMapIndex + ")");
 
-            // Set player location
             try {
                 String enumCompatibleName = mapName.toUpperCase().replace(" ", "_").replace("'S", "S");
                 System.out.println("[GamePanel] Trying to set location enum: " + enumCompatibleName);
@@ -485,7 +474,6 @@ public class GamePanel extends JPanel implements Runnable {
             System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to "
                     + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
 
-            // Handle travel energy cost and collapse
             boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 6) ||
                     (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX) ||
                     this.currentMapIndex == 6 || this.currentMapIndex == PLAYER_HOUSE_INDEX;
@@ -506,7 +494,6 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
 
-            // Handle teleport to player house
             if (shouldTeleportToPlayerHouse) {
                 System.out.println("[GamePanel] Teleport to Player House requested");
                 this.currentMapIndex = PLAYER_HOUSE_INDEX;
@@ -516,40 +503,38 @@ public class GamePanel extends JPanel implements Runnable {
                 shouldTeleportToPlayerHouse = false;
             }
 
-            // Load new map
             tileManager.loadMap(selectedMap);
             entities.clear();
             npcs.clear();
 
-            // Calculate player spawn position
-            int targetX = this.tileSize * 20; // Default spawn X
-            int targetY = this.tileSize * 29; // Default spawn Y
-            String targetDir = "down"; // Default direction
+            int targetX = this.tileSize * 20;
+            int targetY = this.tileSize * 29;
+            String targetDir = "down";
 
             if (playerCollapsedFromTravel) {
-                targetX = this.tileSize * 7; // Bed position
+                targetX = this.tileSize * 7;
                 targetY = this.tileSize * 6;
                 targetDir = "down";
                 System.out.println("[GamePanel] Player collapsed - positioned at Player House bed");
             } else {
-                // Normal spawn logic
-                if (this.currentMapIndex == PLAYER_HOUSE_INDEX) { // Entering Player House
-                    if (previousMapIndex == FARM_MAP_INDEX) { // From Farm
-                        targetX = this.tileSize * 25; // Inside house door
+
+                if (this.currentMapIndex == PLAYER_HOUSE_INDEX) {
+                    if (previousMapIndex == FARM_MAP_INDEX) {
+                        targetX = this.tileSize * 25;
                         targetY = this.tileSize * 32;
                         targetDir = "up";
-                    } else { // From other map
-                        targetX = this.tileSize * 10; // Center of house
+                    } else {
+                        targetX = this.tileSize * 10;
                         targetY = this.tileSize * 10;
                         targetDir = "down";
                     }
-                } else if (this.currentMapIndex == FARM_MAP_INDEX) { // Entering Farm
-                    if (previousMapIndex == PLAYER_HOUSE_INDEX) { // From Player House
-                        targetX = currentFarmLayout.houseX * tileSize + (3 * tileSize); // Outside house door
+                } else if (this.currentMapIndex == FARM_MAP_INDEX) {
+                    if (previousMapIndex == PLAYER_HOUSE_INDEX) {
+                        targetX = currentFarmLayout.houseX * tileSize + (3 * tileSize);
                         targetY = currentFarmLayout.houseY * tileSize + (7 * tileSize);
                         targetDir = "down";
-                    } else { // From other map
-                        targetX = this.tileSize * 25; // Default Farm spawn
+                    } else {
+                        targetX = this.tileSize * 25;
                         targetY = this.tileSize * 25;
                         targetDir = "down";
                     }
@@ -563,24 +548,19 @@ public class GamePanel extends JPanel implements Runnable {
 
             player.setPositionForMapEntry(targetX, targetY, targetDir);
 
-            // Set objects and NPCs
             assetSetter.setObject(selectedMap.getMapName());
             assetSetter.setNPC(selectedMap.getMapName());
 
-            // RESTORE FARM DATA when entering farm
             if (this.currentMapIndex == FARM_MAP_INDEX) {
                 System.out.println("[GamePanel] Entering farm - restoring tiles and crops");
 
-                // Restore tile data first
                 if (farmMapTileData != null && farmMapMaxCols > 0 && farmMapMaxRows > 0) {
                     System.out.println("[GamePanel] Restoring farm tile data...");
 
-                    // Ensure tileManager.mapTileNum has correct dimensions
                     if (tileManager.mapTileNum == null ||
                             tileManager.mapTileNum.length != farmMapMaxCols ||
                             (tileManager.mapTileNum.length > 0 && tileManager.mapTileNum[0].length != farmMapMaxRows)) {
 
-                        // Update maxWorldCol/Row to match saved farm data
                         maxWorldCol = farmMapMaxCols;
                         maxWorldRow = farmMapMaxRows;
                         tileManager.mapTileNum = new int[farmMapMaxCols][farmMapMaxRows];
@@ -599,31 +579,27 @@ public class GamePanel extends JPanel implements Runnable {
                     System.out.println("[GamePanel] No saved farm tile data to restore");
                 }
 
-                // Restore crop entities
                 if (!farmCropData.isEmpty()) {
                     System.out.println("[GamePanel] Restoring " + farmCropData.size() + " farm crops...");
 
                     for (CropSaveData cropData : farmCropData) {
-                        // Create new planted crop
+
                         OBJ_PlantedCrop restoredCrop = new OBJ_PlantedCrop(this, cropData.cropType, cropData.worldX,
                                 cropData.worldY);
 
-                        // Restore crop state
                         restoredCrop.setCurrentGrowthDays(cropData.currentGrowthDays);
                         restoredCrop.setWatered(cropData.isWatered);
                         restoredCrop.setGrewToday(cropData.grewToday);
 
-                        // Add to entities
                         entities.add(restoredCrop);
 
-                        // Ensure tile state matches crop watered status
                         int tileX = cropData.worldX / tileSize;
                         int tileY = cropData.worldY / tileSize;
                         if (tileX >= 0 && tileX < maxWorldCol && tileY >= 0 && tileY < maxWorldRow) {
                             if (cropData.isWatered) {
-                                tileManager.mapTileNum[tileX][tileY] = 80; // WATERED_PLANT
+                                tileManager.mapTileNum[tileX][tileY] = 80;
                             } else {
-                                tileManager.mapTileNum[tileX][tileY] = 55; // PLANTED
+                                tileManager.mapTileNum[tileX][tileY] = 55;
                             }
                         }
 
@@ -652,14 +628,13 @@ public class GamePanel extends JPanel implements Runnable {
         System.out.println("[GamePanel] Wedding event concluded. Skipping time to 22:00.");
 
         if (gameClock != null && gameClock.getTime() != null && player != null) {
-            gameClock.pauseTime(); // Pastikan waktu dijeda sebelum diubah
+            gameClock.pauseTime();
 
             Time currentTime = gameClock.getTime();
-            currentTime.setCurrentTime(22, 0); // Langsung set ke jam 10 malam
+            currentTime.setCurrentTime(22, 0);
 
             ui.showMessage("The day flew by! It's now 10:00 PM.");
-            // gameClock.resumeTime(); // Waktu akan dilanjutkan di playState atau saat
-            // tidur
+
         } else {
             System.err.println("[GamePanel] Cannot skip time: GameClock, Time, or Player is null.");
         }
@@ -668,7 +643,7 @@ public class GamePanel extends JPanel implements Runnable {
     public void processShippingBin() {
 
         if (!player.hasUsedShippingBinToday || player.itemsInShippingBinToday.isEmpty()) {
-            player.goldFromShipping = 0; // Pastikan goldFromShipping direset jika tidak ada yang dijual
+            player.goldFromShipping = 0;
             return;
         }
 
@@ -682,7 +657,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         if (totalEarnings > 0) {
             player.gold += totalEarnings;
-            player.goldFromShipping = totalEarnings; // Simpan pendapatan dari shipping untuk pesan pagi hari
+            player.goldFromShipping = totalEarnings;
             System.out.println("[GamePanel] Player earned " + totalEarnings +
                     "G from shipped items. Total gold: " + player.gold);
         } else {
@@ -690,7 +665,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         player.itemsInShippingBinToday.clear();
-        player.hasUsedShippingBinToday = false; // Reset status penggunaan bin untuk hari berikutnya
+        player.hasUsedShippingBinToday = false;
         System.out.println("[GamePanel] Shipping bin processed and reset for the new day.");
     }
 
@@ -700,17 +675,15 @@ public class GamePanel extends JPanel implements Runnable {
             return;
         }
         System.out.println("[GamePanel] Performing daily resets for Day " + gameClock.getTime().getDay() + "...");
-        processShippingBin(); // Proses penjualan dari bin
-        growAllCrops(); // Proses pertumbuhan tanaman
+        processShippingBin();
+        growAllCrops();
 
-        // Reset status harian NPC (misal, sudah diberi hadiah atau belum)
-        for (NPC npc : npcs) { // NPC di map saat ini
+        for (NPC npc : npcs) {
             if (npc != null) {
                 npc.hasReceivedGiftToday = false;
             }
         }
-        // Reset juga untuk semua NPC di dunia (untuk konsistensi jika NPC tidak di map
-        // saat ini)
+
         for (NPC npc_world : allNpcsInWorld) {
             if (npc_world != null) {
                 npc_world.hasReceivedGiftToday = false;
@@ -722,25 +695,22 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void resetCoreGameDataForNewGame() {
         if (player != null) {
-            player.setDefaultValues(); // Reset status pemain
+            player.setDefaultValues();
         }
-        entities.clear(); // Hapus semua entitas
-        npcs.clear(); // Hapus NPC dari daftar map saat ini
-        // allNpcsInWorld akan diinisialisasi ulang oleh assetSetter.initializeAllNPCs()
-        // jika diperlukan
+        entities.clear();
+        npcs.clear();
 
         if (gameClock != null) {
-            gameClock.resetTime(); // Reset jam, hari, musim, cuaca
+            gameClock.resetTime();
         }
 
         if (ui != null) {
             ui.currentDialogue = "";
             ui.commandNumber = 0;
-            // Reset state UI lainnya jika ada
-        }
-        hasTriggeredEndgame = false; // Reset flag endgame
 
-        // Reset data spesifik farm
+        }
+        hasTriggeredEndgame = false;
+
         this.farmMapTileData = null;
         this.farmMapMaxCols = 0;
         this.farmMapMaxRows = 0;
@@ -762,7 +732,6 @@ public class GamePanel extends JPanel implements Runnable {
         else {
             tileManager.draw(g2);
 
-            // Sort entities by Y-coordinate for correct draw order
             entities.sort(new Comparator<Entity>() {
                 @Override
                 public int compare(Entity o1, Entity o2) {
@@ -774,13 +743,13 @@ public class GamePanel extends JPanel implements Runnable {
                 entity.draw(g2);
             }
 
-            player.draw(g2); // Player digambar setelah semua entitas lain agar di atas
+            player.draw(g2);
 
             if (environmentManager != null) {
-                environmentManager.draw(g2); // Efek pencahayaan, cuaca visual
+                environmentManager.draw(g2);
             }
 
-            ui.draw(g2); // UI digambar paling atas
+            ui.draw(g2);
         }
         g2.dispose();
     }
@@ -792,20 +761,19 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         if (player.itemsInShippingBinToday.isEmpty()) {
-            // Tidak ada item, jadi belum "menggunakan" bin untuk hari ini
+
             System.out.println("[GamePanel] No items shipped, shipping bin remains available");
             ui.showMessage("No items placed in shipping bin.");
         } else {
-            // Ada item, tandai bin sudah digunakan
+
             player.hasUsedShippingBinToday = true;
             System.out.println("[GamePanel] Shipping bin transaction completed. " +
                     player.itemsInShippingBinToday.size() + " items will be sold overnight.");
             ui.showMessage("Items placed in shipping bin! You'll receive payment tomorrow morning.");
         }
 
-        gameState = playState; // Kembali ke game
+        gameState = playState;
 
-        // Lanjutkan waktu jika dijeda
         if (gameClock != null && gameClock.isPaused()) {
             gameClock.resumeTime();
         }
@@ -817,25 +785,34 @@ public class GamePanel extends JPanel implements Runnable {
             return;
         }
 
-        // Kembalikan item dari bin ke inventory jika ada
         if (!player.itemsInShippingBinToday.isEmpty()) {
             System.out.println("[GamePanel] Returning " + player.itemsInShippingBinToday.size() +
                     " items from shipping bin to inventory");
 
-            for (Entity item : player.itemsInShippingBinToday) {
-                player.inventory.add(item); // Asumsi inventory cukup, atau perlu validasi
+            for (Entity binEntity : player.itemsInShippingBinToday) {
+                if (binEntity instanceof OBJ_Item) {
+                    OBJ_Item binItem = (OBJ_Item) binEntity;
+
+                    boolean addedSuccessfully = player.addItemToInventory(binItem);
+
+                    if (!addedSuccessfully) {
+
+                        System.out.println("[GamePanel] Warning: Could not return " + binItem.name +
+                                " to inventory (full). Item may be lost.");
+                        ui.showMessage("Inventory full! Some items couldn't be returned.");
+                    }
+                }
             }
-            player.itemsInShippingBinToday.clear(); // Kosongkan bin
+
+            player.itemsInShippingBinToday.clear();
             ui.showMessage("Items returned from shipping bin.");
         }
 
-        // Bin belum dianggap digunakan karena transaksi dibatalkan
         player.hasUsedShippingBinToday = false;
         System.out.println("[GamePanel] Shipping bin transaction cancelled, remains available");
 
-        gameState = playState; // Kembali ke game
+        gameState = playState;
 
-        // Lanjutkan waktu jika dijeda
         if (gameClock != null && gameClock.isPaused()) {
             gameClock.resumeTime();
         }
@@ -859,7 +836,6 @@ public class GamePanel extends JPanel implements Runnable {
     public void growAllCrops() {
         System.out.println("[GamePanel] ======= PROCESSING END OF DAY GROWTH & PREPARING CROPS FOR NEW DAY =======");
 
-        // Generate weather untuk hari baru
         boolean isRainingForNewDay = false;
         if (gameClock != null && gameClock.getWeather() != null) {
             System.out.println("[GamePanel] Current weather before generation: " + gameClock.getCurrentWeather());
@@ -877,9 +853,8 @@ public class GamePanel extends JPanel implements Runnable {
         int cropsGrown = 0;
         int cropsNeedWater = 0;
 
-        // PERBAIKI: Process crops based on current location
         if (currentMapIndex == FARM_MAP_INDEX) {
-            // Jika sedang di farm, process entities langsung
+
             System.out.println("[GamePanel] Currently on farm - processing active crop entities");
             ArrayList<Entity> entitiesCopy = new ArrayList<>(entities);
 
@@ -895,7 +870,7 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
         } else {
-            // Jika TIDAK di farm, process dari farmCropData
+
             System.out.println("[GamePanel] NOT on farm - processing saved crop data");
             System.out.println("[GamePanel] Saved farm crop data count: " + farmCropData.size());
 
@@ -907,7 +882,6 @@ public class GamePanel extends JPanel implements Runnable {
                     System.out.println("[GamePanel] Processing saved crop: " + cropData.cropType +
                             " (Growth: " + cropData.currentGrowthDays + ", Watered: " + cropData.isWatered + ")");
 
-                    // Process growth jika watered dan belum grow
                     boolean grewThisRound = false;
                     if (cropData.isWatered && !cropData.grewToday
                             && cropData.currentGrowthDays < getCropMaxGrowthDays(cropData.cropType)) {
@@ -921,7 +895,6 @@ public class GamePanel extends JPanel implements Runnable {
                         cropsNeedWater++;
                     }
 
-                    // Reset untuk hari baru
                     cropData.grewToday = false;
                     if (isRainingForNewDay) {
                         cropData.isWatered = true;
@@ -934,7 +907,6 @@ public class GamePanel extends JPanel implements Runnable {
                     updatedCropData.add(cropData);
                 }
 
-                // Update farmCropData dengan data yang sudah diprocess
                 farmCropData.clear();
                 farmCropData.addAll(updatedCropData);
                 System.out.println("[GamePanel] Farm crop data updated with growth progress");
@@ -951,13 +923,11 @@ public class GamePanel extends JPanel implements Runnable {
         System.out.println("[GamePanel] ======================= CROP PROCESSING COMPLETE ========================");
     }
 
-    // Helper method untuk process single crop
     private boolean processSingleCrop(OBJ_PlantedCrop crop, boolean isRainingForNewDay) {
         System.out.println("[GamePanel] Processing crop: " + crop.getCropType() +
                 " (Growth: " + crop.getCurrentGrowthDays() + "/" + crop.getDaysToGrow() +
                 ", Watered: " + crop.isWatered() + ", GrewToday: " + crop.getGrewToday() + ")");
 
-        // STEP 1: Process growth untuk hari yang baru selesai
         boolean grewThisRound = false;
         if (crop.isWatered() && !crop.getGrewToday()) {
             System.out.println("[GamePanel] Crop conditions met for growth - processing...");
@@ -970,7 +940,6 @@ public class GamePanel extends JPanel implements Runnable {
             System.out.println("[GamePanel] ⏩ " + crop.getCropType() + " already grew today");
         }
 
-        // STEP 2: Reset untuk hari baru
         System.out.println("[GamePanel] Resetting " + crop.getCropType() + " for new day...");
         crop.resetForNewDay(isRainingForNewDay);
 
@@ -981,7 +950,6 @@ public class GamePanel extends JPanel implements Runnable {
         return grewThisRound;
     }
 
-    // Helper method untuk get max growth days
     private int getCropMaxGrowthDays(String cropType) {
         switch (cropType) {
             case "Parsnip":
@@ -1005,7 +973,7 @@ public class GamePanel extends JPanel implements Runnable {
             case "Pumpkin":
                 return 4;
             default:
-                return 4; // Default fallback
+                return 4;
         }
     }
 }

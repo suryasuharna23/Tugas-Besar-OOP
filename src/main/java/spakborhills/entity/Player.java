@@ -30,7 +30,7 @@ import spakborhills.interfaces.Edible;
 import spakborhills.interfaces.Observer;
 import spakborhills.object.*;
 
-public class Player extends Entity implements Observer{
+public class Player extends Entity implements Observer {
     KeyHandler keyH;
     public final int screenX;
     public final int screenY;
@@ -382,7 +382,6 @@ public class Player extends Entity implements Observer{
             spriteCounter = 0;
         }
     }
-
 
     private void updateActiveCookingProcesses() {
         if (activeCookingProcesses.isEmpty() || gp.gameClock == null || gp.gameClock.isPaused()) {
@@ -1180,7 +1179,7 @@ public class Player extends Entity implements Observer{
             switch (eventString) {
                 case "hour_change":
                 case "day_change":
-                    // Logika yang sudah ada dari update() yang berkaitan dengan waktu
+
                     if (gp.gameClock != null && gp.gameClock.getTime() != null) {
                         Time currentTime = gp.gameClock.getTime();
                         if (currentTime.getHour() == 2 && !this.isCurrentlySleeping() && !gp.hasForcedSleepAt2AMToday) {
@@ -1196,24 +1195,25 @@ public class Player extends Entity implements Observer{
                     checkAndUnlockRecipes();
                     break;
                 case "time_tick":
-                    // Logika yang mungkin Anda tambahkan untuk setiap tick waktu
+
                     break;
                 default:
                     System.out.println("[Player] Unhandled time event: " + eventString);
                     break;
             }
         } else if (event instanceof Weather newWeather) {
-            // Logika yang sudah ada dari update() yang berkaitan dengan cuaca
+
             if (!newWeather.equals(gp.weather.getCurrentWeather())) {
                 if (newWeather == Weather.RAINY) {
                     System.out.println("Hujan Turun!");
                 } else {
                     System.out.println("Cuaca Cerah!");
-                    speed = 4; // Kembalikan kecepatan normal
+                    speed = 4;
                 }
-                // Tambahkan efek cuaca lain di sini
+
             }
         } else {
             System.out.println("[Player] Unhandled event type: " + event.getClass().getSimpleName());
         }
-    }}
+    }
+}
