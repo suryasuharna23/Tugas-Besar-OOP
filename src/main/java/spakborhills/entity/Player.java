@@ -127,14 +127,14 @@ public class Player extends Entity implements Observer {
     }
 
     public void getPlayerImage() {
-        up1 = setup("/player/boy_up_1");
-        up2 = setup("/player/boy_up_2");
-        down1 = setup("/player/boy_down_1");
-        down2 = setup("/player/boy_down_2");
-        left1 = setup("/player/boy_left_1");
-        left2 = setup("/player/boy_left_2");
-        right1 = setup("/player/boy_right_1");
-        right2 = setup("/player/boy_right_2");
+        up1 = setup("/player/Player_W1");
+        up2 = setup("/player/Player_W2");
+        down1 = setup("/player/Player_S1");
+        down2 = setup("/player/Player_S2");
+        left1 = setup("/player/Player_A1");
+        left2 = setup("/player/Player_A2");
+        right1 = setup("/player/Player_D1");
+        right2 = setup("/player/Player_D2");
     }
 
     public String getLocation() {
@@ -807,7 +807,6 @@ public class Player extends Entity implements Observer {
         if ("Mountain Lake".equalsIgnoreCase(mapName)) {
 
             waterTileIds.addAll(Arrays.asList(
-
                     932, 905, 528, 948, 951,
                     830, 831, 203, 366,
                     301, 302, 303, 304, 305,
@@ -816,11 +815,10 @@ public class Player extends Entity implements Observer {
 
             ));
         } else if ("Forest River".equalsIgnoreCase(mapName)) {
-
             waterTileIds.addAll(Arrays.asList(
                     430, 816, 252, 410, 388, 389, 293, 840, 841, 833, 706, 752,
                     783, 867, 969, 992, 553, 209, 210, 212, 327, 354, 221, 222,
-                    306, 333, 335, 339, 351, 28, 30, 31, 0));
+                    306, 333, 335, 339, 351, 28, 30, 31, 0, 733, 671, 417, 449, 126, 449, 481, 575, 413, 513, 449, 417, 385, 321, 639, 257));
         } else if ("Ocean".equalsIgnoreCase(mapName)) {
             waterTileIds.addAll(Arrays.asList(
                     143, 992, 32, 58, 96, 235, 267, 171, 203, 331, 504, 547, 548, 565, 549, 575, 551, 552, 572, 573,
@@ -833,6 +831,12 @@ public class Player extends Entity implements Observer {
     }
 
     public void startFishing() {
+        if (!isHoldingTool("Fishing Rod")) {
+            gp.ui.showMessage("Kamu harus memegang Fishing Rod untuk memancing.");
+            System.out.println("[DEBUG Player.startFishing] ERROR: Pemain tidak memegang Fishing Rod. Proses dihentikan.");
+            return;
+        }
+
         System.out.println("\n[DEBUG Player.startFishing] === MEMULAI PROSES MEMANCING ===");
 
         System.out.println("[DEBUG Player.startFishing] Mengecek apakah sudah dalam proses memancing...");

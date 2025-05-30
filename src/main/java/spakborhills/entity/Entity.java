@@ -76,7 +76,7 @@ import java.util.ArrayList;
             }
         } catch (IOException e) {
             System.err.println("IOException in Entity.setup for " + imagePath + ".png: " + e.getMessage());
-        } catch (IllegalArgumentException e) { // Catch potential errors from ImageIO.read if stream is bad but not null
+        } catch (IllegalArgumentException e) {
             System.err.println("IllegalArgumentException in Entity.setup for " + imagePath + ".png (ImageIO issue?): "
                     + e.getMessage());
         }
