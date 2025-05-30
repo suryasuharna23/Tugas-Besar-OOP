@@ -67,7 +67,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public int gameState;
-    public final int titleState = 0;
+    public static final int titleState = 0;
     public final int playState = 1;
     public final int pauseState = 2;
     public final int dialogueState = 3;
@@ -86,12 +86,13 @@ public class GamePanel extends JPanel implements Runnable {
     public int previousGameState = -1;
     public int creditPageState = 16;
     public int helpPageState = 17;
+    public int playerStatsState = 18;
 
-    public final int PLAYER_HOUSE_INDEX = 10;
+    public final int PLAYER_HOUSE_INDEX = 9;
 
     public Recipe selectedRecipeForCooking = null;
 
-    private boolean hasForcedSleepAt2AMToday = false;
+    public boolean hasForcedSleepAt2AMToday = false;
     private boolean isProcessingNewDayDataInTransition = false;
     private long sleepTransitionStartTime = 0;
     private final long SLEEP_TRANSITION_MESSAGE_DURATION = 3500;
@@ -128,6 +129,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(keyH);
         this.setFocusable(true);
         this.requestFocusInWindow();
+
     }
 
     public void setupGame() {
@@ -135,7 +137,8 @@ public class GamePanel extends JPanel implements Runnable {
         gameState = titleState;
         environmentManager.setup();
         assetSetter.initializeAllNPCs();
-
+        gameClock.addObserver(player);
+        weather.addObserver(player);
     }
 
     public void startGameThread() {
@@ -386,16 +389,16 @@ public class GamePanel extends JPanel implements Runnable {
         mapInfos.add(
                 new MapInfo("Mayor Tadi's House", "/maps/mayor_tadi_house_data.txt", "/maps/mayor_tadi_house.txt")); // 3
 
-        mapInfos.add(new MapInfo("Perry's House", "/maps/perry_house_data.txt", "/maps/perry_house.txt")); // 4
-        mapInfos.add(new MapInfo("Store", "/maps/store_data.txt", "/maps/store.txt")); // 5
-        mapInfos.add(new MapInfo("Farm", "/maps/farm_map_1_data.txt", "/maps/farm_map_1.txt")); // 6 (FARM_MAP_INDEX)
+        mapInfos.add(new MapInfo("Perry's House", "/maps/perry_house_data.txt", "/maps/perry_house.txt"));
+
 
         mapInfos.add(new MapInfo("Forest River", "/maps/forest_river_data.txt", "/maps/forest_river.txt")); // 7
         mapInfos.add(new MapInfo("Mountain Lake", "/maps/mountain_lake_data.txt", "/maps/mountain_lake.txt")); // 8
 
-        mapInfos.add(new MapInfo("Ocean", "/maps/ocean_data.txt", "/maps/ocean.txt")); // 9
-        mapInfos.add(new MapInfo("Player's House", "/maps/player_house_data.txt", "/maps/player_house.txt")); // 10
-                                                                                                              // (PLAYER_HOUSE_INDEX)
+        mapInfos.add(new MapInfo("Ocean", "/maps/ocean_data.txt", "/maps/ocean.txt"));
+        mapInfos.add(new MapInfo("Farm", "/maps/farm_map_1_data.txt", "/maps/farm_map_1.txt"));
+        mapInfos.add(new MapInfo("Player's House", "/maps/player_house_data.txt", "/maps/player_house.txt"));
+        mapInfos.add(new MapInfo("Store", "/maps/store_data.txt", "/maps/store.txt"));
 
     }
 
@@ -470,11 +473,9 @@ public class GamePanel extends JPanel implements Runnable {
             System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to "
                     + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
 
-            // Check for travel exhaustion
-            boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX
-                    && this.currentMapIndex == FARM_MAP_INDEX) || // Rumah -> Farm
-                    (previousMapIndex == FARM_MAP_INDEX && this.currentMapIndex == PLAYER_HOUSE_INDEX); // Farm -> Rumah
-            // Tambahkan transisi aman lainnya jika ada (misal, antar bagian farm)
+            boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 8) ||
+                    (previousMapIndex == 8 && this.currentMapIndex == PLAYER_HOUSE_INDEX) || this.currentMapIndex == 8
+                    || this.currentMapIndex == PLAYER_HOUSE_INDEX;
 
             boolean playerCollapsedFromTravel = false;
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
@@ -745,12 +746,7 @@ public class GamePanel extends JPanel implements Runnable {
             ui.draw(g2);
         }
 
-        else if (gameState == helpPageState) {
-            ui.drawHelp(g2); // Memanggil method drawHelp untuk help page
-            System.out.println("[GamePanel] Help page drawn.");
-        }
-
-        else { // States selain title dan help (play, pause, dialogue, dll)
+        else {
             tileManager.draw(g2);
 
             // Sort entities by Y-coordinate for correct draw order
@@ -846,7 +842,7 @@ public class GamePanel extends JPanel implements Runnable {
         se.setFile(i);
         se.play();
     }
-    
+
     public void growAllCrops() {
         System.out.println("[GamePanel] ======= PROCESSING END OF DAY GROWTH & PREPARING CROPS FOR NEW DAY =======");
 

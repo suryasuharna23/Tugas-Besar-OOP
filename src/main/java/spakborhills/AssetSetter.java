@@ -1,13 +1,21 @@
 package spakborhills;
 
-import spakborhills.entity.*;
+import java.util.Arrays;
+
+import spakborhills.entity.Entity;
+import spakborhills.entity.NPC;
+import spakborhills.entity.NPC_ABIGAIL;
+import spakborhills.entity.NPC_CAROLINE;
+import spakborhills.entity.NPC_DASCO;
+import spakborhills.entity.NPC_EMILY;
+import spakborhills.entity.NPC_MAYOR_TADI;
+import spakborhills.entity.NPC_PERRY;
+import spakborhills.entity.Player;
 import spakborhills.enums.FishType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.object.*;
-
-import java.util.Arrays;
 
 public class AssetSetter {
         GamePanel gp;
@@ -28,7 +36,7 @@ public class AssetSetter {
                 Entity bullhead = new OBJ_Fish(gp, ItemType.FISH, "Bullhead", true, 300, 200,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Mountain Lake"),
+                                Arrays.asList("MOUNTAIN LAKE"),
                                 FishType.COMMON, 0, 24);
                 gp.entities.add(bullhead);
 
@@ -42,7 +50,7 @@ public class AssetSetter {
                 Entity chub = new OBJ_Fish(gp, ItemType.FISH, "Chub", true, 300, 200,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Forest River", "Mountain Lake"),
+                                Arrays.asList("FOREST RIVER", "MOUNTAIN LAKE"),
                                 FishType.COMMON, 0, 24);
                 gp.entities.add(chub);
 
@@ -50,94 +58,94 @@ public class AssetSetter {
                 Entity largemouthBass = new OBJ_Fish(gp, ItemType.FISH, "Largemouth Bass", true, 500, 300,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Mountain Lake"), FishType.REGULAR, 6, 18);
+                                Arrays.asList("MOUNTAIN LAKE"), FishType.REGULAR, 6, 18);
                 gp.entities.add(largemouthBass);
 
                 Entity rainbowTrout = new OBJ_Fish(gp, ItemType.FISH, "Rainbow Trout", true, 500, 300,
                                 Arrays.asList(Season.SUMMER), Arrays.asList(Weather.SUNNY),
-                                Arrays.asList("Forest River", "Mountain Lake"), FishType.REGULAR, 6, 18);
+                                Arrays.asList("FOREST RIVER", "MOUNTAIN LAKE"), FishType.REGULAR, 6, 18);
                 gp.entities.add(rainbowTrout);
 
                 Entity sturgeon = new OBJ_Fish(gp, ItemType.FISH, "Sturgeon", true, 500, 300,
                                 Arrays.asList(Season.SUMMER, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Mountain Lake"), FishType.REGULAR, 6, 18);
+                                Arrays.asList("MOUNTAIN LAKE"), FishType.REGULAR, 6, 18);
                 gp.entities.add(sturgeon);
 
                 Entity midnightCarp = new OBJ_Fish(gp, ItemType.FISH, "Midnight Carp", true, 500, 300,
                                 Arrays.asList(Season.WINTER, Season.FALL), Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Mountain Lake", "Pond"), FishType.REGULAR, 20, 2);
+                                Arrays.asList("MOUNTAIN LAKE", "POND"), FishType.REGULAR, 20, 2);
                 gp.entities.add(midnightCarp);
 
                 Entity flounder = new OBJ_Fish(gp, ItemType.FISH, "Flounder", true, 500, 300,
                                 Arrays.asList(Season.SPRING, Season.SUMMER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Ocean"), FishType.REGULAR, 6, 22);
+                                Arrays.asList("OCEAN"), FishType.REGULAR, 6, 22);
                 gp.entities.add(flounder);
 
                 Entity halibutMorning = new OBJ_Fish(gp, ItemType.FISH, "Halibut", true, 500, 300,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Ocean"), FishType.REGULAR, 6, 11);
+                                Arrays.asList("OCEAN"), FishType.REGULAR, 6, 11);
                 gp.entities.add(halibutMorning);
 
                 Entity halibutNight = new OBJ_Fish(gp, ItemType.FISH, "Halibut", true, 500, 300,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Ocean"), FishType.REGULAR, 19, 2);
+                                Arrays.asList("OCEAN"), FishType.REGULAR, 19, 2);
                 gp.entities.add(halibutNight);
 
                 Entity octopus = new OBJ_Fish(gp, ItemType.FISH, "Octopus", true, 500, 300,
                                 Arrays.asList(Season.SUMMER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Ocean"), FishType.REGULAR, 6, 22);
+                                Arrays.asList("OCEAN"), FishType.REGULAR, 6, 22);
                 gp.entities.add(octopus);
 
                 Entity pufferfish = new OBJ_Fish(gp, ItemType.FISH, "Pufferfish", true, 500, 300,
                                 Arrays.asList(Season.SUMMER), Arrays.asList(Weather.SUNNY),
-                                Arrays.asList("Ocean"), FishType.REGULAR, 0, 16);
+                                Arrays.asList("OCEAN"), FishType.REGULAR, 0, 16);
                 gp.entities.add(pufferfish);
 
                 Entity sardine = new OBJ_Fish(gp, ItemType.FISH, "Sardine", true, 500, 300,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Ocean"), FishType.REGULAR, 6, 18);
+                                Arrays.asList("OCEAN"), FishType.REGULAR, 6, 18);
                 gp.entities.add(sardine);
 
                 Entity superCucumber = new OBJ_Fish(gp, ItemType.FISH, "Super Cucumber", true, 500, 300,
                                 Arrays.asList(Season.SUMMER, Season.FALL, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Ocean"), FishType.REGULAR, 18, 2);
+                                Arrays.asList("OCEAN"), FishType.REGULAR, 18, 2);
                 gp.entities.add(superCucumber);
 
                 Entity catfish = new OBJ_Fish(gp, ItemType.FISH, "Catfish", true, 500, 300,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL), Arrays.asList(Weather.RAINY),
-                                Arrays.asList("Forest River", "Pond"), FishType.REGULAR, 6, 22);
+                                Arrays.asList("FOREST RIVER", "POND"), FishType.REGULAR, 6, 22);
                 gp.entities.add(catfish);
 
                 Entity salmon = new OBJ_Fish(gp, ItemType.FISH, "Salmon", true, 500, 300,
                                 Arrays.asList(Season.FALL), Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Forest River"), FishType.REGULAR, 6, 18);
+                                Arrays.asList("FOREST RIVER"), FishType.REGULAR, 6, 18);
                 gp.entities.add(salmon);
 
                 
                 Entity angler = new OBJ_Fish(gp, ItemType.FISH, "Angler", true, 1000, 800,
                                 Arrays.asList(Season.FALL), Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Pond"), FishType.LEGENDARY, 8, 20);
+                                Arrays.asList("POND"), FishType.LEGENDARY, 8, 20);
                 gp.entities.add(angler);
 
                 Entity crimsonfish = new OBJ_Fish(gp, ItemType.FISH, "Crimsonfish", true, 1000, 800,
                                 Arrays.asList(Season.SUMMER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Ocean"), FishType.LEGENDARY, 8, 20);
+                                Arrays.asList("OCEAN"), FishType.LEGENDARY, 8, 20);
                 gp.entities.add(crimsonfish);
 
                 Entity glacierfish = new OBJ_Fish(gp, ItemType.FISH, "Glacierfish", true, 1000, 800,
                                 Arrays.asList(Season.WINTER), Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Forest River"), FishType.LEGENDARY, 8, 20);
+                                Arrays.asList("FOREST RIVER"), FishType.LEGENDARY, 8, 20);
                 gp.entities.add(glacierfish);
 
                 Entity legend = new OBJ_Fish(gp, ItemType.FISH, "Legend", true, 1000, 800,
                                 Arrays.asList(Season.SPRING), Arrays.asList(Weather.RAINY),
-                                Arrays.asList("Mountain Lake"), FishType.LEGENDARY, 8, 20);
+                                Arrays.asList("MOUNTAIN LAKE"), FishType.LEGENDARY, 8, 20);
                 gp.entities.add(legend);
                 
 
@@ -156,7 +164,6 @@ public class AssetSetter {
                         house.worldX = gp.tileSize * 23;
                         house.worldY = gp.tileSize * 21;
                         gp.entities.add(house);
-                        
 
                         Entity pond = new OBJ_Pond(gp);
                         pond.worldX = gp.tileSize * 15;

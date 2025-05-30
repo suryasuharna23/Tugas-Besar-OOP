@@ -1,15 +1,21 @@
 
 package spakborhills;
 
-import spakborhills.enums.Season;
+import java.util.ArrayList;
+import java.util.List;
 
-public class GameClock extends Thread {
+import spakborhills.enums.Season;
+import spakborhills.interfaces.Observer;
+import spakborhills.interfaces.Observerable;
+
+public class GameClock extends Thread implements Runnable, Observerable{
     private final Time time;
     private final Weather weather;
     private Season currentSeason = Season.SPRING;
     private volatile boolean running = true; 
     private volatile boolean paused = false; 
     private final Object pauseLock = new Object(); 
+        private List<Observer> observers = new ArrayList<>();
 
     public GameClock(Time time, Weather weather) {
         this.time = time;
@@ -54,14 +60,18 @@ public class GameClock extends Thread {
 
                 time.advanceTime(5); 
 
+                notifyObservers("waktu_berjalan");
+
                 if (time.isNewDay()) {
                     time.startNewDay(); 
                     updateSeasonBasedOnDay(time.getDay()); 
+                    notifyObservers("ganti_hari");
 
                     if ((time.getDay() - 1) % 10 == 0) {
                         weather.resetRainyCount();
                     }
                     weather.generateNewWeather(); 
+                    notifyObservers(weather.getCurrentWeather());
                 }
             } catch (InterruptedException e) {
                 if (running) {
@@ -158,5 +168,22 @@ public class GameClock extends Thread {
         }
         
         return spakborhills.enums.Weather.SUNNY;
+    }
+
+     @Override
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(Object event) {
+        for (Observer observer : observers) {
+            observer.update(event);
+        }
     }
 }
