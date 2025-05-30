@@ -339,7 +339,7 @@ public class UI {
 
         try {
             if (gameState == gp.endGameState) {
-                inputStream = getClass().getResourceAsStream("/background/welcome.png");
+                inputStream = getClass().getResourceAsStream("/background/endgame.png");
             } else if (gameState == gp.helpPageState) {
                 inputStream = getClass().getResourceAsStream("/background/help.png");
             } else if (gameState == gp.titleState) {
@@ -2144,10 +2144,7 @@ public class UI {
 
         g2.setFont(pressStart.deriveFont(Font.BOLD, 24F));
         g2.setColor(Color.WHITE);
-        String title = "End Game Statistics";
-        int titleX = getXForCenteredText(title);
-        int titleY = gp.tileSize;
-        g2.drawString(title, titleX, titleY);
+        int y = gp.tileSize - 10;
 
         Font headerFont = pressStart.deriveFont(Font.BOLD, 12F);
         Font statTextFont = pressStart.deriveFont(Font.PLAIN, 8F);
@@ -2155,7 +2152,7 @@ public class UI {
         int lineHeight = 15;
         int sectionSpacing = gp.tileSize / 4;
 
-        int contentStartY = titleY + g2.getFontMetrics().getHeight() + gp.tileSize / 3;
+        int contentStartY = y + g2.getFontMetrics().getHeight() + gp.tileSize / 3;
         int paddingHorizontal = gp.tileSize / 3;
 
         int totalUsableWidth = gp.screenWidth - (paddingHorizontal * 2);
@@ -2170,8 +2167,7 @@ public class UI {
             private final int lht;
             private final int lhs;
 
-            public StatDrawer(Graphics2D g, int startX, int startY, Font headerFont, Font textFont, int lineHeightText,
-                    int lineHeightSection) {
+            public StatDrawer(Graphics2D g, int startX, int startY, Font headerFont, Font textFont, int lineHeightText, int lineHeightSection) {
                 this.g = g;
                 this.startX = startX;
                 this.currentY = startY;
@@ -2183,16 +2179,16 @@ public class UI {
 
             public void drawStat(String label, String value) {
                 g.setFont(tFont);
-                g.setColor(Color.LIGHT_GRAY);
+                g.setColor(themecolor);
                 int labelWidth = g.getFontMetrics(tFont).stringWidth(label + ": ");
                 if (startX + labelWidth + g.getFontMetrics(tFont).stringWidth(value) > startX + columnWidth - 5) {
                     g.drawString(label + ":", startX, currentY);
-                    currentY += lht;
-                    g.setColor(Color.WHITE);
+                    currentY += lht-2;
+                    g.setColor(themecolor);
                     g.drawString(value, startX + 10, currentY);
                 } else {
                     g.drawString(label + ":", startX, currentY);
-                    g.setColor(Color.WHITE);
+                    g.setColor(themecolor);
                     g.drawString(value, startX + labelWidth + 2, currentY);
                 }
                 currentY += lht;
@@ -2205,10 +2201,10 @@ public class UI {
             public void drawHeader(String header) {
                 currentY += lhs;
                 g.setFont(hFont);
-                g.setColor(new Color(255, 215, 0));
+                g.setColor(themecolor);
                 g.drawString(header, startX, currentY);
                 currentY += (int) (lht * 1.2);
-                g.setColor(Color.WHITE);
+                g.setColor(themecolor);
             }
 
             public int getCurrentY() {
@@ -2228,37 +2224,37 @@ public class UI {
             }
         }
 
-        int statStartXCol1 = paddingHorizontal;
+        int statStartXCol1 = paddingHorizontal + 40;
         StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont, lineHeight,
                 sectionSpacing);
 
-        statsDrawer.drawHeader("~ General ~");
+        statsDrawer.drawHeader("~General~");
         if (gp.gameClock != null && gp.gameClock.getTime() != null && gp.player != null) {
             statsDrawer.drawStat("Days Played", gp.gameClock.getTime().getDay());
         } else {
             statsDrawer.drawStat("Days Played", "N/A");
         }
 
-        statsDrawer.drawHeader("~ Financial ~");
+        statsDrawer.drawHeader("~Financial~");
         if (gp.player != null) {
             statsDrawer.drawStat("Total Income", gp.player.totalIncome + "G");
             statsDrawer.drawStat("Total Expenditure", gp.player.totalExpenditure + "G");
-            statsDrawer.drawStat("Net Worth", gp.player.gold + "G");
 
             statsDrawer.advanceY(0.2);
             for (Season season : Season.values()) {
                 long income = gp.player.seasonalIncome.getOrDefault(season, 0L);
                 long expenditure = gp.player.seasonalExpenditure.getOrDefault(season, 0L);
-                int timesPlayed = gp.player.seasonPlayed.getOrDefault(season, 0);
+                int incomeCount = gp.player.countIncome.getOrDefault(season, 0);
+                int expenseCount = gp.player.countExpenditure.getOrDefault(season, 0);
 
-                float avgIncome = (timesPlayed > 0) ? (float) income / timesPlayed : 0;
-                float avgExpenditure = (timesPlayed > 0) ? (float) expenditure / timesPlayed : 0;
+                float avgIncome = (incomeCount > 0) ? (float) income / incomeCount : 0;
+                float avgExpenditure = (expenseCount > 0) ? (float) expenditure / expenseCount : 0;
 
                 Font italicFont = statTextFont.deriveFont(Font.ITALIC, 8F);
                 g2.setFont(italicFont);
-                statsDrawer.drawStat(String.format("%s Inc (x%d)", season.name().substring(0, 3), timesPlayed),
+                statsDrawer.drawStat(String.format("%s Inc (x%d)", season.name().substring(0, 3), incomeCount),
                         String.format("%.0fG", avgIncome));
-                statsDrawer.drawStat(String.format("%s Exp (x%d)", season.name().substring(0, 3), timesPlayed),
+                statsDrawer.drawStat(String.format("%s Exp (x%d)", season.name().substring(0, 3), expenseCount),
                         String.format("%.0fG", avgExpenditure));
             }
         } else {
@@ -2266,17 +2262,17 @@ public class UI {
         }
 
         int statStartXCol2 = statStartXCol1 + columnWidth + paddingHorizontal;
-        statsDrawer.setStartX(statStartXCol2);
+        statsDrawer.setStartX(statStartXCol2-30);
         statsDrawer.setCurrentY(contentStartY);
 
-        statsDrawer.drawHeader("~ Agricultural ~");
+        statsDrawer.drawHeader("~Harvesting~");
         if (gp.player != null) {
             statsDrawer.drawStat("Crops Harvested", gp.player.totalHarvested);
         } else {
             statsDrawer.drawStat("Crops Harvested", "N/A");
         }
 
-        statsDrawer.drawHeader("~ Fishing ~");
+        statsDrawer.drawHeader("~Fishing~");
         if (gp.player != null) {
             statsDrawer.drawStat("Total Fish", gp.player.totalFishCaught);
             statsDrawer.drawStat("  Common", gp.player.totalCommonFishCaught);
@@ -2286,13 +2282,13 @@ public class UI {
             statsDrawer.drawStat("Fishing Data", "N/A");
         }
 
-        int statStartXCol3 = statStartXCol2 + columnWidth + paddingHorizontal;
+        int statStartXCol3 = statStartXCol2 - 80 + columnWidth + paddingHorizontal;
         statsDrawer.setStartX(statStartXCol3);
         statsDrawer.setCurrentY(contentStartY);
 
-        statsDrawer.drawHeader("~ NPC Relationships ~");
+        statsDrawer.drawHeader("~NPC Relationships~");
         if (gp.allNpcsInWorld == null || gp.allNpcsInWorld.isEmpty()) {
-            statsDrawer.drawStat("No NPCs met", "");
+            statsDrawer.drawStat("No NPC", "");
         } else {
             boolean npcDataAvailable = false;
             for (NPC npc : gp.allNpcsInWorld) {
@@ -2301,13 +2297,14 @@ public class UI {
                 npcDataAvailable = true;
 
                 g2.setFont(npcNameFont);
-                g2.setColor(new Color(173, 216, 230));
-                g2.drawString(npc.name, statStartXCol3, statsDrawer.getCurrentY());
-                statsDrawer.advanceY(0.95);
+                g2.setColor(themecolor);
+                g2.drawString(npc.name, statStartXCol3, statsDrawer.getCurrentY()-4);
+                statsDrawer.advanceY(0.15);
 
                 statsDrawer.drawStat(" Hearts", npc.currentHeartPoints + "/" + npc.maxHeartPoints);
                 statsDrawer.drawStat(" Chats", gp.player.npcChatFrequency.getOrDefault(npc.name, 0));
                 statsDrawer.drawStat(" Gifts", gp.player.npcGiftFrequency.getOrDefault(npc.name, 0));
+            statsDrawer.drawStat(" Visits", gp.player.npcVisitFrequency.getOrDefault(npc.name, 0));
 
                 if (npc.isMarriageCandidate) {
                     String marriageStatus = "Single";
@@ -2317,19 +2314,12 @@ public class UI {
                         marriageStatus = "Engaged";
                     statsDrawer.drawStat(" Status", marriageStatus);
                 }
-                statsDrawer.advanceY(0.3);
+                statsDrawer.advanceY(0.2);
             }
 
             if (!npcDataAvailable) {
                 statsDrawer.drawStat("No valid NPC data", "");
             }
         }
-
-        int exitY = gp.screenHeight - 25;
-        String exitMessage = "Press ENTER to Continue Playing | Press ESC to Return to Menu";
-        g2.setFont(pressStart.deriveFont(Font.PLAIN, 9F));
-        int exitX = getXForCenteredText(exitMessage);
-        g2.setColor(new Color(255, 255, 255, 180));
-        g2.drawString(exitMessage, exitX, exitY);
     }
 }

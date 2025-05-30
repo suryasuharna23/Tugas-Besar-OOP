@@ -691,7 +691,6 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void processShippingBin() {
-
         if (!player.hasUsedShippingBinToday || player.itemsInShippingBinToday.isEmpty()) {
             player.goldFromShipping = 0;
             return;
@@ -708,6 +707,13 @@ public class GamePanel extends JPanel implements Runnable {
         if (totalEarnings > 0) {
             player.gold += totalEarnings;
             player.goldFromShipping = totalEarnings;
+
+            player.totalIncome += totalEarnings;
+
+            Season currentSeason = gameClock.getCurrentSeason();
+            player.seasonalIncome.put(currentSeason, player.seasonalIncome.getOrDefault(currentSeason, 0L) + totalEarnings);
+            player.countIncome.put(currentSeason, player.countIncome.getOrDefault(currentSeason, 0) + 1);
+
             System.out.println("[GamePanel] Player earned " + totalEarnings +
                     "G from shipped items. Total gold: " + player.gold);
         } else {
