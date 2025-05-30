@@ -359,7 +359,9 @@ public class UI {
                 inputStream = getClass().getResourceAsStream("/background/input_player.png");
             } else if (gameState == gp.farmNameInputState) {
                 inputStream = getClass().getResourceAsStream("/background/input_farm.png");
-            }
+            } else if (gameState == gp.genderSelectionState) {
+                inputStream = getClass().getResourceAsStream("/background/input_gender.png");
+            }    
 
             if (inputStream != null) {
                 backgroundImage = ImageIO.read(inputStream);
@@ -2340,58 +2342,39 @@ public class UI {
 
     public void drawGenderSelectionScreen() {
         drawSharedBackground(g2, gp.genderSelectionState);
-        g2.setColor(new Color(0, 0, 0, 0));
-        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-        g2.setFont(pressStart.deriveFont(Font.PLAIN, 30F));
-        g2.setColor(themecolor);
+        String[] genderLabels = { "Male", "Female" };
+        String[] spriteFiles = { "male_standing.png", "female_standing.png" };
+        String[] genderFolders = { "male", "female" };
 
-        String prompt = "Please Choose Your Gender";
-        int promptWidth = g2.getFontMetrics().stringWidth(prompt);
-        int x = gp.screenWidth / 2 - promptWidth / 2;
-        int y = gp.screenHeight / 2 - 60;
-        g2.drawString(prompt, x, y);
+        int selected = genderSelectionIndex; // 0 = Male, 1 = Female
 
-        // Horizontal options
-        String[] options = { "Male", "Female" };
-        int spacing = 220; // Lebih lebar agar tidak tabrakan
-        int baseY = y + 80;
-
-        for (int i = 0; i < options.length; i++) {
-            String option = options[i];
-            int optWidth = g2.getFontMetrics().stringWidth("> " + option + " <");
-            int centerX = gp.screenWidth / 2;
-            int optX = centerX - spacing / 2 + i * spacing - optWidth / 2;
-            int optY = baseY;
-
-            if (genderSelectionIndex == i) {
-                g2.setColor(Color.YELLOW);
-                g2.drawString("> " + option + " <", optX, optY);
-                g2.setColor(themecolor);
-            } else {
-                g2.drawString(option, optX + 30, optY); // +30 agar rata tengah dengan opsi yang ada tanda
-            }
-        }
-
-        g2.setFont(pressStart.deriveFont(Font.PLAIN, 14F));
-        String info = "(Use LEFT/RIGHT, ENTER to select)";
-        int infoWidth = g2.getFontMetrics().stringWidth(info);
-        g2.drawString(info, gp.screenWidth / 2 - infoWidth / 2, baseY + 50);
-
-        String genderFolder = (genderSelectionIndex == 0) ? "male" : "female";
-        String spriteName = (genderSelectionIndex == 0) ? "Male_standing.png" : "Female_standing.png";
+        // Load gambar sesuai pilihan
         BufferedImage preview = null;
         try {
-            preview = ImageIO.read(getClass().getResourceAsStream("/player/" + genderFolder + "/" + spriteName));
+            preview = ImageIO.read(getClass().getResourceAsStream(
+                "/player/" + genderFolders[selected] + "/" + spriteFiles[selected]
+            ));
         } catch (Exception e) {
-            // handle error
+            // Gambar tidak ditemukan, biarkan preview null
         }
+
+        int imgW = gp.tileSize * 3;
+        int imgH = gp.tileSize * 3;
+        int imgX = gp.screenWidth / 2 - imgW / 2;
+        int imgY = gp.screenHeight / 2 - imgH / 2 - 20;
+
         if (preview != null) {
-            int imgW = gp.tileSize * 2;
-            int imgH = gp.tileSize * 2;
-            int imgX = gp.screenWidth / 2 - imgW / 2;
-            int imgY = y + 10;
             g2.drawImage(preview, imgX, imgY, imgW, imgH, null);
         }
+
+        // --- Tulisan gender di bawah gambar ---
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 24F));
+        g2.setColor(themecolor); // warna sama dengan judul
+        String genderText = genderLabels[selected];
+        int textWidth = g2.getFontMetrics().stringWidth(genderText);
+        int textX = gp.screenWidth / 2 - textWidth / 2;
+        int textY = imgY + imgH + 60; // bawah gambar, beri jarak 40px
+        g2.drawString(genderText, textX, textY);
     }
 }
