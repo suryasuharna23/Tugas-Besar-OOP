@@ -90,6 +90,7 @@ public class GamePanel extends JPanel implements Runnable {
     public int creditPageState = 16;
     public int helpPageState = 17;
     public int playerStatsState = 18;
+    public final int genderSelectionState = 19;
 
     public final int FARM_MAP_INDEX = 8;
     public final int PLAYER_HOUSE_INDEX = 9;
@@ -407,31 +408,11 @@ public class GamePanel extends JPanel implements Runnable {
             if (gameClock != null && !gameClock.isPaused()) {
                 gameClock.pauseTime();
             }
-        } else if (gameState == playerNameInputState || gameState == farmNameInputState) {
+        } else if (gameState == playerNameInputState || gameState == farmNameInputState || gameState == genderSelectionState) {
             if (this.gameClock != null && !this.gameClock.isPaused()) {
                 this.gameClock.pauseTime();
             }
-
-            if (gameState == farmNameInputState && keyH.enterPressed) {
-
-                String finalFarmName = ui.farmNameInput.trim();
-                if (!finalFarmName.isEmpty()) {
-                    resetCoreGameDataForNewGame();
-
-                    player.setFarmName(finalFarmName);
-                    loadMapbyIndex(PLAYER_HOUSE_INDEX);
-                    System.out.println("Farm Name Confirmed: " + player.getFarmName());
-                    gameState = playState;
-                    if (gameClock != null && gameClock.isPaused()) {
-                        gameClock.resumeTime();
-                    }
-                } else {
-                    ui.showMessage("Farm name cannot be empty!");
-                }
-                keyH.enterPressed = false;
-            }
         }
-
     }
 
     public void initializeMapInfos() {

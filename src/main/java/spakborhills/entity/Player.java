@@ -21,6 +21,7 @@ import spakborhills.cooking.FoodRegistry;
 import spakborhills.cooking.Recipe;
 import spakborhills.cooking.RecipeManager;
 import spakborhills.enums.EntityType;
+import spakborhills.enums.Gender;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Location;
 import spakborhills.enums.Season;
@@ -42,6 +43,7 @@ public class Player extends Entity implements Observer {
     public final int screenX;
     public final int screenY;
     private String farmName;
+    private Gender gender = Gender.MALE;
     public int currentEnergy;
 
     public ArrayList<Entity> inventory = new ArrayList<>();
@@ -130,14 +132,20 @@ public class Player extends Entity implements Observer {
     }
 
     public void getPlayerImage() {
-        up1 = setup("/player/Player_W1");
-        up2 = setup("/player/Player_W2");
-        down1 = setup("/player/Player_S1");
-        down2 = setup("/player/Player_S2");
-        left1 = setup("/player/Player_A1");
-        left2 = setup("/player/Player_A2");
-        right1 = setup("/player/Player_D1");
-        right2 = setup("/player/Player_D2");
+        String genderFolder = (gender == Gender.FEMALE) ? "female" : "male";
+        up1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_W1");
+        up2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_W2");
+        down1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_S1");
+        down2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_S2");
+        left1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_A1");
+        left2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_A2");
+        right1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_D1");
+        right2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_D2");
+    }
+
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) return str;
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
     public String getLocation() {
@@ -393,7 +401,7 @@ public class Player extends Entity implements Observer {
         }
 
         if (gp.gameClock != null) {
-            System.out.println("Game Time: " + gp.gameClock.getFormattedTime());
+            // System.out.println("Game Time: " + gp.gameClock.getFormattedTime());
         }
     }
 
@@ -603,7 +611,7 @@ public class Player extends Entity implements Observer {
                 Season currentSeason = gp.gameClock.getCurrentSeason();
                 seasonalExpenditure.put(currentSeason, seasonalExpenditure.getOrDefault(currentSeason, 0L) + price);
                 countExpenditure.put(currentSeason, countExpenditure.getOrDefault(currentSeason, 0) + 1);
-            }            
+            }
 
             if (itemToBuy instanceof OBJ_Recipe) {
 
@@ -821,7 +829,7 @@ public class Player extends Entity implements Observer {
                     830, 831, 203, 366,
                     301, 302, 303, 304, 305,
                     333, 334, 335,
-                    0, 76
+                    0, 76, 590, 232, 301, 239,914, 974, 972, 923, 913, 940, 945, 913, 914, 915, 931, 882, 845, 846, 847, 848, 850, 931, 931, 877, 878, 879, 880, 931, 882, 883
 
             ));
         } else if ("Forest River".equalsIgnoreCase(mapName)) {
@@ -1123,7 +1131,6 @@ public class Player extends Entity implements Observer {
                 OBJ_Fish caughtFishInstance = new OBJ_Fish(gp, ItemType.FISH,
                         this.fishToCatchInMinigame.getFishName(),
                         true,
-                        this.fishToCatchInMinigame.getBuyPrice(),
                         this.fishToCatchInMinigame.getSellPrice(),
                         this.fishToCatchInMinigame.getSeasons(),
                         this.fishToCatchInMinigame.getWeathers(),
@@ -1266,5 +1273,13 @@ public class Player extends Entity implements Observer {
             System.out.println("[Player] Visit count for " + name + ": " + npcVisitFrequency.get(name));
 
         }
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 }

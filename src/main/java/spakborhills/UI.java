@@ -58,6 +58,8 @@ public class UI {
     private String playerNameSubMessage = "(Press ENTER to confirm, BACKSPACE to delete)";
     public int playerNameMaxLength = 15;
 
+    public int genderSelectionIndex = 0;
+
     public String farmNameInput = "";
     private String farmNamePromptMessage = "Enter Your Farm's Name:";
     private String farmNameSubMessage = "(Press ENTER to confirm, BACKSPACE to delete)";
@@ -136,6 +138,9 @@ public class UI {
             drawTitleScreen();
         } else if (gp.gameState == gp.playerNameInputState) {
             drawPlayerNameInputScreen();
+            drawTimedMessage(g2);
+        } else if (gp.gameState == gp.genderSelectionState) {
+            drawGenderSelectionScreen();
             drawTimedMessage(g2);
         } else if (gp.gameState == gp.farmNameInputState) {
             drawFarmNameInputScreen();
@@ -354,12 +359,14 @@ public class UI {
                 inputStream = getClass().getResourceAsStream("/background/input_player.png");
             } else if (gameState == gp.farmNameInputState) {
                 inputStream = getClass().getResourceAsStream("/background/input_farm.png");
-            }
+            } else if (gameState == gp.genderSelectionState) {
+                inputStream = getClass().getResourceAsStream("/background/input_gender.png");
+            }    
 
             if (inputStream != null) {
                 backgroundImage = ImageIO.read(inputStream);
             } else {
-                System.err.println("Cannot load the background for state: " + gameState);
+                // System.err.println("Cannot load the background for state: " + gameState);
 
                 return;
             }
@@ -595,7 +602,7 @@ public class UI {
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
         int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
         int x = gp.screenWidth / 2 - textWidth / 2;
-        int y = gp.screenHeight / 2;
+        int y = gp.screenHeight / 2 + 30;
         g2.drawString(displayText, x, y);
     }
 
@@ -616,7 +623,7 @@ public class UI {
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
         int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
         int x = gp.screenWidth / 2 - textWidth / 2;
-        int y = gp.screenHeight / 2;
+        int y = gp.screenHeight / 2 + 30;
         g2.drawString(displayText, x, y);
     }
 
@@ -2321,5 +2328,43 @@ public class UI {
                 statsDrawer.drawStat("No valid NPC data", "");
             }
         }
+    }
+
+    public void drawGenderSelectionScreen() {
+        drawSharedBackground(g2, gp.genderSelectionState);
+
+        String[] genderLabels = { "Male", "Female" };
+        String[] spriteFiles = { "male_standing.png", "female_standing.png" };
+        String[] genderFolders = { "male", "female" };
+
+        int selected = genderSelectionIndex; // 0 = Male, 1 = Female
+
+        // Load gambar sesuai pilihan
+        BufferedImage preview = null;
+        try {
+            preview = ImageIO.read(getClass().getResourceAsStream(
+                "/player/" + genderFolders[selected] + "/" + spriteFiles[selected]
+            ));
+        } catch (Exception e) {
+            // Gambar tidak ditemukan, biarkan preview null
+        }
+
+        int imgW = gp.tileSize * 3;
+        int imgH = gp.tileSize * 3;
+        int imgX = gp.screenWidth / 2 - imgW / 2;
+        int imgY = gp.screenHeight / 2 - imgH / 2 - 20;
+
+        if (preview != null) {
+            g2.drawImage(preview, imgX, imgY, imgW, imgH, null);
+        }
+
+        // --- Tulisan gender di bawah gambar ---
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 24F));
+        g2.setColor(themecolor); // warna sama dengan judul
+        String genderText = genderLabels[selected];
+        int textWidth = g2.getFontMetrics().stringWidth(genderText);
+        int textX = gp.screenWidth / 2 - textWidth / 2;
+        int textY = imgY + imgH + 60; // bawah gambar, beri jarak 40px
+        g2.drawString(genderText, textX, textY);
     }
 }
