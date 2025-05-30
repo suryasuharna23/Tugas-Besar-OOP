@@ -1,6 +1,5 @@
 package spakborhills;
 
-import java.awt.RenderingHints.Key;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
@@ -478,6 +477,7 @@ public class KeyHandler implements KeyListener {
                 } else {
                     gp.ui.showMessage("Shipping bin is full (16 different item types max).");
                 }
+                gp.gameClock.getTime().advanceTime(15);
             } else if (gp.player.inventory.isEmpty()) {
                 gp.ui.showMessage("Inventory is empty. Nothing to ship.");
             }

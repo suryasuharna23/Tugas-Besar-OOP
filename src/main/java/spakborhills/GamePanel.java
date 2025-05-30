@@ -474,9 +474,9 @@ public class GamePanel extends JPanel implements Runnable {
             System.out.println("[GamePanel] Transitioning from map index " + previousMapIndex + " to "
                     + this.currentMapIndex + " (" + selectedMap.getMapName() + ")");
 
-            boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 6) ||
-                    (previousMapIndex == 6 && this.currentMapIndex == PLAYER_HOUSE_INDEX) ||
-                    this.currentMapIndex == 6 || this.currentMapIndex == PLAYER_HOUSE_INDEX;
+            boolean isSafeTransition = (previousMapIndex == PLAYER_HOUSE_INDEX && this.currentMapIndex == 8) ||
+                    (previousMapIndex == 8 && this.currentMapIndex == PLAYER_HOUSE_INDEX) ||
+                    this.currentMapIndex == 8 || this.currentMapIndex == PLAYER_HOUSE_INDEX;
 
             boolean playerCollapsedFromTravel = false;
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
@@ -632,6 +632,7 @@ public class GamePanel extends JPanel implements Runnable {
 
             Time currentTime = gameClock.getTime();
             currentTime.setCurrentTime(22, 0);
+            player.tryDecreaseEnergy(80);
 
             ui.showMessage("The day flew by! It's now 10:00 PM.");
 
