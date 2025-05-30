@@ -24,6 +24,9 @@ public class GamePanel extends JPanel implements Runnable {
     public final int screenWidth = tileSize * maxScreenCol;
     public final int screenHeight = tileSize * maxScreenRow;
 
+    private FarmLayoutGenerator layoutGenerator;
+    private FarmLayoutGenerator.FarmLayout currentRandomLayout;
+
     public int maxWorldCol = 50;
     public int maxWorldRow = 50;
 
@@ -119,9 +122,57 @@ public class GamePanel extends JPanel implements Runnable {
         public int houseY = 21;
         public int shippingBinX = 25;
         public int shippingBinY = 15;
+        public int pondX = 8;
+        public int pondY = 6;
+
+        public SimpleFarmLayout(FarmLayoutGenerator.FarmLayout randomLayout) {
+            if (randomLayout != null && randomLayout.isValid) {
+                this.houseX = randomLayout.houseX;
+                this.houseY = randomLayout.houseY;
+                this.shippingBinX = randomLayout.shippingBinX;
+                this.shippingBinY = randomLayout.shippingBinY;
+                this.pondX = randomLayout.pondX;
+                this.pondY = randomLayout.pondY;
+            }
+        }
+
+        public SimpleFarmLayout() {
+        }
     }
 
     public SimpleFarmLayout currentFarmLayout = new SimpleFarmLayout();
+
+    public void generateNewFarmLayout() {
+        if (layoutGenerator == null) {
+            layoutGenerator = new FarmLayoutGenerator();
+        }
+
+        System.out.println("[GamePanel] Generating new randomized farm layout...");
+        currentRandomLayout = layoutGenerator.generateRandomLayout();
+
+        if (currentRandomLayout.isValid) {
+
+            currentFarmLayout = new SimpleFarmLayout(currentRandomLayout);
+
+            System.out.println("[GamePanel] New farm layout generated: " + currentRandomLayout.toString());
+
+            int[][] newMapData = layoutGenerator.generateFarmMapData(currentRandomLayout);
+
+            maxWorldCol = 32;
+            maxWorldRow = 32;
+
+            if (tileManager != null) {
+                tileManager.mapTileNum = newMapData;
+                System.out.println("[GamePanel] Farm map data updated with new layout");
+            }
+
+            farmMapTileData = null;
+            farmCropData.clear();
+
+        } else {
+            System.err.println("[GamePanel] Failed to generate valid farm layout!");
+        }
+    }
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -138,6 +189,7 @@ public class GamePanel extends JPanel implements Runnable {
         gameState = titleState;
         environmentManager.setup();
         assetSetter.initializeAllNPCs();
+        generateNewFarmLayout();
         gameClock.addObserver(player);
         weather.addObserver(player);
     }
@@ -181,7 +233,6 @@ public class GamePanel extends JPanel implements Runnable {
         long lastTime = System.nanoTime();
         long currentTime;
         long timer = 0;
-        int drawCount = 0;
 
         while (gameThread != null) {
             currentTime = System.nanoTime();
@@ -190,15 +241,13 @@ public class GamePanel extends JPanel implements Runnable {
             lastTime = currentTime;
 
             if (delta >= 1) {
+
                 update();
                 repaint();
                 delta--;
-                drawCount++;
             }
 
             if (timer >= 1000000000) {
-
-                drawCount = 0;
                 timer = 0;
             }
         }
@@ -708,17 +757,12 @@ public class GamePanel extends JPanel implements Runnable {
         if (ui != null) {
             ui.currentDialogue = "";
             ui.commandNumber = 0;
-
         }
         hasTriggeredEndgame = false;
 
-        this.farmMapTileData = null;
-        this.farmMapMaxCols = 0;
-        this.farmMapMaxRows = 0;
-        this.farmCropData.clear();
-        System.out.println("[GamePanel] Farm map specific data reset for new game.");
+        generateNewFarmLayout();
 
-        System.out.println("Core game data has been reset for a new game session.");
+        System.out.println("Core game data has been reset for a new game session with new farm layout.");
     }
 
     @Override
