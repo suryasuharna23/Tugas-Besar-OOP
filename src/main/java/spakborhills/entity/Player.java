@@ -390,7 +390,7 @@ public class Player extends Entity implements Observer {
         }
 
         if (gp.gameClock != null) {
-            System.out.println("Game Time: " + gp.gameClock.getFormattedTime());
+            // System.out.println("Game Time: " + gp.gameClock.getFormattedTime());
         }
     }
 

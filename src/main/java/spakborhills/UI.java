@@ -359,7 +359,7 @@ public class UI {
             if (inputStream != null) {
                 backgroundImage = ImageIO.read(inputStream);
             } else {
-                System.err.println("Cannot load the background for state: " + gameState);
+                // System.err.println("Cannot load the background for state: " + gameState);
 
                 return;
             }

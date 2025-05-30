@@ -183,6 +183,8 @@ public class KeyHandler implements KeyListener {
                 gp.gameState = gp.pauseState;
                 if (gp.gameClock != null)
                     gp.gameClock.pauseTime();
+            }else if (code == KeyEvent.VK_C) {
+                System.out.println("[KeyHandler] Collision debugging toggled");
             } else if (code == KeyEvent.VK_ENTER) {
                 enterPressed = true;
             } else if (code == KeyEvent.VK_M) {
@@ -467,7 +469,6 @@ public class KeyHandler implements KeyListener {
                             if (gp.player.inventory.isEmpty()) {
                                 gp.ui.showMessage("Inventory empty. Press Esc to close bin.");
                             }
-
                         } else {
                             gp.ui.showMessage(itemToShip.name + " cannot be sold.");
                         }
