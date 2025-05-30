@@ -800,7 +800,7 @@ public class Player extends Entity implements Observer {
                     830, 831, 203, 366,
                     301, 302, 303, 304, 305,
                     333, 334, 335,
-                    0, 76
+                    0, 76, 590, 232, 301, 239,914, 974, 972, 923, 913, 940, 945, 913, 914, 915, 931, 882, 845, 846, 847, 848, 850, 931, 931, 877, 878, 879, 880, 931, 882, 883
 
             ));
         } else if ("Forest River".equalsIgnoreCase(mapName)) {
@@ -1102,7 +1102,6 @@ public class Player extends Entity implements Observer {
                 OBJ_Fish caughtFishInstance = new OBJ_Fish(gp, ItemType.FISH,
                         this.fishToCatchInMinigame.getFishName(),
                         true,
-                        this.fishToCatchInMinigame.getBuyPrice(),
                         this.fishToCatchInMinigame.getSellPrice(),
                         this.fishToCatchInMinigame.getSeasons(),
                         this.fishToCatchInMinigame.getWeathers(),

@@ -504,7 +504,7 @@ public class KeyHandler implements KeyListener {
             } else if (original instanceof OBJ_Fish) {
                 OBJ_Fish fishOriginal = (OBJ_Fish) original;
                 OBJ_Fish newFish = new OBJ_Fish(gp, fishOriginal.getType(), fishOriginal.name,
-                        fishOriginal.isEdible(), fishOriginal.getBuyPrice(),
+                        fishOriginal.isEdible(),
                         fishOriginal.getSellPrice(), fishOriginal.getSeasons(),
                         fishOriginal.getWeathers(), fishOriginal.getLocations(),
                         fishOriginal.getFishType(), fishOriginal.getStartHour(),
