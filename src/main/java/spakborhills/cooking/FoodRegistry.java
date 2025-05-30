@@ -1,10 +1,31 @@
 package spakborhills.cooking;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 import spakborhills.GamePanel;
 import spakborhills.enums.ItemType;
 import spakborhills.object.OBJ_Food;
 
-public class FoodFactory {
+public class FoodRegistry {
+    private static final FoodRegistry foodRegistry = new FoodRegistry();
+
+    private static Map<String, Function<GamePanel, OBJ_Food>> registry;
+
+
+    private FoodRegistry(){
+        registry = new HashMap<>();
+    }
+
+    public static void registerFood(String foodName, Function<GamePanel, OBJ_Food> food) {
+        registry.put(foodName, food);
+    }
+
+    public OBJ_Food getFoodName(String key) {
+        return (OBJ_Food) registry.get(key);
+    }
+
     public static OBJ_Food createFood(GamePanel gp, String foodName) {
         return switch (foodName) {
             case "Fish n' Chips" -> new OBJ_Food(gp, ItemType.FOOD, "Fish n' Chips", true, 150, 135, 50);
@@ -22,9 +43,19 @@ public class FoodFactory {
                     new OBJ_Food(gp, ItemType.FOOD, "The Legends of Spakbor", true, 0, 2000, 100); // Harga beli tidak ada
             // Cooked Pig's Head tidak memiliki resep di PDF, jadi tidak dimasukkan di sini
             default -> {
-                System.err.println("FoodFactory: Nama makanan tidak dikenal - " + foodName);
+                System.err.println("FoodRegistry: Nama makanan tidak dikenal - " + foodName);
                 yield null;
             }
         };
+    }
+
+    public void addFood (String newFood, Function<GamePanel, OBJ_Food> function) {
+        registry.put(newFood, function);
+    }
+
+    public void removeFood (String oldFood) {
+        if (!registry.isEmpty()) {
+            registry.remove(oldFood);
+        }
     }
 }

@@ -29,6 +29,8 @@ public class RecipeManager {
     public static final String LEGEND = "Legend"; // Nama ikan legendaris
     public static final String EGGPLANT = "Eggplant"; // Perlu didefinisikan sebagai item
 
+    private RecipeManager(){}
+    
     public static List<Recipe> getAllRecipes() {
         if (allRecipes == null) {
             allRecipes = new ArrayList<>();

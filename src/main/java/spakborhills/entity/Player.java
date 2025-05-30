@@ -17,7 +17,7 @@ import spakborhills.Time;
 import spakborhills.action.Command;
 import spakborhills.action.EatCommand;
 import spakborhills.cooking.ActiveCookingProcess;
-import spakborhills.cooking.FoodFactory;
+import spakborhills.cooking.FoodRegistry;
 import spakborhills.cooking.Recipe;
 import spakborhills.cooking.RecipeManager;
 import spakborhills.enums.EntityType;
@@ -404,11 +404,11 @@ public class Player extends Entity implements Observer{
             boolean dayHasPassed = currentTime.getDay() > process.gameDayFinish;
 
             if (dayHasPassed || (dayMatches && timeIsDue)) {
-                OBJ_Food cookedFood = FoodFactory.createFood(gp, process.foodNameToProduce);
+                OBJ_Food cookedFood = FoodRegistry.createFood(gp, process.foodNameToProduce);
                 if (cookedFood != null) {
                     for (int i = 0; i < process.foodQuantityToProduce; i++) {
 
-                        addItemToInventory(FoodFactory.createFood(gp, process.foodNameToProduce));
+                        addItemToInventory(FoodRegistry.createFood(gp, process.foodNameToProduce));
                     }
                     gp.ui.showMessage(process.foodNameToProduce + " is ready!");
                 } else {
@@ -594,7 +594,7 @@ public class Player extends Entity implements Observer{
                             1, 1, Season.SPRING, Weather.SUNNY);
                 } else if (itemToBuy instanceof OBJ_Food) {
                     OBJ_Food foodTemplate = (OBJ_Food) itemToBuy;
-                    purchasedItemInstance = FoodFactory.createFood(gp, foodTemplate.name.replace(" food", ""));
+                    purchasedItemInstance = FoodRegistry.createFood(gp, foodTemplate.name.replace(" food", ""));
                 } else if (itemToBuy instanceof OBJ_Misc) {
                     OBJ_Misc miscTemplate = (OBJ_Misc) itemToBuy;
                     purchasedItemInstance = new OBJ_Misc(gp, miscTemplate.getType(),
