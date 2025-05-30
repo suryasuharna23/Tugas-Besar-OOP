@@ -3,7 +3,6 @@ package spakborhills.action;
 import spakborhills.GamePanel;
 import spakborhills.entity.Entity;
 import spakborhills.entity.Player;
-
 import spakborhills.object.OBJ_PlantedCrop;
 
 public class HarvestCommand implements Command {
@@ -46,8 +45,9 @@ public class HarvestCommand implements Command {
 
             cropToInteract.interact();
 
-            player.tryDecreaseEnergy(1);
-            gp.gameClock.getTime().advanceTime(-2);
+            player.tryDecreaseEnergy(5);
+            gp.gameClock.getTime().advanceTime(-5);
+            player.totalHarvested++;
         } else {
             gp.ui.showMessage("No crops here to interact with.");
         }

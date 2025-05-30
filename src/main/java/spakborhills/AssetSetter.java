@@ -15,7 +15,15 @@ import spakborhills.enums.FishType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
-import spakborhills.object.*;
+import spakborhills.object.OBJ_Bed;
+import spakborhills.object.OBJ_Chest;
+import spakborhills.object.OBJ_Door;
+import spakborhills.object.OBJ_Fish;
+import spakborhills.object.OBJ_House;
+import spakborhills.object.OBJ_Pond;
+import spakborhills.object.OBJ_ShippingBin;
+import spakborhills.object.OBJ_Stove;
+import spakborhills.object.OBJ_TV;
 
 public class AssetSetter {
         GamePanel gp;
@@ -260,8 +268,8 @@ public class AssetSetter {
                         }
 
                         if (shouldBeOnThisMap) {
-                                npcPersistentInstance.worldX = npcMapX;
-                                npcPersistentInstance.worldY = npcMapY;
+                                npcPersistentInstance.worldX = npcMapX / 2;
+                                npcPersistentInstance.worldY = npcMapY / 2;
                                 gp.npcs.add(npcPersistentInstance);
                                 gp.entities.add(npcPersistentInstance);
 

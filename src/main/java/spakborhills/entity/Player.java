@@ -59,9 +59,12 @@ public class Player extends Entity implements Observer {
     public Map<Season, Long> seasonalIncome = new HashMap<>();
     public Map<Season, Long> seasonalExpenditure = new HashMap<>();
     public Map<Season, Integer> seasonPlayed = new HashMap<>();
+    public Map<Season, Integer> countIncome = new HashMap<>();
+    public Map<Season, Integer> countExpenditure = new HashMap<>();
 
     public Map<String, Integer> npcChatFrequency = new HashMap<>();
     public Map<String, Integer> npcGiftFrequency = new HashMap<>();
+    public Map<String, Integer> npcVisitFrequency = new HashMap<>();
 
     public Map<String, Boolean> recipeUnlockStatus = new HashMap<>();
     public ArrayList<ActiveCookingProcess> activeCookingProcesses = new ArrayList<>();
@@ -604,6 +607,13 @@ public class Player extends Entity implements Observer {
         int price = itemToBuy.getBuyPrice();
         if (gold >= price) {
             gold -= price;
+
+            if (gp.gameClock != null) {
+                totalExpenditure += price;
+                Season currentSeason = gp.gameClock.getCurrentSeason();
+                seasonalExpenditure.put(currentSeason, seasonalExpenditure.getOrDefault(currentSeason, 0L) + price);
+                countExpenditure.put(currentSeason, countExpenditure.getOrDefault(currentSeason, 0) + 1);
+            }
 
             if (itemToBuy instanceof OBJ_Recipe) {
 
@@ -1241,10 +1251,36 @@ public class Player extends Entity implements Observer {
         }
     }
 
+    public void incrementChatFrequency(String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            int currentChat  = npcChatFrequency.getOrDefault(name, 0);
+            npcChatFrequency.put(name, currentChat+1);
+             System.out.println("[Player] Chat count for " + name + ": " + npcChatFrequency.get(name));
+        }
+    }
+
+    public void incrementGiftFrequency(String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            int currentGift = npcGiftFrequency.getOrDefault(name, 0);
+            npcGiftFrequency.put(name, currentGift+1);
+            System.out.println("[Player] Gift count for " + name + ": " + npcGiftFrequency.get(name));
+
+        }
+    }
+
+    public void incrementVisitFrequency(String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            int currentVisit = npcVisitFrequency.getOrDefault(name, 0);
+            npcVisitFrequency.put(name, currentVisit+1);
+            System.out.println("[Player] Visit count for " + name + ": " + npcVisitFrequency.get(name));
+
+        }
+    }
+
     public Gender getGender() {
         return gender;
     }
-    
+
     public void setGender(Gender gender) {
         this.gender = gender;
     }

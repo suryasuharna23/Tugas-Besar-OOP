@@ -84,12 +84,35 @@ public class KeyHandler implements KeyListener {
                         gp.ui.commandNumber = 0;
                     }
                 } else if (code == KeyEvent.VK_ENTER) {
-                    if (gp.ui.commandNumber >= 0 && gp.ui.commandNumber < gp.mapInfos.size()) {
+                    if (gp.ui.commandNumber >= 0 && gp.ui.commandNumber < gp.mapInfos.size() && gp.ui.commandNumber != gp.currentMapIndex) {
                         System.out.println("DEBUG: KeyHandler - Map Selected Index: " + gp.ui.commandNumber);
                         gp.loadMapbyIndex(gp.ui.commandNumber);
+
+                        if (gp.ui.commandNumber == 0) {
+                            gp.player.incrementVisitFrequency("Abigail");
+                        }
+                        else if (gp.ui.commandNumber == 1) {
+                            gp.player.incrementVisitFrequency("Caroline");
+                        }
+                        else if (gp.ui.commandNumber == 2) {
+                            gp.player.incrementVisitFrequency("Dasco");
+                        }
+                        else if (gp.ui.commandNumber == 3) {
+                            gp.player.incrementVisitFrequency("Mayor Tadi");
+                        }
+                        else if (gp.ui.commandNumber == 4) {
+                            gp.player.incrementVisitFrequency("Perry");
+                        }
+                        else if (gp.ui.commandNumber == 10) {
+                            gp.player.incrementVisitFrequency("Emily");
+                        }
+
                         if (gp.gameClock != null && gp.gameClock.isPaused()) {
                             gp.gameClock.resumeTime();
                         }
+                    }
+                    else if (gp.ui.commandNumber == gp.currentMapIndex) {
+                        gp.gameState = gp.playState;
                     }
                 } else if (code == KeyEvent.VK_ESCAPE) {
                     gp.gameState = gp.playState;
@@ -513,6 +536,7 @@ public class KeyHandler implements KeyListener {
             if (original instanceof OBJ_Seed) {
                 OBJ_Seed seedOriginal = (OBJ_Seed) original;
                 return new OBJ_Seed(gp, seedOriginal.getType(), seedOriginal.name,
+
                         seedOriginal.isEdible(), seedOriginal.getBuyPrice(),
                         seedOriginal.getSellPrice(), 1,
                         seedOriginal.dayToHarvest, seedOriginal.getSeason(),

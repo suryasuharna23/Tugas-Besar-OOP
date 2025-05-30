@@ -70,6 +70,11 @@ public class NPC extends Entity {
         gp.player.tryDecreaseEnergy(10);
         gp.gameClock.getTime().advanceTime(-10);
         addHeartPoints(10);
+
+        if (gp.player != null) {
+            gp.player.incrementChatFrequency(this.name);
+        }
+
         gp.gameState = gp.dialogueState;
     }
 
@@ -151,6 +156,10 @@ public class NPC extends Entity {
         if (giftProcessedLogically) {
             this.hasReceivedGiftToday = true;
 
+            if (gp.player != null) {
+                gp.player.incrementGiftFrequency(this.name);
+            }
+            
             giftedItem.quantity--;
             if (giftedItem.quantity <= 0) {
                 player.inventory.remove(giftedItem);
