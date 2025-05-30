@@ -16,6 +16,7 @@ import spakborhills.KeyHandler;
 import spakborhills.Time;
 import spakborhills.action.Command;
 import spakborhills.action.EatCommand;
+import spakborhills.action.PlantingCommand;
 import spakborhills.cooking.ActiveCookingProcess;
 import spakborhills.cooking.FoodRegistry;
 import spakborhills.cooking.Recipe;
@@ -27,16 +28,9 @@ import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.interfaces.Edible;
 import spakborhills.interfaces.Observer;
-import spakborhills.object.OBJ_Crop;
-import spakborhills.object.OBJ_Equipment;
-import spakborhills.object.OBJ_Fish;
-import spakborhills.object.OBJ_Food;
-import spakborhills.object.OBJ_Item;
-import spakborhills.object.OBJ_Misc;
-import spakborhills.object.OBJ_Recipe;
-import spakborhills.object.OBJ_Seed;
+import spakborhills.object.*;
 
-public class Player extends Entity implements Observer{
+public class Player extends Entity implements Observer {
     KeyHandler keyH;
     public final int screenX;
     public final int screenY;
@@ -166,13 +160,18 @@ public class Player extends Entity implements Observer{
         type = EntityType.PLAYER;
         currentEnergy = MAX_POSSIBLE_ENERGY;
         this.isCurrentlySleeping = false;
-        gold = 500;
+        gold = 1500;
         initializeRecipeStatus();
 
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
+        for (int i = 0; i < 100; i++) {
+            addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Parsnip", false, 20, 10, 1, 99, Season.SPRING,
+                    Weather.RAINY));
+        }
+
     }
 
     private void initializeRecipeStatus() {
@@ -349,7 +348,6 @@ public class Player extends Entity implements Observer{
                 gp.gameState = gp.playState;
             }
         }
-
         if (gp.gameState == gp.playState) {
             updateActiveCookingProcesses();
             checkAndUnlockRecipes();
@@ -378,15 +376,12 @@ public class Player extends Entity implements Observer{
             if (this.keyH != null && this.keyH.enterPressed
                     && !(keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed)) {
                 checkCollisionAndMove();
-
             }
         } else if (gp.gameState == gp.dialogueState || gp.gameState == gp.inventoryState) {
-
             spriteNum = 1;
             spriteCounter = 0;
         }
     }
-
 
     private void updateActiveCookingProcesses() {
         if (activeCookingProcesses.isEmpty() || gp.gameClock == null || gp.gameClock.isPaused()) {
@@ -417,6 +412,23 @@ public class Player extends Entity implements Observer{
                 iterator.remove();
             }
         }
+    }
+
+    private Entity findNearbyHarvestableEntity() {
+        int checkDistance = gp.tileSize + 10;
+
+        for (Entity entity : gp.entities) {
+            if (entity instanceof OBJ_PlantedCrop) {
+
+                int dx = Math.abs(entity.worldX - this.worldX);
+                int dy = Math.abs(entity.worldY - this.worldY);
+
+                if (dx <= checkDistance && dy <= checkDistance) {
+                    return entity;
+                }
+            }
+        }
+        return null;
     }
 
     public void setPositionForMapEntry(int worldX, int worldY, String direction) {
@@ -1167,7 +1179,7 @@ public class Player extends Entity implements Observer{
             switch (eventString) {
                 case "hour_change":
                 case "day_change":
-                    // Logika yang sudah ada dari update() yang berkaitan dengan waktu
+
                     if (gp.gameClock != null && gp.gameClock.getTime() != null) {
                         Time currentTime = gp.gameClock.getTime();
                         if (currentTime.getHour() == 2 && !this.isCurrentlySleeping() && !gp.hasForcedSleepAt2AMToday) {
@@ -1183,24 +1195,25 @@ public class Player extends Entity implements Observer{
                     checkAndUnlockRecipes();
                     break;
                 case "time_tick":
-                    // Logika yang mungkin Anda tambahkan untuk setiap tick waktu
+
                     break;
                 default:
                     System.out.println("[Player] Unhandled time event: " + eventString);
                     break;
             }
         } else if (event instanceof Weather newWeather) {
-            // Logika yang sudah ada dari update() yang berkaitan dengan cuaca
+
             if (!newWeather.equals(gp.weather.getCurrentWeather())) {
                 if (newWeather == Weather.RAINY) {
                     System.out.println("Hujan Turun!");
                 } else {
                     System.out.println("Cuaca Cerah!");
-                    speed = 4; // Kembalikan kecepatan normal
+                    speed = 4;
                 }
-                // Tambahkan efek cuaca lain di sini
+
             }
         } else {
             System.out.println("[Player] Unhandled event type: " + event.getClass().getSimpleName());
         }
-    }}
+    }
+}
