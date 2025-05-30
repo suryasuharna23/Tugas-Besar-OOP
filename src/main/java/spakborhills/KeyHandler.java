@@ -156,7 +156,7 @@ public class KeyHandler implements KeyListener {
             } else if (code == KeyEvent.VK_ESCAPE) {
                 System.out.println("[KeyHandler] DEBUG - ESC key detected in endGameState");
 
-                gp.gameState = gp.titleState;
+                gp.gameState = GamePanel.titleState;
                 gp.ui.mapSelectionState = 0;
                 gp.ui.commandNumber = 0;
                 if (gp.gameClock != null && !gp.gameClock.isPaused()) {
@@ -183,16 +183,33 @@ public class KeyHandler implements KeyListener {
                 gp.gameState = gp.pauseState;
                 if (gp.gameClock != null)
                     gp.gameClock.pauseTime();
-            }else if (code == KeyEvent.VK_C) {
+            } else if (code == KeyEvent.VK_C) {
                 System.out.println("[KeyHandler] Collision debugging toggled");
             } else if (code == KeyEvent.VK_ENTER) {
                 enterPressed = true;
             } else if (code == KeyEvent.VK_M) {
-                gp.gameState = gp.titleState;
-                gp.ui.mapSelectionState = 1;
-                gp.ui.commandNumber = gp.currentMapIndex != -1 ? gp.currentMapIndex : 0;
-                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
-                    gp.gameClock.pauseTime();
+                if (gp.currentMapIndex == gp.FARM_MAP_INDEX) {
+
+                    if (isPlayerAtFarmMapEdge()) {
+                        gp.gameState = GamePanel.titleState;
+                        gp.ui.mapSelectionState = 1;
+                        gp.ui.commandNumber = gp.currentMapIndex != -1 ? gp.currentMapIndex : 0;
+                        if (gp.gameClock != null && !gp.gameClock.isPaused()) {
+                            gp.gameClock.pauseTime();
+                        }
+                        gp.ui.showMessage("World Map opened from farm edge!");
+                    } else {
+                        gp.ui.showMessage("You need to go to the farm edge to access the world map!");
+                    }
+                } else if (gp.currentMapIndex == gp.PLAYER_HOUSE_INDEX) {
+                    gp.ui.showMessage("You need to go out to the farm first!");
+                } else {
+                    gp.gameState = GamePanel.titleState;
+                    gp.ui.mapSelectionState = 1;
+                    gp.ui.commandNumber = gp.currentMapIndex != -1 ? gp.currentMapIndex : 0;
+                    if (gp.gameClock != null && !gp.gameClock.isPaused()) {
+                        gp.gameClock.pauseTime();
+                    }
                 }
             } else if (code == KeyEvent.VK_Z) {
 
@@ -1247,5 +1264,23 @@ public class KeyHandler implements KeyListener {
             }
         }
         return null;
+    }
+
+    private boolean isPlayerAtFarmMapEdge() {
+        int playerTileX = gp.player.worldX / gp.tileSize;
+        int playerTileY = gp.player.worldY / gp.tileSize;
+
+        int edgeThreshold = 2;
+
+        boolean atLeftEdge = playerTileX <= edgeThreshold;
+        boolean atRightEdge = playerTileX >= (gp.maxWorldCol - edgeThreshold - 1);
+        boolean atTopEdge = playerTileY <= edgeThreshold;
+        boolean atBottomEdge = playerTileY >= (gp.maxWorldRow - edgeThreshold - 1);
+
+        System.out.println("[KeyHandler] Player at farm tile (" + playerTileX + "," + playerTileY + ")");
+        System.out.println("[KeyHandler] Edge check - Left:" + atLeftEdge + ", Right:" + atRightEdge +
+                ", Top:" + atTopEdge + ", Bottom:" + atBottomEdge);
+
+        return atLeftEdge || atRightEdge || atTopEdge || atBottomEdge;
     }
 }
