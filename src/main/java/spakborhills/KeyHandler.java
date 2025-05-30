@@ -169,8 +169,13 @@ public class KeyHandler implements KeyListener {
 
         else if (gp.gameState == gp.farmNameInputState) {
             handleFarmNameInput(code, e.getKeyChar());
+
         } else if (gp.gameState == gp.interactionMenuState) {
             handleNPCInteractionMenuInput(code);
+
+        } else if (gp.gameState == gp.genderSelectionState) {
+            handleGenderInput(code);
+
         } else if (gp.gameState == gp.playState) {
             if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP)
                 upPressed = true;
@@ -930,7 +935,7 @@ public class KeyHandler implements KeyListener {
             if (!gp.ui.playerNameInput.trim().isEmpty()) {
                 gp.player.name = gp.ui.playerNameInput.trim();
                 System.out.println("Player Name Set: " + gp.player.name);
-                gp.gameState = gp.farmNameInputState;
+                gp.gameState = gp.genderSelectionState;
                 gp.ui.farmNameInput = "";
             } else {
                 gp.ui.showMessage("Player name cannot be empty!");
@@ -1246,5 +1251,22 @@ public class KeyHandler implements KeyListener {
             }
         }
         return null;
+    }
+
+    private void handleGenderInput(int keyCode) {
+        if (keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_A ||
+            keyCode == KeyEvent.VK_RIGHT || keyCode == KeyEvent.VK_D) {
+            gp.ui.genderSelectionIndex = 1 - gp.ui.genderSelectionIndex; // 0 <-> 1
+        } 
+        else if (keyCode == KeyEvent.VK_ENTER) {
+            if (gp.ui.genderSelectionIndex == 0) {
+                gp.player.setGender(spakborhills.enums.Gender.MALE);
+            } else {
+                gp.player.setGender(spakborhills.enums.Gender.FEMALE);
+            }
+            gp.player.getPlayerImage(); // <-- Tambahkan ini!
+            gp.gameState = gp.farmNameInputState;
+            gp.ui.farmNameInput = "";
+        }
     }
 }
