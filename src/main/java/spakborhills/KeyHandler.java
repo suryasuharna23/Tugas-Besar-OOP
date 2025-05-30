@@ -113,8 +113,8 @@ public class KeyHandler implements KeyListener {
             }
         }
 
-        else if (gp.gameState == gp.playerStatsState) {
-            if (code == KeyEvent.VK_ESCAPE) {
+        else if (gp.gameState == gp.playerInfoState) {
+            if (code == KeyEvent.VK_ESCAPE ||  code == KeyEvent.VK_L) {
                 gp.gameState = gp.playState;
             }
         }
@@ -275,8 +275,8 @@ public class KeyHandler implements KeyListener {
             } else if (code == KeyEvent.VK_BACK_QUOTE) {
                 gp.gameState = gp.helpPageState;
 
-            } else if (code == KeyEvent.VK_TAB) {
-                gp.gameState = gp.playerStatsState;
+            } else if (code == KeyEvent.VK_L) {
+                gp.gameState = gp.playerInfoState;
             }
         } else if (gp.gameState == gp.pauseState) {
             if (code == KeyEvent.VK_P) {

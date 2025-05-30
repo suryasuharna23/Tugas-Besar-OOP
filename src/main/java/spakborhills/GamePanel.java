@@ -91,6 +91,7 @@ public class GamePanel extends JPanel implements Runnable {
     public int helpPageState = 17;
     public int playerStatsState = 18;
     public final int genderSelectionState = 19;
+    public final int playerInfoState = 20;
 
     public final int FARM_MAP_INDEX = 8;
     public final int PLAYER_HOUSE_INDEX = 9;

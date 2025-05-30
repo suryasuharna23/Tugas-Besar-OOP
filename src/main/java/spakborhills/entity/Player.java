@@ -85,6 +85,8 @@ public class Player extends Entity implements Observer {
     public static final int ENERGY_REFILL_AT_ZERO = 10;
     private boolean isCurrentlySleeping = false;
 
+    public String favoriteItem = "Strawberry";
+
     private Location currentLocation;
     private boolean playerIsActuallyFishing = false;
 
