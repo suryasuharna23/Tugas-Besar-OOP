@@ -19,14 +19,14 @@ import spakborhills.object.*;
 
 public class AssetSetter {
         GamePanel gp;
+
         public AssetSetter(GamePanel gp) {
                 this.gp = gp;
         }
 
         public void setObject(String currentMapName) {
-                gp.entities.removeIf(e -> !(e instanceof Player) && !(e instanceof NPC)); 
+                gp.entities.removeIf(e -> !(e instanceof Player) && !(e instanceof NPC));
 
-                
                 Entity chest1 = new OBJ_Chest(gp);
                 chest1.worldX = gp.tileSize * 22;
                 chest1.worldY = gp.tileSize * 30;
@@ -147,28 +147,35 @@ public class AssetSetter {
                                 Arrays.asList(Season.SPRING), Arrays.asList(Weather.RAINY),
                                 Arrays.asList("MOUNTAIN LAKE"), FishType.LEGENDARY, 8, 20);
                 gp.entities.add(legend);
-                
 
                 System.out.println(
                                 "[AssetSetter.setObject()] INFO: Selesai menambahkan semua entitas ikan global. Jumlah entitas (termasuk ikan) sekarang: "
                                                 + gp.entities.size());
 
-                
                 if ("Farm".equalsIgnoreCase(currentMapName)) {
+                        GamePanel.SimpleFarmLayout layout = gp.currentFarmLayout;
+
                         Entity shippingBin = new OBJ_ShippingBin(gp);
-                        shippingBin.worldX = gp.tileSize * 25;
-                        shippingBin.worldY = gp.tileSize * 15;
+                        shippingBin.worldX = gp.tileSize * layout.shippingBinX;
+                        shippingBin.worldY = gp.tileSize * layout.shippingBinY;
                         gp.entities.add(shippingBin);
+                        System.out.println("[AssetSetter] Shipping bin placed at: (" + layout.shippingBinX + ","
+                                        + layout.shippingBinY + ")");
 
                         Entity house = new OBJ_House(gp);
-                        house.worldX = gp.tileSize * 23;
-                        house.worldY = gp.tileSize * 21;
+                        house.worldX = gp.tileSize * layout.houseX;
+                        house.worldY = gp.tileSize * layout.houseY;
                         gp.entities.add(house);
+                        System.out.println(
+                                        "[AssetSetter] House placed at: (" + layout.houseX + "," + layout.houseY + ")");
 
                         Entity pond = new OBJ_Pond(gp);
-                        pond.worldX = gp.tileSize * 15;
-                        pond.worldY = gp.tileSize * 21;
+                        pond.worldX = gp.tileSize * layout.pondX;
+                        pond.worldY = gp.tileSize * layout.pondY;
                         gp.entities.add(pond);
+                        System.out.println("[AssetSetter] Pond placed at: (" + layout.pondX + "," + layout.pondY + ")");
+
+                        System.out.println("[AssetSetter] Farm objects placed using randomized layout!");
 
                 } else if ("Player's House".equalsIgnoreCase(currentMapName)) {
                         Entity playerSingleBed = new OBJ_Bed(gp);
@@ -187,65 +194,65 @@ public class AssetSetter {
                         gp.entities.add(tv);
 
                         Entity exitDoor = new OBJ_Door(gp);
-                        exitDoor.worldX = gp.tileSize * 23; // Posisi pintu keluar
-                        exitDoor.worldY = gp.tileSize * 33; // Near bottom of house
+                        exitDoor.worldX = gp.tileSize * 23;
+                        exitDoor.worldY = gp.tileSize * 33;
                         gp.entities.add(exitDoor);
 
                 }
-                
+
         }
 
         public void setNPC(String currentMapName) {
                 gp.npcs.clear();
                 gp.entities.removeIf(e -> e instanceof NPC);
 
-                System.out.println("[AssetSetter.setNPC] Setting NPCs for map: " + currentMapName + ". Iterating " + gp.allNpcsInWorld.size() + " NPCs from master list.");
+                System.out.println("[AssetSetter.setNPC] Setting NPCs for map: " + currentMapName + ". Iterating "
+                                + gp.allNpcsInWorld.size() + " NPCs from master list.");
 
-                for (NPC npcPersistentInstance : gp.allNpcsInWorld) { 
+                for (NPC npcPersistentInstance : gp.allNpcsInWorld) {
                         boolean shouldBeOnThisMap = false;
-                        int npcMapX = 0; 
+                        int npcMapX = 0;
                         int npcMapY = 0;
 
-
-
-
-
-
-
-
-
                         if (npcPersistentInstance.marriedToPlayer == true) {
-                                if ("Player's House".equalsIgnoreCase(currentMapName) && gp.player.partner == npcPersistentInstance) {
+                                if ("Player's House".equalsIgnoreCase(currentMapName)
+                                                && gp.player.partner == npcPersistentInstance) {
                                         currentMapName = "Player's House";
                                         shouldBeOnThisMap = true;
-                                        npcMapX = gp.tileSize * 12; 
-                                        npcMapY = gp.tileSize * 10; 
-                                        System.out.println("  -> " + npcPersistentInstance.name + " is married to player. Placing in Player's House.");
+                                        npcMapX = gp.tileSize * 12;
+                                        npcMapY = gp.tileSize * 10;
+                                        System.out.println("  -> " + npcPersistentInstance.name
+                                                        + " is married to player. Placing in Player's House.");
                                 }
-                        }
-                        else  {
-                                if (npcPersistentInstance.name.equals("Abigail") && "Abigail's House".equalsIgnoreCase(currentMapName)) {
+                        } else {
+                                if (npcPersistentInstance.name.equals("Abigail")
+                                                && "Abigail's House".equalsIgnoreCase(currentMapName)) {
                                         shouldBeOnThisMap = true;
                                         npcMapX = gp.tileSize * 10;
                                         npcMapY = gp.tileSize * 12;
 
-                                } else if (npcPersistentInstance.name.equals("Caroline") && "Caroline's House".equalsIgnoreCase(currentMapName)) {
+                                } else if (npcPersistentInstance.name.equals("Caroline")
+                                                && "Caroline's House".equalsIgnoreCase(currentMapName)) {
                                         shouldBeOnThisMap = true;
                                         npcMapX = gp.tileSize * 8;
                                         npcMapY = gp.tileSize * 10;
-                                } else if (npcPersistentInstance.name.equals("Emily") && "Store".equalsIgnoreCase(currentMapName)) {
+                                } else if (npcPersistentInstance.name.equals("Emily")
+                                                && "Store".equalsIgnoreCase(currentMapName)) {
                                         shouldBeOnThisMap = true;
                                         npcMapX = gp.tileSize * 7;
                                         npcMapY = gp.tileSize * 9;
-                                } else if (npcPersistentInstance.name.equals("Perry") && "Perry's House".equalsIgnoreCase(currentMapName)) {
+                                } else if (npcPersistentInstance.name.equals("Perry")
+                                                && "Perry's House".equalsIgnoreCase(currentMapName)) {
                                         shouldBeOnThisMap = true;
                                         npcMapX = gp.tileSize * 23;
                                         npcMapY = gp.tileSize * 12;
-                                } else if (npcPersistentInstance.name.equals("Mayor Tadi") && "Mayor Tadi's House".equalsIgnoreCase(currentMapName)) {
+                                } else if (npcPersistentInstance.name.equals("Mayor Tadi")
+                                                && "Mayor Tadi's House".equalsIgnoreCase(currentMapName)) {
                                         shouldBeOnThisMap = true;
                                         npcMapX = gp.tileSize * 15;
                                         npcMapY = gp.tileSize * 15;
-                                } else if (npcPersistentInstance.name.equals("Dasco") && "Dasco's House".equalsIgnoreCase(currentMapName)) {
+                                } else if (npcPersistentInstance.name.equals("Dasco")
+                                                && "Dasco's House".equalsIgnoreCase(currentMapName)) {
                                         shouldBeOnThisMap = true;
                                         npcMapX = gp.tileSize * 15;
                                         npcMapY = gp.tileSize * 15;
@@ -253,11 +260,11 @@ public class AssetSetter {
                         }
 
                         if (shouldBeOnThisMap) {
-                                npcPersistentInstance.worldX = npcMapX; 
+                                npcPersistentInstance.worldX = npcMapX;
                                 npcPersistentInstance.worldY = npcMapY;
-                                gp.npcs.add(npcPersistentInstance); 
-                                gp.entities.add(npcPersistentInstance); 
-                                                                        
+                                gp.npcs.add(npcPersistentInstance);
+                                gp.entities.add(npcPersistentInstance);
+
                                 System.out.println("  -> Placing " + npcPersistentInstance.name + " on current map '"
                                                 + currentMapName + "' at X:" + npcMapX + ", Y:" + npcMapY
                                                 + ". Current hearts: " + npcPersistentInstance.currentHeartPoints);
@@ -269,10 +276,10 @@ public class AssetSetter {
 
         public void initializeAllNPCs() {
                 System.out.println("[AssetSetter] Initializing all persistent NPCs in the world...");
-                gp.allNpcsInWorld.clear(); 
+                gp.allNpcsInWorld.clear();
 
                 NPC_ABIGAIL abigail = new NPC_ABIGAIL(gp);
-                
+
                 gp.allNpcsInWorld.add(abigail);
 
                 NPC_CAROLINE caroline = new NPC_CAROLINE(gp);
@@ -289,11 +296,11 @@ public class AssetSetter {
 
                 NPC_PERRY perry = new NPC_PERRY(gp);
                 gp.allNpcsInWorld.add(perry);
-                
 
                 System.out.println("[AssetSetter] Total persistent NPCs initialized: " + gp.allNpcsInWorld.size());
                 for (NPC npc : gp.allNpcsInWorld) {
-                        System.out.println("  - NPC Master Loaded: " + npc.name + " (Initial Hearts: " + npc.currentHeartPoints + ")");
+                        System.out.println("  - NPC Master Loaded: " + npc.name + " (Initial Hearts: "
+                                        + npc.currentHeartPoints + ")");
                 }
         }
 }

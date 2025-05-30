@@ -69,5 +69,17 @@ public class OBJ_Seed extends OBJ_Item {
     public Season getSeason() {
         return season;
     }
+
+    public int getCountWater() {
+        return countWater;
+    }
+
+    public int getDayToHarvest(){
+        return dayToHarvest;
+    }
+
+    public Weather getWeather() {
+        return weather;
+    }
     
 }

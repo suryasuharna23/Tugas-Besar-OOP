@@ -16,25 +16,34 @@ import spakborhills.KeyHandler;
 import spakborhills.Time;
 import spakborhills.action.Command;
 import spakborhills.action.EatCommand;
-import spakborhills.action.PlantingCommand;
 import spakborhills.cooking.ActiveCookingProcess;
 import spakborhills.cooking.FoodRegistry;
 import spakborhills.cooking.Recipe;
 import spakborhills.cooking.RecipeManager;
 import spakborhills.enums.EntityType;
+import spakborhills.enums.Gender;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Location;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.interfaces.Edible;
 import spakborhills.interfaces.Observer;
-import spakborhills.object.*;
+import spakborhills.object.OBJ_Crop;
+import spakborhills.object.OBJ_Equipment;
+import spakborhills.object.OBJ_Fish;
+import spakborhills.object.OBJ_Food;
+import spakborhills.object.OBJ_Item;
+import spakborhills.object.OBJ_Misc;
+import spakborhills.object.OBJ_PlantedCrop;
+import spakborhills.object.OBJ_Recipe;
+import spakborhills.object.OBJ_Seed;
 
 public class Player extends Entity implements Observer {
     KeyHandler keyH;
     public final int screenX;
     public final int screenY;
     private String farmName;
+    private Gender gender = Gender.MALE;
     public int currentEnergy;
 
     public ArrayList<Entity> inventory = new ArrayList<>();
@@ -120,14 +129,20 @@ public class Player extends Entity implements Observer {
     }
 
     public void getPlayerImage() {
-        up1 = setup("/player/Player_W1");
-        up2 = setup("/player/Player_W2");
-        down1 = setup("/player/Player_S1");
-        down2 = setup("/player/Player_S2");
-        left1 = setup("/player/Player_A1");
-        left2 = setup("/player/Player_A2");
-        right1 = setup("/player/Player_D1");
-        right2 = setup("/player/Player_D2");
+        String genderFolder = (gender == Gender.FEMALE) ? "female" : "male";
+        up1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_W1");
+        up2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_W2");
+        down1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_S1");
+        down2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_S2");
+        left1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_A1");
+        left2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_A2");
+        right1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_D1");
+        right2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_D2");
+    }
+
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) return str;
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
     public String getLocation() {
@@ -167,7 +182,7 @@ public class Player extends Entity implements Observer {
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Watering Can", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Pickaxe", false, 0, 0));
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Fishing Rod", false, 0, 0));
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 15; i++) {
             addItemToInventory(new OBJ_Seed(gp, ItemType.SEEDS, "Parsnip", false, 20, 10, 1, 99, Season.SPRING,
                     Weather.RAINY));
         }
@@ -275,7 +290,7 @@ public class Player extends Entity implements Observer {
         setCurrentlySleeping(true);
 
         String energyRecoveryMessage;
-        if (currentEnergy == 0) {
+        if (currentEnergy <= 0) {
             currentEnergy = ENERGY_REFILL_AT_ZERO;
             energyRecoveryMessage = "You slept right on the brink and only recovered " + ENERGY_REFILL_AT_ZERO
                     + " energy.";
@@ -380,6 +395,10 @@ public class Player extends Entity implements Observer {
         } else if (gp.gameState == gp.dialogueState || gp.gameState == gp.inventoryState) {
             spriteNum = 1;
             spriteCounter = 0;
+        }
+
+        if (gp.gameClock != null) {
+            // System.out.println("Game Time: " + gp.gameClock.getFormattedTime());
         }
     }
 
@@ -603,7 +622,7 @@ public class Player extends Entity implements Observer {
                     purchasedItemInstance = new OBJ_Seed(gp, seedTemplate.getType(),
                             seedTemplate.name.replace(" seeds", ""), seedTemplate.isEdible(),
                             seedTemplate.getBuyPrice(), seedTemplate.getSellPrice(),
-                            1, 1, Season.SPRING, Weather.SUNNY);
+                            seedTemplate.getCountWater(), seedTemplate.getDayToHarvest(), seedTemplate.getSeason(), seedTemplate.getWeather());
                 } else if (itemToBuy instanceof OBJ_Food) {
                     OBJ_Food foodTemplate = (OBJ_Food) itemToBuy;
                     purchasedItemInstance = FoodRegistry.createFood(gp, foodTemplate.name.replace(" food", ""));
@@ -1218,5 +1237,13 @@ public class Player extends Entity implements Observer {
         } else {
             System.out.println("[Player] Unhandled event type: " + event.getClass().getSimpleName());
         }
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+    
+    public void setGender(Gender gender) {
+        this.gender = gender;
     }
 }
