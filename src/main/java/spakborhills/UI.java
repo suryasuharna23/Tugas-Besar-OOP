@@ -602,7 +602,7 @@ public class UI {
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
         int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
         int x = gp.screenWidth / 2 - textWidth / 2;
-        int y = gp.screenHeight / 2;
+        int y = gp.screenHeight / 2 + 30;
         g2.drawString(displayText, x, y);
     }
 
@@ -623,7 +623,7 @@ public class UI {
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
         int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
         int x = gp.screenWidth / 2 - textWidth / 2;
-        int y = gp.screenHeight / 2;
+        int y = gp.screenHeight / 2 + 30;
         g2.drawString(displayText, x, y);
     }
 
