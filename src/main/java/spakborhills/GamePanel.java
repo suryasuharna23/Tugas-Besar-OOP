@@ -982,7 +982,7 @@ public class GamePanel extends JPanel implements Runnable {
         } else if (!crop.isWatered()) {
             System.out.println("[GamePanel] ✗ " + crop.getCropType() + " SKIPPED growth - not watered yesterday");
         } else if (crop.getGrewToday()) {
-            System.out.println("[GamePanel] ⏩ " + crop.getCropType() + " already grew today");
+            System.out.println("[GamePanel]" + crop.getCropType() + " already grew today");
         }
 
         System.out.println("[GamePanel] Resetting " + crop.getCropType() + " for new day...");
