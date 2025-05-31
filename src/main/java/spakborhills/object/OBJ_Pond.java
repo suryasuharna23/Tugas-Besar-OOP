@@ -1,3 +1,4 @@
+// spakborhills/object/OBJ_Pond.java
 package spakborhills.object;
 
 import spakborhills.GamePanel;
@@ -9,11 +10,11 @@ public class OBJ_Pond extends Entity {
         super(gp);
         this.gp = gp;
         type = EntityType.INTERACTIVE_OBJECT;
-        name = "Pond";
-        down1 = setup("/objects/pond");
+        name = "POND";
+        down1 = setup("/objects/pond"); // Pastikan path gambar benar
         collision = true;
-        int tilesWide = 4;
-        int tilesHigh = 3;
+        int tilesWide = 4; // Sesuaikan jika perlu
+        int tilesHigh = 3; // Sesuaikan jika perlu
 
         this.imageWidth = tilesWide * gp.tileSize;
         this.imageHeight = tilesHigh * gp.tileSize;
@@ -25,24 +26,21 @@ public class OBJ_Pond extends Entity {
         solidAreaDefaultY = solidArea.y;
     }
 
+    @Override
     public void interact() {
-        System.out.println("[OBJ_Pond] Player is interacting with the pond...");
-        
-        // Cek apakah player memiliki Fishing Rod
-        if (!gp.player.isHoldingTool("Fishing Rod equipment")) {
-            gp.ui.showMessage("Kamu butuh FISHING rOD");
-            System.out.println("[OBJ_Pond] Player doesn't have Fishing Rod");
+        if (!gp.player.isHoldingTool("Fishing Rod equipment")) { // Pastikan nama tool benar
+            gp.ui.showMessage("Kamu butuh FISHING ROD");
             return;
         }
-        
-        // Set player location ke "Pond" untuk fishing
-        gp.player.setLocation("Pond");
-        System.out.println("[OBJ_Pond] Player location set to 'Pond' for fishing");
-        
-        // Start fishing process
+
+        // Tetapkan lokasi logis ke "Farm" jika pemain berinteraksi dengan kolam di peta Farm
+        if (gp.currentMapIndex == gp.FARM_MAP_INDEX) {
+            gp.player.setLocation("FARM");
+        } else {
+
+        }
+
         gp.ui.showMessage("Kamu sudah di dekat pond...");
-        gp.player.startFishing();
-        
-        System.out.println("[OBJ_Pond] Fishing started at pond");
+        gp.player.startFishing(true); // MODIFIKASI: kirim true
     }
 }

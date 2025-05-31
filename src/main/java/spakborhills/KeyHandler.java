@@ -236,7 +236,7 @@ public class KeyHandler implements KeyListener {
                 gp.ui.showMessage("Found " + cropCount + " crops (check console for details)");
 
             } else if (code == KeyEvent.VK_K) {
-                gp.player.startFishing();
+                gp.player.startFishing(false);
             } else if (code == KeyEvent.VK_E) {
                 eatPressed = true;
             } else if (code == KeyEvent.VK_T) {

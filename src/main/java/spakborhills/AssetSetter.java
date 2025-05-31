@@ -51,7 +51,7 @@ public class AssetSetter {
                 Entity carp = new OBJ_Fish(gp, ItemType.FISH, "Carp", true,  20,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL, Season.WINTER),
                                 Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("Mountain Lake", "Pond"),
+                                Arrays.asList("MOUNTAIN LAKE", "FARM"),
                                 FishType.COMMON, 0, 24);
                 gp.entities.add(carp);
 
@@ -82,7 +82,7 @@ public class AssetSetter {
 
                 Entity midnightCarp = new OBJ_Fish(gp, ItemType.FISH, "Midnight Carp", true,  80,
                                 Arrays.asList(Season.WINTER, Season.FALL), Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("MOUNTAIN LAKE", "POND"), FishType.REGULAR, 20, 2);
+                                Arrays.asList("MOUNTAIN LAKE", "FARM"), FishType.REGULAR, 20, 2);
                 gp.entities.add(midnightCarp);
 
                 Entity flounder = new OBJ_Fish(gp, ItemType.FISH, "Flounder", true,  60,
@@ -127,7 +127,7 @@ public class AssetSetter {
 
                 Entity catfish = new OBJ_Fish(gp, ItemType.FISH, "Catfish", true,  40,
                                 Arrays.asList(Season.SPRING, Season.SUMMER, Season.FALL), Arrays.asList(Weather.RAINY),
-                                Arrays.asList("FOREST RIVER", "POND"), FishType.REGULAR, 6, 22);
+                                Arrays.asList("FOREST RIVER", "FARM"), FishType.REGULAR, 6, 22);
                 gp.entities.add(catfish);
 
                 Entity salmon = new OBJ_Fish(gp, ItemType.FISH, "Salmon", true,  160,
@@ -138,7 +138,7 @@ public class AssetSetter {
                 
                 Entity angler = new OBJ_Fish(gp, ItemType.FISH, "Angler", true,  800,
                                 Arrays.asList(Season.FALL), Arrays.asList(Weather.RAINY, Weather.SUNNY),
-                                Arrays.asList("POND"), FishType.LEGENDARY, 8, 20);
+                                Arrays.asList("FARM"), FishType.LEGENDARY, 8, 20);
                 gp.entities.add(angler);
 
                 Entity crimsonfish = new OBJ_Fish(gp, ItemType.FISH, "Crimsonfish", true,  800,
@@ -155,10 +155,6 @@ public class AssetSetter {
                                 Arrays.asList(Season.SPRING), Arrays.asList(Weather.RAINY),
                                 Arrays.asList("MOUNTAIN LAKE"), FishType.LEGENDARY, 8, 20);
                 gp.entities.add(legend);
-
-                System.out.println(
-                                "[AssetSetter.setObject()] INFO: Selesai menambahkan semua entitas ikan global. Jumlah entitas (termasuk ikan) sekarang: "
-                                                + gp.entities.size());
 
                 if ("Farm".equalsIgnoreCase(currentMapName)) {
                         GamePanel.SimpleFarmLayout layout = gp.currentFarmLayout;
