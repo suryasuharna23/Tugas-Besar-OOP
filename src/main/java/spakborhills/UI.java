@@ -352,7 +352,7 @@ public class UI {
                 inputStream = getClass().getResourceAsStream("/background/endgame.png");
             } else if (gameState == gp.helpPageState) {
                 inputStream = getClass().getResourceAsStream("/background/help.png");
-            } else if (gameState == gp.titleState) {
+            } else if (gameState == GamePanel.titleState) {
                 if (this.mapSelectionState == 0) {
                     inputStream = getClass().getResourceAsStream("/background/welcome.png");
                 } else if (this.mapSelectionState == 1) {
