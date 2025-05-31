@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group = 'org.example'
@@ -9,10 +10,26 @@ repositories {
     mavenCentral()
 }
 
-jar{
-    manifest{
-        attributes 'Main-Class': 'spakborhills.Main'
+application {
+    mainClass = 'spakborhills.Main'
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java']
+        resources.srcDirs = ['src/main/resources']
     }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': application.mainClass
+    }
+    from {
+        configurations.runtimeClasspath.findAll { it.isDirectory() }.collect { it } +
+                configurations.runtimeClasspath.findAll { !it.isDirectory() }.collect { zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 dependencies {
@@ -22,4 +39,9 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+run {
+    standardInput = System.in
+    jvmArgs = ['-Xmx1024m', '-Dfile.encoding=UTF-8']
 }

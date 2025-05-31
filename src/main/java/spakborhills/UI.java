@@ -87,20 +87,101 @@ public class UI {
     public UI(GamePanel gp, GameClock gameClock) {
         this.gp = gp;
         this.gameClock = gameClock;
-
-        InputStream inputStream = getClass().getResourceAsStream("/fonts/Minecraftia-Regular.ttf");
-        try {
-            mineCraftia = Font.createFont(Font.TRUETYPE_FONT, inputStream);
-            inputStream = getClass().getResourceAsStream("/fonts/PressStart2PRegular.ttf");
-            pressStart = Font.createFont(Font.TRUETYPE_FONT, inputStream);
-        } catch (FontFormatException | IOException e) {
-            System.out.println(e.getMessage());
-        }
+        loadFonts();
         this.currentDialogueLines = new ArrayList<>();
         this.dialogueCurrentPage = 0;
         this.dialogueLinesPerPage = 6;
         this.lastProcessedDialogue = "";
         loadTitleScreenImage();
+    }
+
+    private void loadFonts() {
+        System.out.println("[UI] Starting font loading...");
+
+        mineCraftia = loadFont("/fonts/Minecraftia-Regular.ttf", "Minecraftia");
+        if (mineCraftia == null) {
+            mineCraftia = loadFont("/fonts/minecraftia-regular.ttf", "Minecraftia (lowercase)");
+        }
+        if (mineCraftia == null) {
+            mineCraftia = loadFont("/Minecraftia-Regular.ttf", "Minecraftia (root)");
+        }
+        if (mineCraftia == null) {
+            System.err.println("[UI] Failed to load Minecraftia font, using Arial fallback");
+            mineCraftia = new Font("Arial", Font.PLAIN, 12);
+        }
+
+        pressStart = loadFont("/fonts/PressStart2PRegular.ttf", "PressStart2P");
+        if (pressStart == null) {
+            pressStart = loadFont("/fonts/pressstart2pregular.ttf", "PressStart2P (lowercase)");
+        }
+        if (pressStart == null) {
+            pressStart = loadFont("/PressStart2PRegular.ttf", "PressStart2P (root)");
+        }
+        if (pressStart == null) {
+            System.err.println("[UI] Failed to load PressStart2P font, using monospaced fallback");
+            pressStart = new Font("Monospaced", Font.PLAIN, 12);
+        }
+
+        System.out.println("[UI] Font loading completed");
+        System.out.println("[UI] Minecraftia loaded: " + (mineCraftia != null ? mineCraftia.getName() : "null"));
+        System.out.println("[UI] PressStart loaded: " + (pressStart != null ? pressStart.getName() : "null"));
+    }
+
+    private Font loadFont(String resourcePath, String fontName) {
+        System.out.println("[UI] Attempting to load font: " + fontName + " from " + resourcePath);
+
+        try {
+
+            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+
+            if (inputStream == null) {
+                System.out.println("[UI] Method 1 failed for " + fontName + ", trying ClassLoader...");
+
+                String pathWithoutSlash = resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath;
+                inputStream = getClass().getClassLoader().getResourceAsStream(pathWithoutSlash);
+            }
+
+            if (inputStream == null) {
+                System.out.println("[UI] Method 2 failed for " + fontName + ", trying alternative paths...");
+
+                String[] alternativePaths = {
+                        resourcePath.toLowerCase(),
+                        resourcePath.replace("-", "_"),
+                        resourcePath.replace("_", "-"),
+                        "/assets" + resourcePath,
+                        "/resources" + resourcePath
+                };
+
+                for (String altPath : alternativePaths) {
+                    inputStream = getClass().getResourceAsStream(altPath);
+                    if (inputStream != null) {
+                        System.out.println("[UI] Found " + fontName + " at alternative path: " + altPath);
+                        break;
+                    }
+                }
+            }
+
+            if (inputStream != null) {
+                Font font = Font.createFont(Font.TRUETYPE_FONT, inputStream);
+                inputStream.close();
+                System.out.println("[UI] Successfully loaded font: " + fontName);
+                return font;
+            } else {
+                System.err.println("[UI] All methods failed for font: " + fontName);
+                return null;
+            }
+
+        } catch (FontFormatException e) {
+            System.err.println("[UI] Font format error for " + fontName + ": " + e.getMessage());
+            return null;
+        } catch (IOException e) {
+            System.err.println("[UI] IO error loading " + fontName + ": " + e.getMessage());
+            return null;
+        } catch (Exception e) {
+            System.err.println("[UI] Unexpected error loading " + fontName + ": " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public void showMessage(String text) {
@@ -352,7 +433,7 @@ public class UI {
                 inputStream = getClass().getResourceAsStream("/background/endgame.png");
             } else if (gameState == gp.helpPageState) {
                 inputStream = getClass().getResourceAsStream("/background/help.png");
-            } else if (gameState == gp.titleState) {
+            } else if (gameState == GamePanel.titleState) {
                 if (this.mapSelectionState == 0) {
                     inputStream = getClass().getResourceAsStream("/background/welcome.png");
                 } else if (this.mapSelectionState == 1) {
@@ -1163,7 +1244,7 @@ public class UI {
 
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 7F));
         g2.setColor(Color.LIGHT_GRAY);
-        String controls = "[↑↓] Navigate | [Enter] Select | [Esc] Close";
+        String controls = "[UP/Down] Navigate | [Enter] Select | [Esc] Close";
 
         FontMetrics controlsFm = g2.getFontMetrics();
         List<String> controlLines = wrapText(controls, leftPanelWidth - 20, controlsFm);
@@ -1193,7 +1274,7 @@ public class UI {
         Font titleFont = pressStart.deriveFont(Font.BOLD, 24F);
         Font headerFont = pressStart.deriveFont(Font.BOLD, 14F);
         Font bodyFont = pressStart.deriveFont(Font.PLAIN, 12F);
-        Font smallFont = pressStart.deriveFont(Font.PLAIN, 10F);
+        Font smallFont = pressStart.deriveFont(Font.PLAIN, 7F);
         Font tinyFont = pressStart.deriveFont(Font.PLAIN, 8F);
 
         int currentY = frameY + TEXT_PADDING;
@@ -1405,7 +1486,7 @@ public class UI {
 
         g2.setFont(smallFont);
         g2.setColor(Color.WHITE);
-        String instructions = "[↑↓] Navigate  |  [Enter] Move 1 Item to Bin  |  [Esc] Finish Transaction";
+        String instructions = "[Up/Down] Navigate  |  [Enter] Move 1 Item to Bin  |  [Esc] Finish Transaction";
         int instrX = getXForCenteredTextInFrame(instructions, frameX, frameWidth);
         g2.drawString(instructions, instrX, currentY + 16);
 
@@ -2118,7 +2199,7 @@ public class UI {
 
         g2.setFont(bodyFont.deriveFont(Font.PLAIN, 10F));
         g2.setColor(Color.WHITE);
-        String instructions = "UP/DOWN: Navigate  |  ENTER: Buy  |  ESC: Exit";
+        String instructions = "Up/Down: Navigate  |  ENTER: Buy  |  ESC: Exit";
         int instrX = getXForCenteredTextInFrame(instructions, frameX, frameWidth);
         g2.drawString(instructions, instrX, footerY + 5);
 
@@ -2237,7 +2318,8 @@ public class UI {
         }
 
         int statStartXCol1 = paddingHorizontal + 40;
-        StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont, lineHeight-4,
+        StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont,
+                lineHeight - 4,
                 sectionSpacing);
 
         statsDrawer.drawHeader("~General~");
@@ -2339,17 +2421,51 @@ public class UI {
         drawSharedBackground(g2, gp.genderSelectionState);
 
         String[] genderLabels = { "Male", "Female" };
-        String[] spriteFiles = { "male_standing.png", "female_standing.png" };
+        String[] spriteFiles = { "Male_standing.png", "Female_standing.png" };
         String[] genderFolders = { "male", "female" };
 
         int selected = genderSelectionIndex;
 
         BufferedImage preview = null;
-        try {
-            preview = ImageIO.read(getClass().getResourceAsStream(
-                    "/player/" + genderFolders[selected] + "/" + spriteFiles[selected]));
-        } catch (Exception e) {
+        String resourcePath = "/player/" + genderFolders[selected] + "/" + spriteFiles[selected];
 
+        System.out.println("[UI.drawGenderSelectionScreen] Attempting to load: " + resourcePath);
+
+        try {
+            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+
+            if (inputStream == null) {
+                System.err.println("[UI.drawGenderSelectionScreen] Resource not found: " + resourcePath);
+
+                String[] alternativePaths = {
+                        "/player/" + genderFolders[selected] + "/" + genderFolders[selected] + "_standing.png",
+                        "/player/" + genderFolders[selected] + "/standing.png",
+                        "/player/" + genderFolders[selected] + ".png"
+                };
+
+                for (String altPath : alternativePaths) {
+                    System.out.println("[UI.drawGenderSelectionScreen] Trying alternative: " + altPath);
+                    inputStream = getClass().getResourceAsStream(altPath);
+                    if (inputStream != null) {
+                        System.out.println("[UI.drawGenderSelectionScreen] Found at: " + altPath);
+                        resourcePath = altPath;
+                        break;
+                    }
+                }
+            }
+
+            if (inputStream != null) {
+                preview = ImageIO.read(inputStream);
+                System.out.println("[UI.drawGenderSelectionScreen] Successfully loaded: " + resourcePath);
+                inputStream.close();
+            } else {
+                System.err.println("[UI.drawGenderSelectionScreen] All resource paths failed for gender: "
+                        + genderFolders[selected]);
+            }
+
+        } catch (Exception e) {
+            System.err.println("[UI.drawGenderSelectionScreen] Error loading " + resourcePath + ": " + e.getMessage());
+            e.printStackTrace();
         }
 
         float charScale = 0.8f;
@@ -2360,6 +2476,27 @@ public class UI {
 
         if (preview != null) {
             g2.drawImage(preview, imgX, imgY, imgW, imgH, null);
+            System.out.println("[UI.drawGenderSelectionScreen] Image drawn successfully");
+        } else {
+
+            g2.setColor(new Color(100, 100, 100, 150));
+            g2.fillRoundRect(imgX, imgY, imgW, imgH, 10, 10);
+            g2.setColor(Color.WHITE);
+            g2.drawRoundRect(imgX, imgY, imgW, imgH, 10, 10);
+
+            g2.setFont(pressStart.deriveFont(Font.PLAIN, 12F));
+            String placeholder = "Character\nPreview\nNot Available";
+            String[] lines = placeholder.split("\n");
+            int lineHeight = g2.getFontMetrics().getHeight();
+            int startY = imgY + (imgH - (lines.length * lineHeight)) / 2 + lineHeight;
+
+            for (int i = 0; i < lines.length; i++) {
+                int lineWidth = g2.getFontMetrics().stringWidth(lines[i]);
+                int lineX = imgX + (imgW - lineWidth) / 2;
+                g2.drawString(lines[i], lineX, startY + (i * lineHeight));
+            }
+
+            System.err.println("[UI.drawGenderSelectionScreen] Drawing placeholder instead of image");
         }
 
         g2.setFont(pressStart.deriveFont(Font.BOLD, 24F));
