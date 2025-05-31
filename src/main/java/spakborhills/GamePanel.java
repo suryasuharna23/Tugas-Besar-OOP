@@ -203,7 +203,7 @@ public class GamePanel extends JPanel implements Runnable {
         generateNewFarmLayout();
         gameClock.addObserver(player);
         weather.addObserver(player);
-        playMusic(0);
+        playMusic(8);
         setMusicVolume(20f);
 
     }

@@ -23,7 +23,7 @@ public class Sound {
         soundURL.add(getClass().getResource("/sound/shippingbinprocess.wav"));
         soundURL.add(getClass().getResource("/sound/eat.wav"));
         soundURL.add(getClass().getResource("/sound/tilling.wav"));
-
+        soundURL.add(getClass().getResource("/sound/easy_lemon.wav"));
     }
 
     public void setFile(int i) {
