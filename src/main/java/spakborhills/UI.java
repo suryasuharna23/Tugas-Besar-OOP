@@ -175,6 +175,10 @@ public class UI {
             drawFishingMinigameScreen(g2);
         } else if (gp.gameState == gp.endGameState) {
             drawEndGameStatisticsScreen(g2);
+        } else if (gp.gameState == gp.endGameState) {
+            drawEndGameStatisticsScreen(g2);
+        } else if (gp.gameState == gp.playerInfoState) { 
+            drawPlayerInfoScreen();
         }
     }
 
@@ -602,7 +606,7 @@ public class UI {
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
         int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
         int x = gp.screenWidth / 2 - textWidth / 2;
-        int y = gp.screenHeight / 2 + 30;
+        int y = gp.screenHeight / 2 + 25;
         g2.drawString(displayText, x, y);
     }
 
@@ -623,7 +627,7 @@ public class UI {
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
         int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
         int x = gp.screenWidth / 2 - textWidth / 2;
-        int y = gp.screenHeight / 2 + 30;
+        int y = gp.screenHeight / 2 + 25;
         g2.drawString(displayText, x, y);
     }
 
@@ -1001,7 +1005,7 @@ public class UI {
         Font titleFont = (pressStart != null) ? pressStart.deriveFont(24F) : new Font("Arial", Font.BOLD, 24);
         g2.setFont(titleFont);
 
-        g2.drawString("INVENTORY", getXForInventoryTitle("INVENTORY", frameX, frameWidth), frameY + gp.tileSize - 10);
+        g2.drawString("Inventory", getXForInventoryTitle("Inventory", frameX, frameWidth), frameY + gp.tileSize);
 
         final int slotStartX = frameX + gp.tileSize / 2;
         final int slotStartY = frameY + gp.tileSize + 20;
@@ -1483,8 +1487,8 @@ public class UI {
             int totalBoxWidth = blackLineAreaWidth + (outerBorderThickness * 2);
             int totalBoxHeight = blackLineAreaHeight + (outerBorderThickness * 2);
 
-            int totalBoxX = (gp.screenWidth - totalBoxWidth) / 2;
-            int totalBoxY = (gp.screenHeight / 3) - (totalBoxHeight / 2) - gp.tileSize;
+            int totalBoxX = gp.tileSize; // padding dari kiri
+            int totalBoxY = gp.screenHeight - totalBoxHeight - gp.tileSize - 30; // padding dari bawah
             if (totalBoxY < gp.tileSize / 2)
                 totalBoxY = gp.tileSize / 2;
 
@@ -1620,7 +1624,7 @@ public class UI {
             }
             g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
             g2.drawString("[Up/Down] Select | [Enter] View/Confirm | [Esc] Exit",
-                    listStartX, frameY + frameHeight - gp.tileSize + 10);
+                    listStartX, frameY + frameHeight - gp.tileSize + 35);
 
         } else if (cookingSubState == 1 && gp.selectedRecipeForCooking != null) {
             Recipe selected = gp.selectedRecipeForCooking;
@@ -1747,10 +1751,10 @@ public class UI {
         for (int i = 0; i < labels.length; i++) {
             int lineY = contentY + (i * lineSpacing) + titleFm.getAscent();
 
-            Color labelColor = (i == 0) ? primaryColor
-                    : (i == 1) ? new Color(255, 215, 0)
-                            : (i == 2) ? primaryColor
-                                    : accentColor;
+            Color labelColor = (i == 0) ? Color.WHITE
+                : (i == 1) ? new Color(255, 215, 0)
+                : (i == 2) ? primaryColor
+                : accentColor;
 
             int labelX = contentX;
             g2.setFont(titleFont);
@@ -2346,13 +2350,14 @@ public class UI {
                 "/player/" + genderFolders[selected] + "/" + spriteFiles[selected]
             ));
         } catch (Exception e) {
-            // Gambar tidak ditemukan, biarkan preview null
+            // Gambar tidak ditem   ukan, biarkan preview null
         }
 
-        int imgW = gp.tileSize * 3;
-        int imgH = gp.tileSize * 3;
+        float charScale = 0.8f; // 80% dari ukuran aslinya
+        int imgW = Math.round(gp.tileSize * 3 * charScale);
+        int imgH = Math.round((gp.tileSize * 3 + 100) * charScale);
         int imgX = gp.screenWidth / 2 - imgW / 2;
-        int imgY = gp.screenHeight / 2 - imgH / 2 - 20;
+        int imgY = gp.screenHeight / 2 - imgH / 2 - 10;
 
         if (preview != null) {
             g2.drawImage(preview, imgX, imgY, imgW, imgH, null);
@@ -2366,5 +2371,257 @@ public class UI {
         int textX = gp.screenWidth / 2 - textWidth / 2;
         int textY = imgY + imgH + 60; // bawah gambar, beri jarak 40px
         g2.drawString(genderText, textX, textY);
+    }
+
+    public void drawPlayerInfoScreen() {
+        int frameX = gp.tileSize * 2;
+        int frameY = gp.tileSize;
+        int frameWidth = gp.screenWidth - (gp.tileSize * 4);
+        int frameHeight = gp.tileSize * 8;
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+
+        // Title
+        g2.setColor(Color.white);
+        Font titleFont = (pressStart != null) ? pressStart.deriveFont(Font.BOLD, 24F) : new Font("Arial", Font.BOLD, 24);
+        g2.setFont(titleFont);
+        String title = "Player Info";
+        int titleX = getXForCenteredTextInFrame(title, frameX, frameWidth);
+        int titleY = frameY + gp.tileSize;
+        g2.drawString(title, titleX, titleY);
+
+        // --- KIRI: Gambar karakter ---
+        float charScale = 0.8f; // 80% dari ukuran aslinya
+        int imgW = Math.round(gp.tileSize * 3 * charScale);
+        int imgH = Math.round((gp.tileSize * 3 + 100) * charScale);
+        int imgX = frameX + gp.tileSize + 10;
+        int imgY = titleY + 20;
+
+        String genderFolder = (gp.player.getGender() == spakborhills.enums.Gender.FEMALE) ? "female" : "male";
+        String spriteName = genderFolder.substring(0, 1).toUpperCase() + genderFolder.substring(1) + "_standing.png";
+        BufferedImage preview = null;
+        try {
+            preview = ImageIO.read(getClass().getResourceAsStream("/player/" + genderFolder + "/" + spriteName));
+        } catch (Exception e) {
+            // ignore
+        }
+        if (preview != null) {
+            g2.drawImage(preview, imgX, imgY, imgW, imgH, null);
+        }
+
+        // --- Energy Bar & Gold (di bawah gambar karakter) ---
+        int goldY = imgY + imgH + 10;
+        int energyY = goldY + gp.tileSize + 8;
+
+        drawPlayerGoldAt(g2, imgX + 5, goldY - 5);
+        drawEnergyBarAt(g2, imgX - 28, energyY - 20, 0.7f);
+
+        // --- KANAN: Info ---
+        int infoX = imgX + imgW + gp.tileSize * 2 - 35;
+        int infoY = imgY + 30;
+        int lineSpacing = 38;
+        Font infoFont = (pressStart != null) ? pressStart.deriveFont(Font.PLAIN, 18F) : new Font("Arial", Font.PLAIN, 18);
+        g2.setFont(infoFont);
+        g2.setColor(Color.white);
+
+        // Tambahkan deklarasi labels dan values di sini
+        String[] labels = {"Name", "Gender", "Farm", "Partner"};
+        String[] values = {
+            gp.player.name,
+            (gp.player.getGender() == spakborhills.enums.Gender.FEMALE ? "Female" : "Male"),
+            (gp.player.getFarmName() != null ? gp.player.getFarmName() : "-"),
+            (gp.player.partner != null ? gp.player.partner.name : "-")
+        };
+
+        // Cari posisi ":" terjauh (punya Partner)
+        int maxLabelWidth = 0;
+        for (String label : labels) {
+            int width = g2.getFontMetrics().stringWidth(label + ":");
+            if (width > maxLabelWidth) maxLabelWidth = width;
+        }
+        int colonX = infoX + maxLabelWidth; // patokan posisi ":"
+
+        // Tampilkan label dan value dengan ":" sejajar
+        for (int i = 0; i < labels.length; i++) {
+            int y = infoY + lineSpacing * i;
+            String label = labels[i];
+            String value = values[i];
+
+            // Gambar label
+            g2.drawString(label, infoX, y);
+
+            // Gambar ":" di posisi patokan
+            int colonWidth = g2.getFontMetrics().stringWidth(":");
+            g2.drawString(":", colonX - colonWidth, y);
+
+            // Gambar value setelah ":"
+            int valueX = colonX + Math.round(lineSpacing * 0.2f);
+            g2.drawString(value, valueX, y);
+        }
+
+        // Favorite Item label
+        int favLabelY = infoY + lineSpacing * labels.length;
+        g2.drawString("Favorite Item:", infoX, favLabelY);
+
+        // Daftar favorite item (hardcode di sini)
+        String[] favoriteItems = {"Blueberry", "Wine"};
+        int favListStartY = favLabelY + lineSpacing;
+        for (int i = 0; i < favoriteItems.length; i++) {
+            String item = "\u2022 " + favoriteItems[i]; // bullet point
+            g2.drawString(item, infoX + Math.round(lineSpacing * 0.2f), favListStartY + i * lineSpacing);
+        }
+        // Tambahkan di akhir drawPlayerInfoScreen()
+        String closeText = "[L/Esc] Tutup";
+        Font closeFont = (pressStart != null) ? pressStart.deriveFont(Font.PLAIN, 12F) : new Font("Arial", Font.PLAIN, 12);
+        g2.setFont(closeFont);
+        g2.setColor(Color.white);
+
+        int closeTextWidth = g2.getFontMetrics().stringWidth(closeText);
+        int closeTextX = frameX + (frameWidth - closeTextWidth) / 2;
+        int closeTextY = frameY + frameHeight - 13;
+
+        g2.drawString(closeText, closeTextX, closeTextY);
+    }    
+
+    public void drawEnergyBarAt(Graphics2D g2, int x, int y, float scale) {
+        int segmentWidth = Math.round((gp.tileSize / 2) * scale);
+        int segmentHeight = Math.round((gp.tileSize / 2 - 5) * scale);
+        int segmentSpacing = Math.round(2 * scale);
+        int totalSegments = 10;
+        int barTotalWidth = totalSegments * (segmentWidth + segmentSpacing) - segmentSpacing;
+        int barTotalHeight = segmentHeight;
+
+        int filledSegments = 0;
+        if (gp.player.MAX_POSSIBLE_ENERGY > 0) {
+            double energyPerSegment = (double) gp.player.MAX_POSSIBLE_ENERGY / totalSegments;
+            if (energyPerSegment > 0) {
+                filledSegments = (int) Math.ceil(gp.player.currentEnergy / energyPerSegment);
+            }
+        }
+
+        int boxX = x - Math.round(7 * scale);
+        int boxY = y;
+        int boxWidth = barTotalWidth + Math.round(14 * scale);
+        int boxHeight = barTotalHeight + Math.round(16 * scale);
+
+        // Shadow
+        g2.setColor(new Color(0, 0, 0, 110));
+        g2.fillRoundRect(boxX + Math.round(3 * scale), boxY + Math.round(4 * scale), boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        // Background
+        g2.setColor(new Color(30, 30, 40, 200));
+        g2.fillRoundRect(boxX, boxY, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        // Border
+        g2.setColor(new Color(255, 255, 255, 60));
+        g2.setStroke(new BasicStroke(2f * scale));
+        g2.drawRoundRect(boxX, boxY, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        double partialFill = 0;
+        if (gp.player.MAX_POSSIBLE_ENERGY > 0) {
+            double energyPerSegment = (double) gp.player.MAX_POSSIBLE_ENERGY / totalSegments;
+            if (energyPerSegment > 0 && filledSegments > 0) {
+                double currentSegmentEnergy = gp.player.currentEnergy - ((filledSegments - 1) * energyPerSegment);
+                partialFill = Math.min(1.0, currentSegmentEnergy / energyPerSegment);
+            }
+        }
+
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 14f * scale));
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        int barY = y + Math.round(8 * scale);
+
+        // Segments
+        for (int i = 0; i < totalSegments; i++) {
+            int currentSegmentX = x + (i * (segmentWidth + segmentSpacing));
+
+            g2.setColor(new Color(40, 40, 40, 180));
+            g2.fillRoundRect(currentSegmentX, barY, segmentWidth, segmentHeight, Math.round(4 * scale), Math.round(4 * scale));
+
+            g2.setColor(new Color(80, 80, 80, 200));
+            g2.setStroke(new BasicStroke(1.5f * scale));
+            g2.drawRoundRect(currentSegmentX, barY, segmentWidth, segmentHeight, Math.round(4 * scale), Math.round(4 * scale));
+
+            if (i < filledSegments - 1) {
+                Color segmentColor = getEnergyColor(i, totalSegments, 1.0);
+                drawGradientSegment(g2, currentSegmentX, barY, segmentWidth, segmentHeight, segmentColor, 1.0);
+            } else if (i == filledSegments - 1 && partialFill > 0) {
+                Color segmentColor = getEnergyColor(i, totalSegments, partialFill);
+                drawGradientSegment(g2, currentSegmentX, barY, segmentWidth, segmentHeight, segmentColor, partialFill);
+            }
+
+            if (i < filledSegments || (i == filledSegments - 1 && partialFill > 0)) {
+                g2.setColor(new Color(255, 255, 255, 60));
+                g2.fillRoundRect(currentSegmentX + Math.round(2 * scale), barY + Math.round(2 * scale), segmentWidth - Math.round(4 * scale), Math.round(3 * scale), Math.round(2 * scale), Math.round(2 * scale));
+            }
+        }
+
+        // Setelah loop segmen bar
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 14F * scale));
+        String energyText = gp.player.currentEnergy + "/" + gp.player.MAX_POSSIBLE_ENERGY;
+        FontMetrics fmText = g2.getFontMetrics();
+        int textWidth = fmText.stringWidth(energyText);
+
+        // Posisi angka di bawah bar, rata tengah dengan bar
+        int textX = boxX + (boxWidth - textWidth) / 2;
+        int textY = boxY + boxHeight + Math.round(30 * scale); // 8*scale = jarak ke bawah bar
+
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(energyText, textX + 2, textY + 2);
+
+        g2.setColor(Color.WHITE);
+        g2.drawString(energyText, textX, textY);
+
+        g2.setStroke(new BasicStroke(1));
+    }
+
+    public void drawPlayerGoldAt(Graphics2D g2, int x, int y) {
+        String goldText = "" + gp.player.gold;
+        float scale = 0.8f;
+        int padding = Math.round(18 * scale);
+        int iconPadding = Math.round(8 * scale);
+        int boxHeight = Math.round(38 * scale);
+        int iconSize = Math.round(28 * scale);
+
+        Font goldFont = pressStart.deriveFont(Font.BOLD, 15F * scale);
+        g2.setFont(goldFont);
+        FontMetrics fm = g2.getFontMetrics();
+        int textWidth = fm.stringWidth(goldText);
+
+        int boxWidth = iconSize + iconPadding + textWidth + padding * 2;
+
+        int boxX = x;
+        int boxY = y;
+
+        g2.setColor(new Color(0, 0, 0, 110));
+        g2.fillRoundRect(boxX + 3, boxY + 4, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        g2.setColor(new Color(30, 30, 40, 200));
+        g2.fillRoundRect(boxX, boxY, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        g2.setColor(new Color(255, 255, 255, 60));
+        g2.setStroke(new BasicStroke(2f * scale));
+        g2.drawRoundRect(boxX, boxY, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        int contentWidth = iconSize + iconPadding + textWidth;
+        int contentX = boxX + (boxWidth - contentWidth) / 2;
+        int iconX = contentX;
+        int iconY = boxY + (boxHeight - iconSize) / 2 + 1;
+
+        try {
+            InputStream inputStream = getClass().getResourceAsStream("/objects/gold.png");
+            BufferedImage coinImage = ImageIO.read(inputStream);
+            g2.drawImage(coinImage, iconX, iconY, iconSize, iconSize, null);
+        } catch (IOException e) {
+            g2.setColor(new Color(255, 215, 0));
+            g2.fillOval(iconX, iconY, iconSize, iconSize);
+        }
+
+        int textX = iconX + iconSize + iconPadding;
+        int textY = boxY + (boxHeight + fm.getAscent()) / 2 + 1;
+
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(goldText, textX + 2, textY + 2);
+        g2.setColor(Color.WHITE);
+        g2.drawString(goldText, textX, textY);
     }
 }
