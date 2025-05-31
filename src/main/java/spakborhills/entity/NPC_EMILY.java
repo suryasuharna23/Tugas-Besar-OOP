@@ -27,13 +27,14 @@ public class NPC_EMILY extends NPC {
                 name = "Emily";
                 type = EntityType.NPC;
                 isMarriageCandidate = true;
-                currentHeartPoints = 0;
-                Collections.addAll(lovedGiftsName, "seluruh item seeds");
+                currentHeartPoints = 50;
+                initializeShopInventory();
+                addAllSeedsToLovedGifts();
                 Collections.addAll(likedGiftsName, "Catfish", "Salmon", "Sardine");
-                Collections.addAll(hatedItems, "Coal", "Wood");
+                Collections.addAll(hatedItems, "Coal", "Firewood");
                 setDialogue();
                 getNPCImage();
-                initializeShopInventory();
+
         }
 
         public void initializeShopInventory() {
@@ -82,7 +83,6 @@ public class NPC_EMILY extends NPC {
                 shopInventory.add(new OBJ_Food(gp, ItemType.FOOD, "Fish Sandwich", true, 200, 180, 50));
                 shopInventory.add(new OBJ_Food(gp, ItemType.FOOD, "Cooked Pig's Head", true, 1000, 0, 100));
 
-
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Parsnip", true, 50, 35, 1, 3));
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Cauliflower", true, 200, 150, 1, 3));
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Wheat", true, 50, 30, 3, 3));
@@ -90,7 +90,6 @@ public class NPC_EMILY extends NPC {
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Tomato", true, 90, 60, 1, 3));
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Pumpkin", true, 300, 250, 1, 3));
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true, 100, 10, 20, 3));
-
 
                 shopInventory.add(new OBJ_Recipe(gp, "Recipe: Fish n' Chips", 500, "recipe_1"));
                 shopInventory.add(new OBJ_Recipe(gp, "Recipe: Fish Sandwich", 500, "recipe_10"));
@@ -125,5 +124,24 @@ public class NPC_EMILY extends NPC {
                 gp.gameState = gp.interactionMenuState;
                 gp.ui.npcMenuCommandNum = 0;
 
+        }
+
+        private void addAllSeedsToLovedGifts() {
+                System.out.println("[NPC_EMILY] Auto-detecting seeds from shop inventory...");
+
+                for (OBJ_Item item : shopInventory) {
+                        if (item instanceof OBJ_Seed) {
+                                String seedName = item.name;
+                                if (!lovedGiftsName.contains(seedName)) {
+                                        lovedGiftsName.add(seedName);
+                                        System.out.println("[NPC_EMILY] Added seed to loved gifts: " + seedName);
+                                }
+                        }
+                }
+
+                System.out.println("[NPC_EMILY] Total loved seeds: " +
+                                lovedGiftsName.stream().filter(name -> shopInventory.stream()
+                                                .anyMatch(item -> item instanceof OBJ_Seed && item.name.equals(name)))
+                                                .count());
         }
 }
