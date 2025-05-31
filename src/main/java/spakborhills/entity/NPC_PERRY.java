@@ -24,8 +24,8 @@ public class NPC_PERRY extends NPC {
         speed = 1;
         name = "Perry";
         type = EntityType.NPC;
-        currentHeartPoints = 50;
-
+        isMarriageCandidate = true;
+        currentHeartPoints = 0;
         Collections.addAll(lovedGiftsName, "Cranberry", "Blueberry");
         Collections.addAll(likedGiftsName, "Wine");
 

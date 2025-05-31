@@ -27,7 +27,7 @@ public class NPC_EMILY extends NPC {
                 name = "Emily";
                 type = EntityType.NPC;
                 isMarriageCandidate = true;
-                currentHeartPoints = 50;
+                currentHeartPoints = 0;
                 initializeShopInventory();
                 addAllSeedsToLovedGifts();
                 Collections.addAll(likedGiftsName, "Catfish", "Salmon", "Sardine");

@@ -14,7 +14,8 @@ public class NPC_MAYOR_TADI extends NPC {
         speed = 1;
         name = "Mayor Tadi";
         type = EntityType.NPC;
-
+        isMarriageCandidate = true;
+        currentHeartPoints = 0;
         Collections.addAll(lovedGiftsName, "Legend");
         Collections.addAll(likedGiftsName, "Angler", "Crimsonfish", "Glacierfish");
         generateHatedItemsList();
