@@ -12,14 +12,16 @@ public class Weather implements Observerable {
         return currentWeather.name();
     }
 
-    public enum WeatherType { SUNNY, RAINY }
+    public enum WeatherType {
+        SUNNY, RAINY
+    }
 
     private WeatherType currentWeather;
     private int rainyDaysThisSeason = 0;
     private final Random rand = new Random();
     private static final WeatherType DEFAULT_START_WEATHER = WeatherType.SUNNY;
     private List<Observer> observers = new ArrayList<>();
-    
+
     public Weather() {
         generateNewWeather();
     }
@@ -38,17 +40,19 @@ public class Weather implements Observerable {
 
         if (oldWeather != currentWeather) {
             notifyObservers(currentWeather);
-    }
+        }
     }
 
     public void resetRainyCount() {
         rainyDaysThisSeason = 0;
     }
+
     public void resetToDefault() {
         this.currentWeather = DEFAULT_START_WEATHER;
         this.rainyDaysThisSeason = 0;
         System.out.println("Weather reset to " + currentWeather);
     }
+
     public WeatherType getCurrentWeather() {
         return currentWeather;
     }
@@ -72,5 +76,5 @@ public class Weather implements Observerable {
         for (Observer observer : observers) {
             observer.update(event);
         }
-    }    
+    }
 }

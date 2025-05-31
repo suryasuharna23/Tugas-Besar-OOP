@@ -305,7 +305,6 @@ public class GamePanel extends JPanel implements Runnable {
 
         if (gameState == playState) {
 
-
             if (!hasTriggeredEndgame && (player.gold >= 17209 || player.isMarried())) {
                 System.out.println("[GamePanel] Endgame condition met for the first time. Gold: " + player.gold
                         + ", Married: " + player.isMarried());
@@ -953,7 +952,7 @@ public class GamePanel extends JPanel implements Runnable {
             if (currentSeason == Season.WINTER) {
                 System.out.println("[GamePanel] ❄️ WINTER SEASON - All crop growth PAUSED");
                 System.out.println("[GamePanel] ======================= WINTER MODE ACTIVE ========================");
-                return; // STOP SEMUA PERTUMBUHAN
+                return;
             }
         }
 

@@ -600,7 +600,6 @@ public class UI {
                 }
             }
 
-
             text = "CREDITS";
             x = getXForCenteredText(text);
             y += gp.tileSize;

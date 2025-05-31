@@ -931,7 +931,7 @@ public class Player extends Entity implements Observer {
         int actualMapCols = gp.tileManager.mapTileNum.length;
         int actualMapRows = (actualMapCols > 0) ? gp.tileManager.mapTileNum[0].length : 0;
 
-        if (actualMapCols == 0 || (actualMapCols > 0 && actualMapRows == 0) ){
+        if (actualMapCols == 0 || (actualMapCols > 0 && actualMapRows == 0)) {
             gp.ui.showMessage("Error struktur data map!");
             return;
         }
@@ -945,7 +945,8 @@ public class Player extends Entity implements Observer {
         int tileNumInFront = gp.tileManager.mapTileNum[tileInFrontCol][tileInFrontRow];
         boolean isTileInFrontFishableWater = false;
 
-        if (viaObjectInteraction && "Farm".equalsIgnoreCase(playerCurrentLocationString) && gp.currentMapIndex == gp.FARM_MAP_INDEX) {
+        if (viaObjectInteraction && "Farm".equalsIgnoreCase(playerCurrentLocationString)
+                && gp.currentMapIndex == gp.FARM_MAP_INDEX) {
             isTileInFrontFishableWater = true;
         } else {
             List<Integer> fishableWaterIds = getFishableWaterTileIdsForMap(playerCurrentLocationString);
@@ -988,7 +989,8 @@ public class Player extends Entity implements Observer {
         for (Entity entity : gp.entities) {
             if (entity instanceof OBJ_Fish) {
                 OBJ_Fish fish = (OBJ_Fish) entity;
-                if (fish.isAvailable(currentSeasonForFishing, weatherForFishCheck, currentHourForFishing, playerCurrentLocationString)) {
+                if (fish.isAvailable(currentSeasonForFishing, weatherForFishCheck, currentHourForFishing,
+                        playerCurrentLocationString)) {
                     availableFish.add(fish);
                 }
             }
@@ -1013,7 +1015,7 @@ public class Player extends Entity implements Observer {
                 this.fishingGuessRange = 500;
                 this.fishingMaxTry = 7;
                 break;
-            default: // COMMON
+            default:
                 this.fishingGuessRange = 50;
                 this.fishingMaxTry = 10;
                 break;
@@ -1028,6 +1030,7 @@ public class Player extends Entity implements Observer {
 
         gp.gameState = gp.fishingMinigameState;
     }
+
     public void processFishingAttempt(int guessedNumber) {
         if (!this.playerIsActuallyFishing || this.fishToCatchInMinigame == null) {
             endFishingMinigame(false);

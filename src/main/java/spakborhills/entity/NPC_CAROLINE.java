@@ -5,8 +5,8 @@ import spakborhills.enums.EntityType;
 
 import java.util.Collections;
 
-public class NPC_CAROLINE extends NPC{
-    public NPC_CAROLINE(GamePanel gp){
+public class NPC_CAROLINE extends NPC {
+    public NPC_CAROLINE(GamePanel gp) {
         super(gp);
         direction = "down";
         speed = 1;
@@ -23,7 +23,7 @@ public class NPC_CAROLINE extends NPC{
         getNPCImage();
     }
 
-    public void getNPCImage(){
+    public void getNPCImage() {
         up1 = setup("/npc/Caroline/Caroline_W1");
         up2 = setup("/npc/Caroline/Caroline_W2");
         down1 = setup("/npc/Caroline/Caroline_S1");
@@ -34,7 +34,7 @@ public class NPC_CAROLINE extends NPC{
         right2 = setup("/npc/Caroline/Caroline_D2");
     }
 
-    public void setDialogue(){
+    public void setDialogue() {
         dialogues.add("Nama saya Caroline, salam kenal!");
     }
 }
