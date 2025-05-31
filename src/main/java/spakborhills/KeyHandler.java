@@ -82,34 +82,29 @@ public class KeyHandler implements KeyListener {
                         gp.ui.commandNumber = 0;
                     }
                 } else if (code == KeyEvent.VK_ENTER) {
-                    if (gp.ui.commandNumber >= 0 && gp.ui.commandNumber < gp.mapInfos.size() && gp.ui.commandNumber != gp.currentMapIndex) {
+                    if (gp.ui.commandNumber >= 0 && gp.ui.commandNumber < gp.mapInfos.size()
+                            && gp.ui.commandNumber != gp.currentMapIndex) {
                         System.out.println("DEBUG: KeyHandler - Map Selected Index: " + gp.ui.commandNumber);
                         gp.loadMapbyIndex(gp.ui.commandNumber);
 
                         if (gp.ui.commandNumber == 0) {
                             gp.player.incrementVisitFrequency("Abigail");
-                        }
-                        else if (gp.ui.commandNumber == 1) {
+                        } else if (gp.ui.commandNumber == 1) {
                             gp.player.incrementVisitFrequency("Caroline");
-                        }
-                        else if (gp.ui.commandNumber == 2) {
+                        } else if (gp.ui.commandNumber == 2) {
                             gp.player.incrementVisitFrequency("Dasco");
-                        }
-                        else if (gp.ui.commandNumber == 3) {
+                        } else if (gp.ui.commandNumber == 3) {
                             gp.player.incrementVisitFrequency("Mayor Tadi");
-                        }
-                        else if (gp.ui.commandNumber == 4) {
+                        } else if (gp.ui.commandNumber == 4) {
                             gp.player.incrementVisitFrequency("Perry");
-                        }
-                        else if (gp.ui.commandNumber == 10) {
+                        } else if (gp.ui.commandNumber == 10) {
                             gp.player.incrementVisitFrequency("Emily");
                         }
 
                         if (gp.gameClock != null && gp.gameClock.isPaused()) {
                             gp.gameClock.resumeTime();
                         }
-                    }
-                    else if (gp.ui.commandNumber == gp.currentMapIndex) {
+                    } else if (gp.ui.commandNumber == gp.currentMapIndex) {
                         gp.gameState = gp.playState;
                     }
                 } else if (code == KeyEvent.VK_ESCAPE) {
@@ -135,7 +130,7 @@ public class KeyHandler implements KeyListener {
         }
 
         else if (gp.gameState == gp.playerInfoState) {
-            if (code == KeyEvent.VK_ESCAPE ||  code == KeyEvent.VK_L) {
+            if (code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_L) {
                 gp.gameState = gp.playState;
             }
         }
@@ -428,7 +423,7 @@ public class KeyHandler implements KeyListener {
 
     private void handleSellScreenInput(int code) {
         if (code == KeyEvent.VK_ESCAPE) {
-            
+
             if (!gp.player.shippingBinTypes.isEmpty()) {
                 gp.completeShippingBinTransaction();
             } else {
@@ -444,18 +439,16 @@ public class KeyHandler implements KeyListener {
                 if (itemEntityToShip instanceof OBJ_Item) {
                     OBJ_Item itemToShip = (OBJ_Item) itemEntityToShip;
                     if (itemToShip.getSellPrice() > 0) {
-                        
-                        
+
                         OBJ_Item itemToShipCopy = gp.player.createShippingBinItem(itemToShip);
-                        itemToShipCopy.quantity = 1; 
-                        
-                        
+                        itemToShipCopy.quantity = 1;
+
                         if (gp.player.addItemToShippingBin(itemToShipCopy)) {
-                            
+
                             itemToShip.quantity--;
                             if (itemToShip.quantity <= 0) {
                                 gp.player.inventory.remove(gp.ui.commandNumber);
-                                
+
                                 if (gp.ui.commandNumber >= gp.player.inventory.size()
                                         && !gp.player.inventory.isEmpty()) {
                                     gp.ui.commandNumber = gp.player.inventory.size() - 1;
@@ -463,20 +456,19 @@ public class KeyHandler implements KeyListener {
                                     gp.ui.commandNumber = 0;
                                 }
                             }
-                            
+
                             if (gp.player.inventory.isEmpty()) {
                                 gp.ui.showMessage("Inventory kamu kosong. Tekan ESC untuk keluar.");
                             }
                         }
-                        
-                        
+
                     } else {
                         gp.ui.showMessage(itemToShip.name + " tidak bisa dijual.");
                     }
                 } else {
                     gp.ui.showMessage(itemEntityToShip.name + " bukan tipe barang yang bisa dijual.");
                 }
-                
+
                 gp.gameClock.getTime().advanceTime(15);
             } else if (gp.player.inventory.isEmpty()) {
                 gp.ui.showMessage("Inventory kosong. Tidak ada yang bisa dijual.");
@@ -539,8 +531,12 @@ public class KeyHandler implements KeyListener {
                 gp.gameClock.resumeTime();
             return;
         }
+
         NPC_EMILY emily = (NPC_EMILY) gp.currentInteractingNPC;
-        if (emily.shopInventory.isEmpty()) {
+
+        List<OBJ_Item> availableItems = emily.getAvailableShopInventory();
+
+        if (availableItems.isEmpty()) {
             gp.ui.showMessage("Emily tidak punya barang untuk dijual saat ini.");
             if (code == KeyEvent.VK_ESCAPE) {
                 gp.gameState = gp.playState;
@@ -553,21 +549,24 @@ public class KeyHandler implements KeyListener {
         if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
             gp.ui.storeCommandNum--;
             if (gp.ui.storeCommandNum < 0) {
-                gp.ui.storeCommandNum = emily.shopInventory.size() - 1;
+                gp.ui.storeCommandNum = availableItems.size() - 1;
             }
         } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
             gp.ui.storeCommandNum++;
-            if (gp.ui.storeCommandNum >= emily.shopInventory.size()) {
+            if (gp.ui.storeCommandNum >= availableItems.size()) {
                 gp.ui.storeCommandNum = 0;
             }
         } else if (code == KeyEvent.VK_ENTER) {
-            if (gp.ui.storeCommandNum >= 0 && gp.ui.storeCommandNum < emily.shopInventory.size()) {
-                OBJ_Item selectedShopItem = emily.shopInventory.get(gp.ui.storeCommandNum);
-                String recipeIdToUnlock = null;
+            if (gp.ui.storeCommandNum >= 0 && gp.ui.storeCommandNum < availableItems.size()) {
+                OBJ_Item selectedShopItem = availableItems.get(gp.ui.storeCommandNum);
+
                 if (selectedShopItem instanceof OBJ_Recipe) {
-                    recipeIdToUnlock = ((OBJ_Recipe) selectedShopItem).recipeIdToUnlock;
+                    handleRecipePurchase((OBJ_Recipe) selectedShopItem, emily);
+                } else {
+
+                    String recipeIdToUnlock = null;
+                    gp.player.buyItem(selectedShopItem, recipeIdToUnlock);
                 }
-                gp.player.buyItem(selectedShopItem, recipeIdToUnlock);
             }
         } else if (code == KeyEvent.VK_ESCAPE) {
             gp.gameState = gp.playState;
@@ -576,6 +575,51 @@ public class KeyHandler implements KeyListener {
             }
             gp.ui.showMessage("Meninggalkan store");
         }
+    }
+
+    private void handleRecipePurchase(OBJ_Recipe recipe, NPC_EMILY emily) {
+        System.out.println("[KeyHandler] Processing recipe purchase: " + recipe.name);
+
+        if (gp.player.gold < recipe.buyPrice) {
+            gp.ui.showMessage("Gold tidak cukup! Butuh " + recipe.buyPrice + " gold.");
+            System.out.println("[KeyHandler] Recipe purchase failed - insufficient gold");
+            return;
+        }
+
+        if (!showRecipePurchaseConfirmation(recipe)) {
+            gp.ui.showMessage("Pembelian recipe dibatalkan.");
+            return;
+        }
+
+        gp.player.gold -= recipe.buyPrice;
+        System.out.println("[KeyHandler] Deducted " + recipe.buyPrice + " gold. Remaining: " + gp.player.gold);
+
+        if (recipe.recipeIdToUnlock != null) {
+            gp.player.recipeUnlockStatus.put(recipe.recipeIdToUnlock, true);
+            System.out.println("[KeyHandler] Unlocked recipe: " + recipe.recipeIdToUnlock);
+        }
+
+        emily.purchaseRecipe(recipe.name);
+
+        List<OBJ_Item> newAvailableItems = emily.getAvailableShopInventory();
+        if (gp.ui.storeCommandNum >= newAvailableItems.size() && !newAvailableItems.isEmpty()) {
+            gp.ui.storeCommandNum = newAvailableItems.size() - 1;
+        } else if (newAvailableItems.isEmpty()) {
+            gp.ui.storeCommandNum = 0;
+        }
+
+        gp.ui.showMessage("Recipe berhasil dibeli! " + recipe.name + " dipelajari!");
+        System.out.println("[KeyHandler] Recipe purchase completed successfully: " + recipe.name);
+
+        gp.gameClock.getTime().advanceTime(10);
+        gp.player.tryDecreaseEnergy(5);
+    }
+
+    private boolean showRecipePurchaseConfirmation(OBJ_Recipe recipe) {
+
+        System.out.println("[KeyHandler] Recipe purchase confirmation for: " + recipe.name);
+
+        return true;
     }
 
     private void handleCookingInput(int code) {
@@ -1212,16 +1256,15 @@ public class KeyHandler implements KeyListener {
 
     private void handleGenderInput(int keyCode) {
         if (keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_A ||
-            keyCode == KeyEvent.VK_RIGHT || keyCode == KeyEvent.VK_D) {
-            gp.ui.genderSelectionIndex = 1 - gp.ui.genderSelectionIndex; 
-        }
-        else if (keyCode == KeyEvent.VK_ENTER) {
+                keyCode == KeyEvent.VK_RIGHT || keyCode == KeyEvent.VK_D) {
+            gp.ui.genderSelectionIndex = 1 - gp.ui.genderSelectionIndex;
+        } else if (keyCode == KeyEvent.VK_ENTER) {
             if (gp.ui.genderSelectionIndex == 0) {
                 gp.player.setGender(spakborhills.enums.Gender.MALE);
             } else {
                 gp.player.setGender(spakborhills.enums.Gender.FEMALE);
             }
-            gp.player.getPlayerImage(); 
+            gp.player.getPlayerImage();
             gp.gameState = gp.farmNameInputState;
             gp.ui.farmNameInput = "";
         }

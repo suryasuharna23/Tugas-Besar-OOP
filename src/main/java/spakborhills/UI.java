@@ -134,8 +134,9 @@ public class UI {
         g2.setColor(Color.white);
 
         drawSharedBackground(g2, gp.gameState);
-        if (gp.gameState == gp.titleState) {
+        if (gp.gameState == GamePanel.titleState) {
             drawTitleScreen();
+            drawTimedMessage(g2);
         } else if (gp.gameState == gp.playerNameInputState) {
             drawPlayerNameInputScreen();
             drawTimedMessage(g2);

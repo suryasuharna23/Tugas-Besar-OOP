@@ -19,6 +19,7 @@ import java.util.List;
 
 public class NPC_EMILY extends NPC {
         public List<OBJ_Item> shopInventory;
+        private List<String> purchasedRecipe;
 
         public NPC_EMILY(GamePanel gp) {
                 super(gp);
@@ -28,6 +29,9 @@ public class NPC_EMILY extends NPC {
                 type = EntityType.NPC;
                 isMarriageCandidate = true;
                 currentHeartPoints = 0;
+
+                purchasedRecipe = new ArrayList<>();
+
                 initializeShopInventory();
                 addAllSeedsToLovedGifts();
                 Collections.addAll(likedGiftsName, "Catfish", "Salmon", "Sardine");
@@ -143,5 +147,58 @@ public class NPC_EMILY extends NPC {
                                 lovedGiftsName.stream().filter(name -> shopInventory.stream()
                                                 .anyMatch(item -> item instanceof OBJ_Seed && item.name.equals(name)))
                                                 .count());
+        }
+
+        public void purchaseRecipe(String recipeName) {
+                System.out.println("[NPC_EMILY] Player purchased recipe: " + recipeName);
+
+                if (!purchasedRecipe.contains(recipeName)) {
+                        purchasedRecipe.add(recipeName);
+                        System.out.println("[NPC_EMILY] Added to purchased recipes: " + recipeName);
+                }
+
+                shopInventory.removeIf(item -> {
+                        if (item instanceof OBJ_Recipe && item.name.equals(recipeName)) {
+                                System.out.println("[NPC_EMILY] Removed recipe from shop: " + recipeName);
+                                return true;
+                        }
+                        return false;
+                });
+
+                System.out.println("[NPC_EMILY] Shop inventory size after removal: " + shopInventory.size());
+        }
+
+        public boolean isRecipePurchased(String recipeName) {
+                return purchasedRecipe.contains(recipeName);
+        }
+
+        public List<OBJ_Item> getAvailableShopInventory() {
+                List<OBJ_Item> availableItems = new ArrayList<>();
+
+                for (OBJ_Item item : shopInventory) {
+
+                        if (item instanceof OBJ_Recipe) {
+                                if (!isRecipePurchased(item.name)) {
+                                        availableItems.add(item);
+                                }
+                        } else {
+
+                                availableItems.add(item);
+                        }
+                }
+
+                return availableItems;
+        }
+
+        public List<String> getPurchasedRecipes() {
+                return new ArrayList<>(purchasedRecipe);
+        }
+
+        public void resetPurchasedRecipes() {
+                purchasedRecipe.clear();
+                System.out.println("[NPC_EMILY] Reset purchased recipes list");
+
+                initializeShopInventory();
+                System.out.println("[NPC_EMILY] Restored all recipes to shop");
         }
 }
