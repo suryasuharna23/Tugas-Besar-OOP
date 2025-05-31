@@ -1,4 +1,3 @@
-
 package spakborhills.interfaces;
 
 import spakborhills.enums.Season;

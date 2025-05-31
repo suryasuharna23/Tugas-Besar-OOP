@@ -89,9 +89,6 @@ public class GameClock extends Thread implements Runnable, Observerable{
         return time;
     }
 
-    /**
-     * Menghentikan thread GameClock secara permanen.
-     */
     public void stopClock() {
         running = false;
         
@@ -99,20 +96,13 @@ public class GameClock extends Thread implements Runnable, Observerable{
         this.interrupt(); 
     }
 
-    /**
-     * Menjeda laju waktu game.
-     * GameClock akan berhenti memajukan waktu sampai resumeTime() dipanggil.
-     */
+
     public void pauseTime() {
         if (!paused) {
             paused = true;
             
         }
     }
-
-    /**
-     * Melanjutkan laju waktu game setelah di-pause.
-     */
     public void resumeTime() {
         if (paused) {
             synchronized (pauseLock) {
@@ -123,10 +113,6 @@ public class GameClock extends Thread implements Runnable, Observerable{
         }
     }
 
-    /**
-     * Mengecek apakah GameClock sedang di-pause.
-     * @return true jika di-pause, false jika berjalan.
-     */
     public boolean isPaused() {
         return paused;
     }

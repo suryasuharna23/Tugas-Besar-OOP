@@ -953,7 +953,7 @@ public class GamePanel extends JPanel implements Runnable {
             if (currentSeason == Season.WINTER) {
                 System.out.println("[GamePanel] ❄️ WINTER SEASON - All crop growth PAUSED");
                 System.out.println("[GamePanel] ======================= WINTER MODE ACTIVE ========================");
-                return; // STOP SEMUA PERTUMBUHAN
+                return; 
             }
         }
 

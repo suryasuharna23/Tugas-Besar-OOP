@@ -16,9 +16,7 @@ public class TillingCommand implements Command {
         int tileSize = gp.tileSize;
         int playerCol = (player.worldX + player.solidArea.x) / tileSize;
         int playerRow = (player.worldY + player.solidArea.y) / tileSize;
-
-
-        // Hitung posisi di depan player
+        
         switch (player.direction) {
             case "up" -> playerRow--;
             case "down" -> playerRow++;
@@ -49,9 +47,9 @@ public class TillingCommand implements Command {
 
     private int getTileIndexFromState(TileState state) {
         return switch (state) {
-            case LAND -> 14;             // Sesuaikan dengan index land.png
-            case SOIL -> 76;             // Sesuaikan dengan index soil.png
-            case PLANTED -> 55;          // Sesuaikan dengan index planted.png
+            case LAND -> 14;             
+            case SOIL -> 76;             
+            case PLANTED -> 55;          
             case WATERED_PLANT -> 80;
         };
     }

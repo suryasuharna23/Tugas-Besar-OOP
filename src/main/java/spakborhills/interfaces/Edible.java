@@ -1,4 +1,3 @@
-//package spakborhills.entity;
 package spakborhills.interfaces;
 
 import spakborhills.entity.Player;
