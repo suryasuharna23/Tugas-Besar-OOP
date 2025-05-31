@@ -4,65 +4,87 @@ import spakborhills.GamePanel;
 import spakborhills.entity.Entity;
 import spakborhills.entity.Player;
 import spakborhills.enums.ItemType;
+import spakborhills.interfaces.Edible;
+import spakborhills.interfaces.Harvestable;
 
-public class OBJ_Crop extends OBJ_Item {
+public class OBJ_Crop extends OBJ_Item implements Edible, Harvestable {
     private int harvestAmount;
-    private int energy;
+    private final int energy = 3;
+    private int daysToGrow;
+    private int currentGrowthDays;
+    private boolean isPlanted;
 
-    public OBJ_Crop(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice, int harvestAmount, int energy) {
-        super(gp, itemType, name, isEdible, buyPrice, sellPrice);
+    public OBJ_Crop(GamePanel gp, ItemType itemType, String name, boolean isEdible, int buyPrice, int sellPrice,
+            int harvestAmount, int energy) {
+        super(gp, itemType, name, true, buyPrice, sellPrice);
         this.harvestAmount = harvestAmount;
-        this.energy = 3;
-
-        if (this.name.equals("Parsnip")) {
+        this.currentGrowthDays = 0;
+        this.isPlanted = false;
+        setupCropProperties();
+        setupImages();
+    }
+    
+    private void setupCropProperties() {
+        if (this.baseName.equals("Parsnip")) {
             this.buyPrice = 50;
             this.sellPrice = 35;
             this.harvestAmount = 1;
-        }
-        else if (this.name.equals("Cauliflower")) {
+            this.daysToGrow = 4;
+        } else if (this.baseName.equals("Cauliflower")) {
             this.buyPrice = 200;
             this.sellPrice = 150;
             this.harvestAmount = 1;
-        }
-        else if (this.name.equals("Potato")) {
+            this.daysToGrow = 12;
+        } else if (this.baseName.equals("Potato")) {
             this.buyPrice = 0;
             this.sellPrice = 80;
             this.harvestAmount = 1;
-        } else if (this.name.equals("Wheat")) {
+            this.daysToGrow = 6;
+        } else if (this.baseName.equals("Wheat")) {
             this.buyPrice = 50;
             this.sellPrice = 30;
             this.harvestAmount = 3;
-        } else if (this.name.equals("Blueberry")) {
+            this.daysToGrow = 4;
+        } else if (this.baseName.equals("Blueberry")) {
             this.buyPrice = 0;
             this.sellPrice = 100;
             this.harvestAmount = 3;
-        } else if (this.name.equals("Tomato")) {
+            this.daysToGrow = 13;
+        } else if (this.baseName.equals("Tomato")) {
             this.buyPrice = 90;
             this.sellPrice = 60;
             this.harvestAmount = 1;
-        } else if (this.name.equals("Hot Pepper")) {
+            this.daysToGrow = 11;
+        } else if (this.baseName.equals("Hot Pepper")) {
             this.buyPrice = 0;
             this.sellPrice = 40;
             this.harvestAmount = 1;
-        } else if (this.name.equals("Melon")) {
+            this.daysToGrow = 5;
+        } else if (this.baseName.equals("Melon")) {
             this.buyPrice = 0;
             this.sellPrice = 250;
             this.harvestAmount = 1;
-        } else if (this.name.equals("Cranberry")) {
+            this.daysToGrow = 12;
+        } else if (this.baseName.equals("Cranberry")) {
             this.buyPrice = 0;
             this.sellPrice = 25;
             this.harvestAmount = 1;
-        } else if (this.name.equals("Pumpkin")) {
+            this.daysToGrow = 7;
+        } else if (this.baseName.equals("Pumpkin")) {
             this.buyPrice = 300;
             this.sellPrice = 250;
             this.harvestAmount = 1;
-        } else if (this.name.equals("Grape")) {
+            this.daysToGrow = 13;
+        } else if (this.baseName.equals("Grape")) {
             this.buyPrice = 100;
             this.sellPrice = 10;
             this.harvestAmount = 20;
+            this.daysToGrow = 10;
         }
+    }
 
-        switch (name) {
+    private void setupImages() {
+        switch (baseName) {
             case "Parsnip":
                 down1 = setup("/objects/parsnip");
                 break;
@@ -97,15 +119,124 @@ public class OBJ_Crop extends OBJ_Item {
                 down1 = setup("/objects/grape");
                 break;
         }
+
+        if (down1 != null) {
+            up1 = down1;
+            left1 = down1;
+            right1 = down1;
+        }
+    }
+    public void update() {
     }
 
-    public void update() {}
+    public int getHarvestAmount() {
+        return harvestAmount;
+    }
 
+    public int getEnergy() {
+        return energy;
+    }
+
+
+    
+    @Override
+    public boolean isReadyToHarvest() {
+        return isPlanted && currentGrowthDays >= daysToGrow;
+    }
+
+    @Override
+    public OBJ_Item harvest(Player player) {
+        if (!isReadyToHarvest()) {
+            return null;
+        }
+
+        
+        OBJ_Crop harvestedCrop = new OBJ_Crop(gp, this.getType(), this.baseName, true,
+                this.getBuyPrice(), this.getSellPrice(),
+                this.harvestAmount, this.energy);
+        harvestedCrop.quantity = this.harvestAmount;
+
+        
+        if (player.firstHarvestByName != null && !player.firstHarvestByName.containsKey(this.baseName)) {
+            player.firstHarvestByName.put(this.baseName, true);
+            gp.ui.showMessage("Panen " + this.baseName + " pertama!");
+        }
+
+        
+        if ("Hot Pepper".equals(this.baseName)) {
+            player.hasObtainedHotPepper = true;
+        }
+
+        return harvestedCrop;
+    }
+
+    @Override
+    public int getDaysUntilHarvest() {
+        if (!isPlanted)
+            return -1;
+        return Math.max(0, daysToGrow - currentGrowthDays);
+    }
+
+    
+    public void plant() {
+        isPlanted = true;
+        currentGrowthDays = 0;
+    }
+
+    public void grow() {
+        if (isPlanted && currentGrowthDays < daysToGrow) {
+            currentGrowthDays++;
+        }
+    }
+
+    public double getGrowthProgress() {
+        if (!isPlanted)
+            return 0.0;
+        return (double) currentGrowthDays / daysToGrow;
+    }
+
+
+
+    public boolean isPlanted() {
+        return isPlanted;
+    }
+
+    public int getCurrentGrowthDays() {
+        return currentGrowthDays;
+    }
+
+    public int getDaysToGrow() {
+        return daysToGrow;
+    }
+
+    @Override
     public boolean use(Entity user) {
-    //isi pake harvest
+        if (isEdible() && user instanceof Player) {
+            gp.ui.showMessage(this.name + " sudah dipegang. Tekan E untuk makan!");
+            return false;
+        }
         return false;
     }
 
-    public int getHarvestAmount() { return harvestAmount; }
-    public int getEnergy() { return energy; }
+    @Override
+    public void eat(Player player) {
+        System.out.println("DEBUG: OBJ_Crop.eat() called for " + this.baseName);
+        if (player.gp.ui != null) {
+            player.gp.ui.showMessage("Kamu sedang makan " + this.baseName + ".");
+        }
+
+        if (this.getEnergy() != 0) {
+            player.increaseEnergy(this.getEnergy());
+            System.out.println("DEBUG: Player energy increased by " + this.getEnergy());
+        }
+
+        if (player.gp.gameClock != null && player.gp.gameClock.getTime() != null) {
+            player.gp.gameClock.getTime().advanceTime(5);
+            System.out.println("DEBUG: Game time advanced by 5 minutes due to eating.");
+        } else {
+            System.out.println("DEBUG: GameClock or Time is null, cannot advance time.");
+        }
+
+        player.consumeItemFromInventory(this);
+    }
 }

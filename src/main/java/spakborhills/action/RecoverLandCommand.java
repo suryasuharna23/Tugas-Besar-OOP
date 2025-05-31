@@ -18,7 +18,7 @@ public class RecoverLandCommand implements Command {
         int playerCol = (player.worldX + player.solidArea.x) / tileSize;
         int playerRow = (player.worldY + player.solidArea.y) / tileSize;
 
-        // Cek arah hadap
+        
         switch (player.direction) {
             case "up" -> playerRow--;
             case "down" -> playerRow++;
@@ -26,14 +26,19 @@ public class RecoverLandCommand implements Command {
             case "right" -> playerCol++;
         }
 
-        // Validasi batas
+        if (!player.isHoldingTool("Pickaxe equipment")) {
+            System.out.println("Anda harus memegang Pickaxe.");
+            return;
+        }
+
+        
         if (playerCol < 0 || playerCol >= gp.maxWorldCol || playerRow < 0 || playerRow >= gp.maxWorldRow) {
             return;
         }
 
         int tileIndex = gp.tileManager.mapTileNum[playerCol][playerRow];
 
-        // Periksa apakah tile bisa di-recover
+        
         if (tileIndex == getTileIndexFromState(TileState.SOIL) ||
                 tileIndex == getTileIndexFromState(TileState.PLANTED) ||
                 tileIndex == getTileIndexFromState(TileState.WATERED_PLANT)) {
@@ -51,10 +56,10 @@ public class RecoverLandCommand implements Command {
 
     private int getTileIndexFromState(TileState state) {
         return switch (state) {
-            case LAND -> 14;             // Sesuaikan dengan index land.png
-            case SOIL -> 76;             // Sesuaikan dengan index soil.png
-            case PLANTED -> 55;          // Sesuaikan dengan index planted.png
-            case WATERED_PLANT -> 80;  // Sesuaikan dengan index watered_planted.png
+            case LAND -> 14;             
+            case SOIL -> 76;             
+            case PLANTED -> 55;          
+            case WATERED_PLANT -> 80;  
         };
     }
 }

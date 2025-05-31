@@ -5,21 +5,24 @@ import spakborhills.enums.EntityType;
 
 import java.util.Collections;
 
-public class NPC_DASCO extends NPC{
-    public NPC_DASCO(GamePanel gp){
+public class NPC_DASCO extends NPC {
+    public NPC_DASCO(GamePanel gp) {
         super(gp);
         direction = "down";
         speed = 1;
         name = "Dasco";
         type = EntityType.NPC;
-        Collections.addAll(lovedGiftsName, "The Legends of Spakbor", "Cooked Pig's Head", "Wine", "Fugu", "Spakbor Salad");
+        isMarriageCandidate = true;
+        currentHeartPoints = 0;
+        Collections.addAll(lovedGiftsName, "The Legends of Spakbor", "Cooked Pig's Head", "Wine", "Fugu",
+                "Spakbor Salad");
         Collections.addAll(likedGiftsName, "Fish Sandwich", "Fish Stew", "Baguette", "Fish n’ Chips");
         Collections.addAll(hatedItems, "Legend", "Grape", "Cauliflower", "Wheat", "Pufferfish", "Salmon");
         setDialogue();
         getNPCImage();
     }
 
-    public void getNPCImage(){
+    public void getNPCImage() {
 
         up1 = setup("/npc/Dasco/Dasco_W1");
         up2 = setup("/npc/Dasco/Dasco_W2");
@@ -31,7 +34,7 @@ public class NPC_DASCO extends NPC{
         right2 = setup("/npc/Dasco/Dasco_D2");
     }
 
-    public void setDialogue(){
+    public void setDialogue() {
         dialogues.add("HOHOOO");
     }
 }

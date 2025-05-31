@@ -5,23 +5,22 @@ public class MapInfo {
     public String mapDataPath;
     public String mapLayoutPath;
 
-    public MapInfo (String mapName, String mapDataPath, String mapLayoutPath){
+    public MapInfo(String mapName, String mapDataPath, String mapLayoutPath) {
         this.mapName = mapName;
         this.mapDataPath = mapDataPath;
         this.mapLayoutPath = mapLayoutPath;
     }
 
-    public String getMapName(){
+    public String getMapName() {
         return this.mapName;
     }
 
-    public String getMapDataPath(){
+    public String getMapDataPath() {
         return this.mapDataPath;
     }
 
-    public String getMapLayoutPath(){
+    public String getMapLayoutPath() {
         return this.mapLayoutPath;
     }
-
 
 }

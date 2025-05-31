@@ -16,9 +16,7 @@ public class TillingCommand implements Command {
         int tileSize = gp.tileSize;
         int playerCol = (player.worldX + player.solidArea.x) / tileSize;
         int playerRow = (player.worldY + player.solidArea.y) / tileSize;
-
-
-        // Hitung posisi di depan player
+        
         switch (player.direction) {
             case "up" -> playerRow--;
             case "down" -> playerRow++;
@@ -26,19 +24,12 @@ public class TillingCommand implements Command {
             case "right" -> playerCol++;
         }
 
-        // Validasi batas map
-        if (playerCol < 0 || playerCol >= gp.maxWorldCol || playerRow < 0 || playerRow >= gp.maxWorldRow)
-            return;
-
-        // [DISABLED] Validasi alat Hoe untuk uji coba
-        /*
-        if (!hasHoeEquippedOrInInventory()) {
-            System.out.println("Anda membutuhkan Hoe untuk membajak tanah.");
+        if (!player.isHoldingTool("Hoe equipment")) {
+            System.out.println("Anda harus memegang Hoe.");
             return;
         }
-        */
 
-        // Ambil tile depan
+
         int tileIndex = gp.tileManager.mapTileNum[playerCol][playerRow];
 
         if (tileIndex == getTileIndexFromState(TileState.LAND)) {
@@ -47,7 +38,7 @@ public class TillingCommand implements Command {
 
             gp.tileManager.mapTileNum[playerCol][playerRow] = getTileIndexFromState(TileState.SOIL);
             gp.gameClock.getTime().advanceTime(5);
-
+            gp.playSE(7);
             System.out.println("Tile berhasil dibajak.");
         } else {
             System.out.println("Tile ini tidak bisa dibajak.");
@@ -56,9 +47,9 @@ public class TillingCommand implements Command {
 
     private int getTileIndexFromState(TileState state) {
         return switch (state) {
-            case LAND -> 14;             // Sesuaikan dengan index land.png
-            case SOIL -> 76;             // Sesuaikan dengan index soil.png
-            case PLANTED -> 55;          // Sesuaikan dengan index planted.png
+            case LAND -> 14;             
+            case SOIL -> 76;             
+            case PLANTED -> 55;          
             case WATERED_PLANT -> 80;
         };
     }

@@ -21,5 +21,6 @@ public class EatCommand implements Command {
             return;
         }
         this.edible.eat(player);
+        gp.playSE(6);
     }
 }

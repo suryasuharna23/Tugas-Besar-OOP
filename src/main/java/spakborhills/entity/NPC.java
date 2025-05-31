@@ -7,9 +7,10 @@ import java.util.Random;
 import spakborhills.GamePanel;
 import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
+import spakborhills.object.OBJ_Equipment;
 import spakborhills.object.OBJ_Item;
 
-public class NPC extends Entity{
+public class NPC extends Entity {
     public int maxHeartPoints = 150;
     public int currentHeartPoints = 0;
     public boolean isMarriageCandidate = false;
@@ -20,8 +21,6 @@ public class NPC extends Entity{
     public int actionLockInterval = 120;
     public int proposalDay = -1;
 
-
-    
     public List<String> lovedGiftsName = new ArrayList<>();
     public List<String> likedGiftsName = new ArrayList<>();
     public List<String> hatedItems = new ArrayList<>();
@@ -34,85 +33,102 @@ public class NPC extends Entity{
     public String marriageDialogue = "Ini hari terbahagia dalam hidupku. Aku akan menemanimu seumur hidupku. (Ceritanya nikah)";
     public String proposalRejectedDialogue_TooSoon = "Cepet banget.. besok aja ya?";
 
-    public NPC(GamePanel gp){
+    public NPC(GamePanel gp) {
         super(gp);
         type = EntityType.NPC;
         collision = true;
     }
+
     @Override
-    public void update(){
+    public void update() {
         super.update();
         setAction();
     }
 
     public void openInteractionMenu() {
-        
+
         facePlayer();
         gp.currentInteractingNPC = this;
-        gp.gameState = gp.interactionMenuState; 
-        gp.ui.npcMenuCommandNum = 0; 
+        gp.gameState = gp.interactionMenuState;
+        gp.ui.npcMenuCommandNum = 0;
     }
 
     public void chat() {
         facePlayer();
         if (dialogues.isEmpty()) {
-            gp.ui.currentDialogue = name + ": ..."; 
+            gp.ui.currentDialogue = name + ": ...";
         } else {
             if (dialogueIndex >= dialogues.size() || dialogueIndex < 0) {
-                dialogueIndex = 0; 
+                dialogueIndex = 0;
             }
             gp.ui.currentDialogue = dialogues.get(dialogueIndex);
             dialogueIndex++;
             if (dialogueIndex >= dialogues.size()) {
-                dialogueIndex = 0; 
+                dialogueIndex = 0;
             }
         }
         gp.player.tryDecreaseEnergy(10);
         gp.gameClock.getTime().advanceTime(10);
         addHeartPoints(10);
+
+        if (gp.player != null) {
+            gp.player.incrementChatFrequency(this.name);
+        }
+
         gp.gameState = gp.dialogueState;
     }
+
     public int getCurrentHeartPoints() {
         return currentHeartPoints;
     }
-    public void setCurrentHeartPoints(int currentHeartPoints){
+
+    public void setCurrentHeartPoints(int currentHeartPoints) {
         this.currentHeartPoints = currentHeartPoints;
-        if (this.currentHeartPoints > maxHeartPoints){
+        if (this.currentHeartPoints > maxHeartPoints) {
             this.currentHeartPoints = maxHeartPoints;
         }
     }
-    public void addHeartPoints(int heartPoints){
+
+    public void addHeartPoints(int heartPoints) {
         currentHeartPoints += heartPoints;
-        if (currentHeartPoints + heartPoints > maxHeartPoints){
+        if (currentHeartPoints + heartPoints > maxHeartPoints) {
             currentHeartPoints = maxHeartPoints;
+        } else if (currentHeartPoints - heartPoints < 0) {
+            currentHeartPoints = 0;
         }
     }
+
     public void receiveGift(Entity itemEntity, Player player) {
         System.out.println("[NPC.receiveGift] START for " + this.name + ". Item: "
-                + (itemEntity != null ? itemEntity.name : "null")); 
+                + (itemEntity != null ? itemEntity.name : "null"));
         facePlayer();
 
         if (hasReceivedGiftToday) {
-            System.out.println("[NPC.receiveGift] Already received gift today."); 
+            System.out.println("[NPC.receiveGift] Already received gift today.");
             gp.ui.currentDialogue = alreadyGiftedDialogue;
-            System.out.println("[NPC.receiveGift] Dialogue set to: " + gp.ui.currentDialogue); 
+            System.out.println("[NPC.receiveGift] Dialogue set to: " + gp.ui.currentDialogue);
             gp.gameState = gp.dialogueState;
-            System.out.println("[NPC.receiveGift] gameState set to dialogueState (already gifted)."); 
+            System.out.println("[NPC.receiveGift] gameState set to dialogueState (already gifted).");
             return;
         }
 
-        if (!(itemEntity instanceof OBJ_Item)) {
-            System.out.println("[NPC.receiveGift] Item is not OBJ_Item."); 
+        if (!(itemEntity instanceof OBJ_Item) || (itemEntity instanceof OBJ_Equipment)) {
+            if (itemEntity instanceof OBJ_Equipment) {
+                gp.ui.showMessage("Equipment tidak bisa di gift!");
+                System.out.println("[NPC.receiveGift] Item is an equipment!");
+                return;
+            }
+            System.out.println("[NPC.receiveGift] Item is not OBJ_Item.");
             gp.ui.currentDialogue = this.name + ": I'm not sure what this is.";
-            System.out.println("[NPC.receiveGift] Dialogue set to: " + gp.ui.currentDialogue); 
+            System.out.println("[NPC.receiveGift] Dialogue set to: " + gp.ui.currentDialogue);
             gp.gameState = gp.dialogueState;
-            System.out.println("[NPC.receiveGift] gameState set to dialogueState (not OBJ_Item)."); 
+            System.out.println("[NPC.receiveGift] gameState set to dialogueState (not OBJ_Item).");
             return;
         }
         OBJ_Item giftedItem = (OBJ_Item) itemEntity;
         String giftedItemBaseName = giftedItem.baseName;
         ItemType giftedItemType = giftedItem.getType();
-        System.out.println("[NPC.receiveGift] Processing gift: " + giftedItemBaseName + ", Type: " + giftedItemType); 
+        System.out.println("[NPC.receiveGift] Processing gift: " + giftedItemBaseName + ", Type: " + giftedItemType);
 
         boolean giftProcessedLogically = false;
 
@@ -120,7 +136,7 @@ public class NPC extends Entity{
             addHeartPoints(25);
             gp.ui.currentDialogue = this.name + ": Oh, seeds! I love these! Thank you so much! (HP: "
                     + this.currentHeartPoints + ")";
-            System.out.println("[NPC.receiveGift] Emily loved seeds. Dialogue: " + gp.ui.currentDialogue); 
+            System.out.println("[NPC.receiveGift] Emily loved seeds. Dialogue: " + gp.ui.currentDialogue);
             giftProcessedLogically = true;
         } else if (lovedGiftsName.contains(giftedItemBaseName)) {
             addHeartPoints(25);
@@ -128,27 +144,34 @@ public class NPC extends Entity{
                     ? "Wahh, buat aku? Makasih banyak yaa! Aku sangat suka ini! (HP: " + this.currentHeartPoints + ")"
                     : this.name + ": This is amazing! Thank you! (HP: " + this.currentHeartPoints + ")";
             gp.ui.currentDialogue = reaction;
-            System.out.println("[NPC.receiveGift] Loved gift. Dialogue: " + gp.ui.currentDialogue); 
+            System.out.println("[NPC.receiveGift] Loved gift. Dialogue: " + gp.ui.currentDialogue);
             giftProcessedLogically = true;
-        }
-        
-        else { 
+        } else if (hatedItems.contains(giftedItemBaseName)) {
+            addHeartPoints(-25);
+            String reaction = "Ummm... Aku sebenernya gak suka ini, tapi terima kasih yaa.";
+            gp.ui.currentDialogue = reaction;
+            giftProcessedLogically = true;
+        } else {
             addHeartPoints(0);
             gp.ui.currentDialogue = this.giftReactionDialogue + " (HP: " + this.currentHeartPoints + ")";
-            System.out.println("[NPC.receiveGift] Neutral gift. Dialogue: " + gp.ui.currentDialogue); 
-            giftProcessedLogically = true; 
+            System.out.println("[NPC.receiveGift] Neutral gift. Dialogue: " + gp.ui.currentDialogue);
+            giftProcessedLogically = true;
         }
 
-        if (giftProcessedLogically) { 
+        if (giftProcessedLogically) {
             this.hasReceivedGiftToday = true;
+
+            if (gp.player != null) {
+                gp.player.incrementGiftFrequency(this.name);
+            }
 
             giftedItem.quantity--;
             if (giftedItem.quantity <= 0) {
                 player.inventory.remove(giftedItem);
-                System.out.println("[NPC.receiveGift] Removed item from inventory: " + giftedItemBaseName); 
+                System.out.println("[NPC.receiveGift] Removed item from inventory: " + giftedItemBaseName);
             } else {
                 System.out.println("[NPC.receiveGift] Decremented quantity for: " + giftedItemBaseName + ", new qty: "
-                        + giftedItem.quantity); 
+                        + giftedItem.quantity);
             }
 
             if (gp.ui.inventoryCommandNum >= player.inventory.size() && !player.inventory.isEmpty()) {
@@ -160,12 +183,12 @@ public class NPC extends Entity{
             gp.gameClock.getTime().advanceTime(10);
             gp.player.tryDecreaseEnergy(5);
 
-            System.out.println("[NPC.receiveGift] FINAL DIALOGUE to be shown: " + gp.ui.currentDialogue); 
+            System.out.println("[NPC.receiveGift] FINAL DIALOGUE to be shown: " + gp.ui.currentDialogue);
             gp.gameState = gp.dialogueState;
-            System.out.println("[NPC.receiveGift] END. gameState set to dialogueState."); 
+            System.out.println("[NPC.receiveGift] END. gameState set to dialogueState.");
         } else {
             System.out.println(
-                    "[NPC.receiveGift] Gift was not logically processed (no preference match or other issue). No state change."); 
+                    "[NPC.receiveGift] Gift was not logically processed (no preference match or other issue). No state change.");
 
         }
     }
@@ -174,7 +197,7 @@ public class NPC extends Entity{
         facePlayer();
         if (!isMarriageCandidate) {
             return;
-        } else if (engaged || gp.player.isMarried()) { 
+        } else if (engaged || gp.player.isMarried()) {
             gp.ui.currentDialogue = alreadyMarriedDialogue;
         } else if (currentHeartPoints < 150) {
             gp.ui.currentDialogue = proposalRejectedDialogue_LowHearts + " (Current HP: " + currentHeartPoints + ")";
@@ -182,7 +205,7 @@ public class NPC extends Entity{
         } else {
             boolean hasProposalItem = false;
             for (Entity item : gp.player.inventory) {
-                if (item.name.equals("Proposal Ring misc")) { 
+                if (item.name.equals("Proposal Ring misc")) {
                     hasProposalItem = true;
                     break;
                 }
@@ -199,29 +222,30 @@ public class NPC extends Entity{
         }
         gp.gameState = gp.dialogueState;
     }
+
     public void getMarried() {
         facePlayer();
         if (!engaged) {
             gp.ui.currentDialogue = notEngagedDialogue;
-            gp.gameState = gp.dialogueState; 
+            gp.gameState = gp.dialogueState;
         } else if (marriedToPlayer || gp.player.isMarried()) {
             gp.ui.currentDialogue = alreadyMarriedDialogue;
             gp.gameState = gp.dialogueState;
-        } else if (gp.gameClock.getTime().getDay() <= this.proposalDay) { 
+        } else if (gp.gameClock.getTime().getDay() <= this.proposalDay) {
             gp.ui.currentDialogue = proposalRejectedDialogue_TooSoon;
             gp.gameState = gp.dialogueState;
         } else {
             this.marriedToPlayer = true;
-            this.engaged = false; 
+            this.engaged = false;
             gp.player.setMarried(true);
-            gp.player.partner = this; 
-            boolean energySpent = gp.player.tryDecreaseEnergy(80); 
-            gp.ui.currentDialogue = marriageDialogue;             
-            gp.player.justGotMarried = true; 
+            gp.player.partner = this;
+            gp.ui.currentDialogue = marriageDialogue;
+            gp.player.justGotMarried = true;
             gp.gameState = gp.dialogueState;
 
         }
     }
+
     public void facePlayer() {
         switch (gp.player.direction) {
             case "up":
@@ -238,23 +262,24 @@ public class NPC extends Entity{
                 break;
         }
     }
-        public void setAction(){
+
+    public void setAction() {
         actionLockCounter++;
-        if (actionLockCounter >= actionLockInterval) { 
+        if (actionLockCounter >= actionLockInterval) {
             Random random = new Random();
-            int i = random.nextInt(125) + 1; 
-            if (i <= 20) { 
-                
-            } else if (i <= 45) { 
+            int i = random.nextInt(125) + 1;
+            if (i <= 20) {
+
+            } else if (i <= 45) {
                 direction = "up";
-            } else if (i <= 70) { 
+            } else if (i <= 70) {
                 direction = "down";
-            } else if (i <= 95) { 
+            } else if (i <= 95) {
                 direction = "left";
-            } else { 
+            } else {
                 direction = "right";
             }
-            actionLockCounter = 0; 
+            actionLockCounter = 0;
         }
     }
 }

@@ -1,36 +1,41 @@
 
 package spakborhills;
 
-import spakborhills.enums.Season;
+import java.util.ArrayList;
+import java.util.List;
 
-public class GameClock extends Thread {
+import spakborhills.enums.Season;
+import spakborhills.interfaces.Observer;
+import spakborhills.interfaces.Observerable;
+
+public class GameClock extends Thread implements Runnable, Observerable {
     private final Time time;
     private final Weather weather;
     private Season currentSeason = Season.SPRING;
-    private volatile boolean running = true; 
-    private volatile boolean paused = false; 
-    private final Object pauseLock = new Object(); 
+    private volatile boolean running = true;
+    private volatile boolean paused = false;
+    private final Object pauseLock = new Object();
+    private List<Observer> observers = new ArrayList<>();
 
     public GameClock(Time time, Weather weather) {
         this.time = time;
         this.weather = weather;
-        
+
         if (this.time != null) {
             updateSeasonBasedOnDay(this.time.getDay());
         }
     }
 
-
     public void updateSeasonBasedOnDay(int currentDay) {
-        int index = ((currentDay - 1) / 10) % 4; 
+        int index = ((currentDay - 1) / 10) % 4;
         if (index < Season.values().length) {
             currentSeason = Season.values()[index];
         } else {
-            
+
             currentSeason = Season.SPRING;
             System.err.println("[GameClock] Warning: Season index out of bounds. Defaulting to SPRING.");
         }
-        
+
     }
 
     @Override
@@ -42,30 +47,36 @@ public class GameClock extends Thread {
                         try {
                             pauseLock.wait();
                         } catch (InterruptedException e) {
-                            if (!running) break;
+                            if (!running)
+                                break;
                             Thread.currentThread().interrupt();
                         }
                     }
                 }
 
-                if (!running) break;
+                if (!running)
+                    break;
 
-                Thread.sleep(1000); 
+                Thread.sleep(1000);
 
-                time.advanceTime(5); 
+                time.advanceTime(5);
+
+                notifyObservers("waktu_berjalan");
 
                 if (time.isNewDay()) {
-                    time.startNewDay(); 
-                    updateSeasonBasedOnDay(time.getDay()); 
+                    time.startNewDay();
+                    updateSeasonBasedOnDay(time.getDay());
+                    notifyObservers("ganti_hari");
 
                     if ((time.getDay() - 1) % 10 == 0) {
                         weather.resetRainyCount();
                     }
-                    weather.generateNewWeather(); 
+                    weather.generateNewWeather();
+                    notifyObservers(weather.getCurrentWeather());
                 }
             } catch (InterruptedException e) {
                 if (running) {
-                    
+
                 }
             } catch (Exception e) {
                 System.err.println("Error in GameClock run loop: " + e.getMessage());
@@ -79,44 +90,30 @@ public class GameClock extends Thread {
         return time;
     }
 
-    /**
-     * Menghentikan thread GameClock secara permanen.
-     */
     public void stopClock() {
         running = false;
-        
-        resumeTime(); 
-        this.interrupt(); 
+
+        resumeTime();
+        this.interrupt();
     }
 
-    /**
-     * Menjeda laju waktu game.
-     * GameClock akan berhenti memajukan waktu sampai resumeTime() dipanggil.
-     */
+
     public void pauseTime() {
         if (!paused) {
             paused = true;
-            
+
         }
     }
-
-    /**
-     * Melanjutkan laju waktu game setelah di-pause.
-     */
     public void resumeTime() {
         if (paused) {
             synchronized (pauseLock) {
                 paused = false;
-                pauseLock.notifyAll(); 
+                pauseLock.notifyAll();
             }
-            
+
         }
     }
 
-    /**
-     * Mengecek apakah GameClock sedang di-pause.
-     * @return true jika di-pause, false jika berjalan.
-     */
     public boolean isPaused() {
         return paused;
     }
@@ -129,7 +126,7 @@ public class GameClock extends Thread {
         if (time != null) {
             return time.getFormattedTime();
         }
-        return "00:00"; 
+        return "00:00";
     }
 
     public Weather getWeather() {
@@ -141,14 +138,12 @@ public class GameClock extends Thread {
         if (wasPaused) {
             resumeTime();
         }
-
         if (this.time != null) {
             this.time.resetToDefault();
-            updateSeasonBasedOnDay(this.time.getDay()); 
+            updateSeasonBasedOnDay(this.time.getDay());
         } else {
-            currentSeason = Season.SPRING; 
+            currentSeason = Season.SPRING;
         }
-
         if (this.weather != null) {
             this.weather.resetToDefault();
         }
@@ -158,7 +153,24 @@ public class GameClock extends Thread {
         if (weather != null) {
             return spakborhills.enums.Weather.valueOf(weather.getCurrentWeather().name());
         }
-        
+
         return spakborhills.enums.Weather.SUNNY;
+    }
+
+    @Override
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(Object event) {
+        for (Observer observer : observers) {
+            observer.update(event);
+        }
     }
 }

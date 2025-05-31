@@ -1,10 +1,8 @@
 package spakborhills.Tile;
 
-import spakborhills.GamePanel;
-import spakborhills.MapInfo;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +10,14 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class TileManager {
+import javax.imageio.ImageIO;
+
+import spakborhills.GamePanel;
+import spakborhills.MapInfo;
+import spakborhills.Weather;
+import spakborhills.interfaces.Observer;
+
+public class TileManager implements Observer {
     GamePanel gp;
     public Tile[] tile;
     public int[][] mapTileNum;
@@ -130,7 +135,6 @@ public class TileManager {
         } else if (mapNameOriginal.equalsIgnoreCase("Player's House")) { 
             this.currentMapAssetFolder = "player_house";
         } else {
-            
             String processedName = mapNameOriginal.toLowerCase()
                     .replaceAll("'s", "") 
                     .replace(" ", "_") 
@@ -139,7 +143,6 @@ public class TileManager {
             System.out.println("[TileManager.loadMap] Using generically derived asset folder for '" + mapNameOriginal
                     + "': [" + this.currentMapAssetFolder + "]");
         }
-
         if (this.currentMapAssetFolder == null) { 
             System.err
                     .println("[TileManager.loadMap] CRITICAL: currentMapAssetFolder is NULL after derivation for map: "
@@ -354,6 +357,44 @@ public class TileManager {
                         g2.drawString(tn, screenX + 2, screenY + 10); 
                     }
                 }
+            }
+        }
+    }
+
+    @Override
+    public void update(Object event) {
+        if (event instanceof Weather.WeatherType) {
+            Weather.WeatherType newWeather = (Weather.WeatherType) event;
+            Weather.WeatherType currentWeather = null;
+            if (newWeather != currentWeather) {
+                currentWeather = newWeather;
+                System.out.println("[TileManager] Cuaca berubah.");
+                for (int col = 0; col < gp.maxWorldCol; col++) {
+                    for (int row = 0; row < gp.maxWorldRow; row++) {
+                        int tileNum = mapTileNum[col][row];
+                        switch (tileNum) {
+                            case 76: 
+                                if (currentWeather == Weather.WeatherType.RAINY) {
+                                    mapTileNum[col][row] = 80; 
+                                } else {
+                                    mapTileNum[col][row] = 76; 
+                                }
+                                break;
+                            case 55: 
+                                if (currentWeather == Weather.WeatherType.RAINY) {
+                                    mapTileNum[col][row] = 80; 
+                                } else {
+                                    mapTileNum[col][row] = 55; 
+                                }
+                                break;
+                            case 14: 
+                                
+                                break;
+                            
+                        }
+                    }
+                }
+                gp.tileManager.loadMap(gp.mapInfos.get(gp.currentMapIndex));
             }
         }
     }
