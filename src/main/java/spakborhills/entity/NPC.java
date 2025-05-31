@@ -93,8 +93,7 @@ public class NPC extends Entity {
         currentHeartPoints += heartPoints;
         if (currentHeartPoints + heartPoints > maxHeartPoints) {
             currentHeartPoints = maxHeartPoints;
-        }
-        else if (currentHeartPoints - heartPoints < 0){
+        } else if (currentHeartPoints - heartPoints < 0) {
             currentHeartPoints = 0;
         }
     }
@@ -147,13 +146,12 @@ public class NPC extends Entity {
             gp.ui.currentDialogue = reaction;
             System.out.println("[NPC.receiveGift] Loved gift. Dialogue: " + gp.ui.currentDialogue);
             giftProcessedLogically = true;
-        } else if (hatedItems.contains(giftedItemBaseName)){
+        } else if (hatedItems.contains(giftedItemBaseName)) {
             addHeartPoints(-25);
             String reaction = "Ummm... Aku sebenernya gak suka ini, tapi terima kasih yaa.";
             gp.ui.currentDialogue = reaction;
             giftProcessedLogically = true;
-        }
-        else {
+        } else {
             addHeartPoints(0);
             gp.ui.currentDialogue = this.giftReactionDialogue + " (HP: " + this.currentHeartPoints + ")";
             System.out.println("[NPC.receiveGift] Neutral gift. Dialogue: " + gp.ui.currentDialogue);
@@ -166,7 +164,7 @@ public class NPC extends Entity {
             if (gp.player != null) {
                 gp.player.incrementGiftFrequency(this.name);
             }
-            
+
             giftedItem.quantity--;
             if (giftedItem.quantity <= 0) {
                 player.inventory.remove(giftedItem);

@@ -5,9 +5,8 @@ import spakborhills.enums.EntityType;
 
 import java.util.Collections;
 
-
-public class NPC_ABIGAIL extends NPC{
-    public NPC_ABIGAIL(GamePanel gp){
+public class NPC_ABIGAIL extends NPC {
+    public NPC_ABIGAIL(GamePanel gp) {
         super(gp);
         direction = "down";
         speed = 1;
@@ -23,7 +22,8 @@ public class NPC_ABIGAIL extends NPC{
         setDialogue();
         getNPCImage();
     }
-    public void getNPCImage(){
+
+    public void getNPCImage() {
         up1 = setup("/npc/Abigail/Abigail_W1");
         up2 = setup("/npc/Abigail/Abigail_W2");
         down1 = setup("/npc/Abigail/Abigail_S1");
@@ -33,7 +33,8 @@ public class NPC_ABIGAIL extends NPC{
         right1 = setup("/npc/Abigail/Abigail_D1");
         right2 = setup("/npc/Abigail/Abigail_D2");
     }
-    public void setDialogue(){
+
+    public void setDialogue() {
         dialogues.add("Haii aku Abigail! Salam kenal yaa!");
     }
 }

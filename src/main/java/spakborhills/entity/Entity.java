@@ -19,32 +19,30 @@ import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
 import spakborhills.object.OBJ_Item;
 
+public abstract class Entity {
+    public GamePanel gp;
+    public int worldX, worldY;
+    public int speed;
+    public BufferedImage image;
+    public String name;
+    public boolean collision = false;
+    public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2;
+    public String direction = "down";
+    public int spriteCounter = 0;
+    public int spriteNum = 1;
+    public Rectangle solidArea;
+    public int solidAreaDefaultX, solidAreaDefaultY;
+    public boolean collisionON = false;
+    public ArrayList<String> dialogues = new ArrayList<>();
+    public int dialogueIndex = 0;
+    public EntityType type;
+    public String marriageDialogue;
+    protected Season currentSeason;
+    protected int currentHour;
+    protected Weather currentWeather;
 
-
-    public abstract class Entity {
-        public GamePanel gp;
-        public int worldX, worldY;
-        public int speed;
-        public BufferedImage image;
-        public String name;
-        public boolean collision = false;
-        public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2;
-        public String direction = "down";
-        public int spriteCounter = 0;
-        public int spriteNum = 1;
-        public Rectangle solidArea;
-        public int solidAreaDefaultX, solidAreaDefaultY;
-        public boolean collisionON = false;
-        public ArrayList<String> dialogues = new ArrayList<>();
-        public int dialogueIndex = 0;
-        public EntityType type;
-        public String marriageDialogue;
-        protected Season currentSeason;
-        protected int currentHour;
-        protected Weather currentWeather;
-
-        public Map<String, OBJ_Item> shippingBinTypes = new HashMap<>();
-        public int maxBinTypes = 16;
+    public Map<String, OBJ_Item> shippingBinTypes = new HashMap<>();
+    public int maxBinTypes = 16;
 
     public int imageWidth;
     public int imageHeight;
@@ -62,9 +60,7 @@ import spakborhills.object.OBJ_Item;
             InputStream is = getClass().getResourceAsStream(imagePath + ".png");
             if (is == null) {
                 System.err.println("Error in Entity.setup: Could not find image resource: " + imagePath + ".png");
-                
-                
-                
+
                 if (imagePath.startsWith("/objects/")) {
                     InputStream fallbackIs = getClass().getResourceAsStream("/objects/unknown_item.png");
                     if (fallbackIs != null) {

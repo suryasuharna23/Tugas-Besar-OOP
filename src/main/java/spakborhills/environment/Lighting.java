@@ -12,6 +12,7 @@ public class Lighting {
     GamePanel gp;
     BufferedImage darkFilter;
     int effectRadius;
+
     public Lighting(GamePanel gp, int radius) {
         this.gp = gp;
         this.effectRadius = radius;
@@ -31,15 +32,14 @@ public class Lighting {
         float centerAlpha = Math.max(0f, baseAlpha * (1.0f - centerAlphaFactor));
         Color centerColor = new Color(0, 0, 0, Math.min(1.0f, Math.max(0f, centerAlpha)));
 
-        
         Point2D center = new Point2D.Float(gp.player.screenX + (gp.tileSize / 2.0f),
                 gp.player.screenY + (gp.tileSize / 2.0f));
         float radius = this.effectRadius;
-        float[] dist = {0.0f, 1.0f};
-        Color[] colors = {centerColor, outerColor};
+        float[] dist = { 0.0f, 1.0f };
+        Color[] colors = { centerColor, outerColor };
 
         if (baseAlpha < 0.05f) {
-            g2.setColor(new Color(0,0,0,0));
+            g2.setColor(new Color(0, 0, 0, 0));
         } else {
             RadialGradientPaint rgp = new RadialGradientPaint(center, radius, dist, colors);
             g2.setPaint(rgp);
