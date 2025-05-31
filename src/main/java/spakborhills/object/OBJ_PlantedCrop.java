@@ -11,6 +11,7 @@ import spakborhills.entity.Entity;
 import spakborhills.entity.Player;
 import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
+import spakborhills.enums.Season;
 import spakborhills.interfaces.Harvestable;
 
 public class OBJ_PlantedCrop extends Entity implements Harvestable {
@@ -175,11 +176,6 @@ public class OBJ_PlantedCrop extends Entity implements Harvestable {
         return 2;
     }
 
-    /**
-     * Memproses pertumbuhan tanaman berdasarkan status penyiraman dari hari yang
-     * telah selesai.
-     * Dipanggil di akhir hari (dalam siklus `growAllCrops`).
-     */
     public void processGrowthForCompletedDay() {
         if (grewToday) {
             System.out.println("DEBUG: " + cropType + " already grew today, skipping");
@@ -189,6 +185,14 @@ public class OBJ_PlantedCrop extends Entity implements Harvestable {
         if (currentGrowthDays >= daysToGrow) {
             System.out.println("DEBUG: " + cropType + " is already fully grown");
             return;
+        }
+
+        if (gp.gameClock != null) {
+            Season currentSeason = gp.gameClock.getCurrentSeason();
+            if (currentSeason == Season.WINTER) {
+                System.out.println("Tidak bisa tumbuh karena WINTER");
+                return;
+            }
         }
 
         if (this.isWatered) {
@@ -202,14 +206,6 @@ public class OBJ_PlantedCrop extends Entity implements Harvestable {
         }
     }
 
-    /**
-     * Menyiapkan tanaman untuk hari baru. Mereset flag harian dan mengatur status
-     * siram berdasarkan hujan.
-     * Dipanggil di akhir hari (dalam siklus `growAllCrops`) setelah
-     * `processGrowthForCompletedDay`.
-     * 
-     * @param isRainingForNewDay True jika HARI BARU akan hujan.
-     */
     public void resetForNewDay(boolean isRainingForNewDay) {
 
         grewToday = false;
@@ -406,6 +402,15 @@ public class OBJ_PlantedCrop extends Entity implements Harvestable {
         } else {
             int daysLeft = getDaysUntilHarvest();
             String wateredStatusMsg;
+ 
+            String winterStatusMsg = "";
+            if (gp.gameClock != null) {
+                Season currentSeason = gp.gameClock.getCurrentSeason();
+                if (currentSeason == Season.WINTER) {
+                    winterStatusMsg = "(Tidak bisa tumbuh karena sekarang Winter)";
+                }
+            }
+            
             if (isWatered) {
                 wateredStatusMsg = " (Sudah disiram hari ini)";
             } else {

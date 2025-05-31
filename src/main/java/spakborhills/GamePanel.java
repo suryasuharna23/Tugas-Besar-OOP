@@ -727,7 +727,12 @@ public class GamePanel extends JPanel implements Runnable {
         }
         System.out.println("[GamePanel] Performing daily resets for Day " + gameClock.getTime().getDay() + "...");
         processShippingBin();
-        growAllCrops();
+
+        if (gameClock != null && gameClock.getCurrentSeason() == Season.WINTER) {
+            System.out.println("[GamePanel] WINTER - Tidak bisa tumbuh");
+        } else {
+            growAllCrops();
+        }
 
         for (NPC npc : npcs) {
             if (npc != null) {
@@ -880,6 +885,16 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void growAllCrops() {
         System.out.println("[GamePanel] ======= PROCESSING END OF DAY GROWTH & PREPARING CROPS FOR NEW DAY =======");
+
+        Season currentSeason = null;
+        if (gameClock != null) {
+            currentSeason = gameClock.getCurrentSeason();
+            if (currentSeason == Season.WINTER) {
+                System.out.println("[GamePanel] ❄️ WINTER SEASON - All crop growth PAUSED");
+                System.out.println("[GamePanel] ======================= WINTER MODE ACTIVE ========================");
+                return; // STOP SEMUA PERTUMBUHAN
+            }
+        }
 
         boolean isRainingForNewDay = false;
         if (gameClock != null && gameClock.getWeather() != null) {

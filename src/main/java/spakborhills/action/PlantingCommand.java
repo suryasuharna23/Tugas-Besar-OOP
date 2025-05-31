@@ -27,6 +27,12 @@ public class PlantingCommand implements Command {
         OBJ_Seed seed = (OBJ_Seed) equipped;
 
         Season currentSeason = gp.gameClock.getCurrentSeason();
+
+        if (currentSeason == Season.WINTER) {
+            gp.ui.showMessage("Tidak bisa menanam apapun di musim Winter!");
+            return;
+        }
+        
         if (seed.getSeason() != currentSeason) {
             gp.ui.showMessage("Seed ini hanya bisa ditanam di musim " + seed.getSeason() + ".");
             return;

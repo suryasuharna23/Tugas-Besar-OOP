@@ -193,8 +193,6 @@ public class KeyHandler implements KeyListener {
                 gp.gameState = gp.pauseState;
                 if (gp.gameClock != null)
                     gp.gameClock.pauseTime();
-            } else if (code == KeyEvent.VK_C) {
-                System.out.println("[KeyHandler] Collision debugging toggled");
             } else if (code == KeyEvent.VK_ENTER) {
                 enterPressed = true;
             } else if (code == KeyEvent.VK_M) {
