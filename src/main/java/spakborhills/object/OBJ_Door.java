@@ -43,7 +43,7 @@ public class OBJ_Door extends Entity {
         }
 
         if (farmIndex != -1) {
-            gp.ui.showMessage("Leaving house...");
+            gp.ui.showMessage("Keluar rumah...");
 
             
             gp.loadMapbyIndex(farmIndex);
@@ -61,7 +61,7 @@ public class OBJ_Door extends Entity {
             System.out.println("[OBJ_Door] Player teleported to Farm at (" + exitX + "," + exitY + ")");
         } else {
             System.err.println("[OBJ_Door] ERROR: Farm map not found!");
-            gp.ui.showMessage("Can't leave house right now.");
+            gp.ui.showMessage("Tidak bisa ke luar rumah sekarang.");
         }
     }
 }

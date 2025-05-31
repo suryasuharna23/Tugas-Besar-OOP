@@ -1210,12 +1210,10 @@ public class UI {
         int totalStacks = gp.player.itemsInShippingBinToday.size();
         int estimatedValue = 0;
 
-        for (Entity binEntity : gp.player.itemsInShippingBinToday) {
-            if (binEntity instanceof OBJ_Item) {
-                OBJ_Item binItem = (OBJ_Item) binEntity;
-                totalItemsInBin += binItem.quantity;
-                estimatedValue += binItem.getSellPrice() * binItem.quantity;
-            }
+        for (Map.Entry<String, OBJ_Item> entry : gp.player.shippingBinTypes.entrySet()) {
+            OBJ_Item binItem = entry.getValue();
+            totalItemsInBin += binItem.quantity;
+            estimatedValue += binItem.getSellPrice() * binItem.quantity;
         }
 
         g2.setFont(bodyFont);
@@ -1239,41 +1237,43 @@ public class UI {
         currentY += statusBarHeight + SECTION_SPACING;
 
         int binPreviewHeight = 0;
-        if (!gp.player.itemsInShippingBinToday.isEmpty()) {
-            g2.setFont(headerFont);
-            g2.setColor(new Color(200, 200, 220));
-            g2.drawString("Bin Contents:", frameX + TEXT_PADDING, currentY + g2.getFontMetrics().getAscent());
-            currentY += g2.getFontMetrics().getHeight() + 8;
+ if (!gp.player.shippingBinTypes.isEmpty()) {
+    g2.setFont(headerFont);
+    g2.setColor(new Color(200, 200, 220));
+    g2.drawString("Bin Contents:", frameX + TEXT_PADDING, currentY + g2.getFontMetrics().getAscent());
+    currentY += g2.getFontMetrics().getHeight() + 8;
 
-            g2.setColor(new Color(30, 30, 40, 160));
-            binPreviewHeight = Math.min(120, totalStacks * 18 + TEXT_PADDING);
-            g2.fillRoundRect(frameX + TEXT_PADDING, currentY, frameWidth - (TEXT_PADDING * 2), binPreviewHeight, 6, 6);
-            g2.setColor(new Color(80, 80, 100, 120));
-            g2.drawRoundRect(frameX + TEXT_PADDING, currentY, frameWidth - (TEXT_PADDING * 2), binPreviewHeight, 6, 6);
+    g2.setColor(new Color(30, 30, 40, 160));
+    binPreviewHeight = Math.min(120, totalStacks * 18 + TEXT_PADDING);
+    g2.fillRoundRect(frameX + TEXT_PADDING, currentY, frameWidth - (TEXT_PADDING * 2), binPreviewHeight, 6, 6);
+    g2.setColor(new Color(80, 80, 100, 120));
+    g2.drawRoundRect(frameX + TEXT_PADDING, currentY, frameWidth - (TEXT_PADDING * 2), binPreviewHeight, 6, 6);
 
-            g2.setFont(smallFont);
-            g2.setColor(Color.LIGHT_GRAY);
-            int itemListY = currentY + TEXT_PADDING + g2.getFontMetrics().getAscent();
-            int maxItemsToShow = Math.min(6, totalStacks);
+    g2.setFont(smallFont);
+    g2.setColor(Color.LIGHT_GRAY);
+    int itemListY = currentY + TEXT_PADDING + g2.getFontMetrics().getAscent();
+    int maxItemsToShow = Math.min(6, totalStacks);
 
-            for (int i = 0; i < maxItemsToShow; i++) {
-                Entity binEntity = gp.player.itemsInShippingBinToday.get(i);
-                if (binEntity instanceof OBJ_Item) {
-                    OBJ_Item binItem = (OBJ_Item) binEntity;
-                    String itemText = "• " + binItem.name + " x" + binItem.quantity +
-                            " (" + (binItem.getSellPrice() * binItem.quantity) + "G)";
-                    g2.drawString(itemText, frameX + TEXT_PADDING * 2, itemListY);
-                    itemListY += 16;
-                }
-            }
+    int index = 0;
+    for (Map.Entry<String, OBJ_Item> entry : gp.player.shippingBinTypes.entrySet()) {
+        if (index >= maxItemsToShow) break;
+        
+        String itemName = entry.getKey();
+        OBJ_Item binItem = entry.getValue();
+        String itemText = "• " + itemName + " x" + binItem.quantity +
+                " (" + (binItem.getSellPrice() * binItem.quantity) + "G)";
+        g2.drawString(itemText, frameX + TEXT_PADDING * 2, itemListY);
+        itemListY += 16;
+        index++;
+    }
 
-            if (totalStacks > maxItemsToShow) {
-                g2.setColor(new Color(150, 150, 150));
-                g2.drawString("... and " + (totalStacks - maxItemsToShow) + " more items",
-                        frameX + TEXT_PADDING * 2, itemListY);
-            }
+    if (totalStacks > maxItemsToShow) {
+        g2.setColor(new Color(150, 150, 150));
+        g2.drawString("... and " + (totalStacks - maxItemsToShow) + " more types",
+                frameX + TEXT_PADDING * 2, itemListY);
+    }
 
-            currentY += binPreviewHeight + SECTION_SPACING;
+    currentY += binPreviewHeight + SECTION_SPACING;
         }
 
         g2.setFont(headerFont);

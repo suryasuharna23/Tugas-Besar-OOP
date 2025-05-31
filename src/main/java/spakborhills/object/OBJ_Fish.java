@@ -1,13 +1,14 @@
 package spakborhills.object;
 
 import java.util.List;
+
 import spakborhills.GamePanel;
 import spakborhills.entity.Player; 
 import spakborhills.enums.EntityType;
+import spakborhills.enums.FishType;
 import spakborhills.enums.ItemType;
 import spakborhills.enums.Season;
 import spakborhills.enums.Weather;
-import spakborhills.enums.FishType;
 import spakborhills.interfaces.Edible;
 
 public class OBJ_Fish extends OBJ_Item implements Edible {
@@ -106,12 +107,12 @@ public class OBJ_Fish extends OBJ_Item implements Edible {
     @Override
     public void eat(Player player) {
         if (player.gp.ui != null) {
-            player.gp.ui.showMessage("You ate " + this.name + ". Energy +" + this.energyRestored);
+            player.gp.ui.showMessage("Kamu makan " + this.name + ". Energy +" + this.energyRestored);
         }
         player.increaseEnergy(this.energyRestored);
 
         if (player.gp.gameClock != null && player.gp.gameClock.getTime() != null) {
-            player.gp.gameClock.getTime().advanceTime(-5);
+            player.gp.gameClock.getTime().advanceTime(5);
         }
 
         player.consumeItemFromInventory(this);

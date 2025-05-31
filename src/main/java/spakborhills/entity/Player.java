@@ -83,6 +83,7 @@ public class Player extends Entity implements Observer {
     private boolean married = false;
 
     public int MAX_POSSIBLE_ENERGY = 100;
+    public int MAX_SHIPPING_BIN_TYPES = 16;
     public static final int MIN_ENERGY_THRESHOLD = -20;
     public static final int LOW_ENERGY_PENALTY_THRESHOLD_PERCENT = 10;
     public static final int ENERGY_REFILL_AT_ZERO = 10;
@@ -190,6 +191,14 @@ public class Player extends Entity implements Observer {
                     Weather.RAINY));
         }
 
+        itemsInShippingBinToday.clear();
+        if (shippingBinTypes == null) {
+            shippingBinTypes = new HashMap<>();
+        }
+        shippingBinTypes.clear();
+        hasUsedShippingBinToday = false;
+        goldFromShipping = 0;
+
     }
 
     private void initializeRecipeStatus() {
@@ -232,7 +241,7 @@ public class Player extends Entity implements Observer {
                 if (unlocked) {
                     recipeUnlockStatus.put(recipe.recipeId, true);
                     if (gp.ui != null) {
-                        gp.ui.showMessage("New Recipe Unlocked: " + recipe.outputFoodName + "!");
+                        gp.ui.showMessage("Resep behasil didapat: " + recipe.outputFoodName + "!");
                     }
                 }
             }
@@ -252,9 +261,9 @@ public class Player extends Entity implements Observer {
             return true;
 
         if (currentEnergy <= MIN_ENERGY_THRESHOLD) {
-            gp.ui.showMessage("You're completely exhausted and can't do anything else!");
+            gp.ui.showMessage("Kamu terlalu lelah, tidak bisa melakukan apapun!");
             if (!isCurrentlySleeping) {
-                sleep("You tried to work while utterly exhausted and passed out again!");
+                sleep("Kamu mencoba bekerja saat sedang lelah, kamu ketiduran lagi!");
             }
             return false;
         }
@@ -263,8 +272,8 @@ public class Player extends Entity implements Observer {
 
         if (currentEnergy <= MIN_ENERGY_THRESHOLD) {
             currentEnergy = MIN_ENERGY_THRESHOLD;
-            gp.ui.showMessage("You've collapsed from exhaustion!");
-            sleep("You collapsed from sheer exhaustion!");
+            gp.ui.showMessage("Kamu ketiduran karena terlalu lelah!");
+            sleep("Kamu ketiduran karena terlalu lelah!");
             return true;
         }
         return true;
@@ -382,11 +391,11 @@ public class Player extends Entity implements Observer {
                         eatAction.execute(gp);
                     } else {
                         if (gp.ui != null)
-                            gp.ui.showMessage(equippedItem.name + " is not edible.");
+                            gp.ui.showMessage(equippedItem.name + " tidak dedible.");
                     }
                 } else {
                     if (gp.ui != null)
-                        gp.ui.showMessage("Nothing held to eat.");
+                        gp.ui.showMessage("Belum memegang makanan.");
                 }
                 this.keyH.eatPressed = false;
             }
@@ -401,7 +410,7 @@ public class Player extends Entity implements Observer {
         }
 
         if (gp.gameClock != null) {
-            // System.out.println("Game Time: " + gp.gameClock.getFormattedTime());
+            
         }
     }
 
@@ -427,9 +436,9 @@ public class Player extends Entity implements Observer {
 
                         addItemToInventory(FoodRegistry.createFood(gp, process.foodNameToProduce));
                     }
-                    gp.ui.showMessage(process.foodNameToProduce + " is ready!");
+                    gp.ui.showMessage(process.foodNameToProduce + " sudah siap!");
                 } else {
-                    gp.ui.showMessage("Error creating " + process.foodNameToProduce + " after cooking.");
+                    gp.ui.showMessage("Error membuat " + process.foodNameToProduce + " setelah masak.");
                 }
                 iterator.remove();
             }
@@ -528,7 +537,7 @@ public class Player extends Entity implements Observer {
                 return true;
             } else {
                 if (gp.ui != null)
-                    gp.ui.showMessage("Inventaris penuh!");
+                    gp.ui.showMessage("Inventory penuh!");
                 return false;
             }
         }
@@ -1281,5 +1290,87 @@ public class Player extends Entity implements Observer {
 
     public void setGender(Gender gender) {
         this.gender = gender;
+    }
+
+    public OBJ_Item createShippingBinItem(OBJ_Item original) {
+        OBJ_Item newItem = null;
+        
+        if (original instanceof spakborhills.object.OBJ_Crop) {
+            spakborhills.object.OBJ_Crop originalCrop = (spakborhills.object.OBJ_Crop) original;
+            newItem = new spakborhills.object.OBJ_Crop(gp, originalCrop.getType(), 
+                                                originalCrop.baseName, originalCrop.isEdible(),
+                                                originalCrop.getBuyPrice(), originalCrop.getSellPrice(),
+                                                originalCrop.getHarvestAmount(), originalCrop.getEnergy());
+        } else if (original instanceof spakborhills.object.OBJ_Fish) {
+            spakborhills.object.OBJ_Fish originalFish = (spakborhills.object.OBJ_Fish) original;
+            newItem = new spakborhills.object.OBJ_Fish(gp, originalFish.getType(), originalFish.getFishName(),
+                                                originalFish.isEdible(), originalFish.getSellPrice(),
+                                                originalFish.getSeasons(), originalFish.getWeathers(),
+                                                originalFish.getLocations(), originalFish.getFishType(),
+                                                originalFish.getStartHour(), originalFish.getEndHour());
+        } else {
+            
+            newItem = new OBJ_Item(gp, original.getType(), original.name, original.isEdible(),
+                            original.getBuyPrice(), original.getSellPrice(), 1); 
+        }
+        
+        
+        if (newItem != null) {
+            newItem.quantity = original.quantity;
+        }
+        
+        return newItem;
+    }
+
+    public boolean addItemToShippingBin(OBJ_Item itemToAdd) {
+        if (itemToAdd == null) {
+            gp.ui.showMessage("Invalid item!");
+            return false;
+        }
+        
+        String itemKey = itemToAdd.name; 
+        
+        
+        if (shippingBinTypes.containsKey(itemKey)) {
+            
+            OBJ_Item existingItem = shippingBinTypes.get(itemKey);
+            existingItem.quantity += itemToAdd.quantity;
+            
+            
+            for (Entity entity : itemsInShippingBinToday) {
+                if (entity instanceof OBJ_Item && ((OBJ_Item) entity).name.equals(itemKey)) {
+                    ((OBJ_Item) entity).quantity = existingItem.quantity;
+                    break;
+                }
+            }
+            
+            gp.ui.showMessage("Menambahkan " + itemToAdd.quantity + " " + itemToAdd.name + " ke shipping bin!");
+            System.out.println("[Player] Added to existing type: " + itemKey + ", New quantity: " + existingItem.quantity);
+            return true;
+            
+        } else {
+            
+            if (shippingBinTypes.size() >= MAX_SHIPPING_BIN_TYPES) { 
+                gp.ui.showMessage("Shipping bin penuh! Maximum " + MAX_SHIPPING_BIN_TYPES + " jenis item.");
+                return false;
+            }
+            
+            
+            OBJ_Item newShippingItem = createShippingBinItem(itemToAdd);
+            shippingBinTypes.put(itemKey, newShippingItem);
+            itemsInShippingBinToday.add(newShippingItem); 
+            
+            gp.ui.showMessage("Menambahkan " + itemToAdd.name + " ke shipping bin! (" + 
+                            shippingBinTypes.size() + "/" + MAX_SHIPPING_BIN_TYPES + " jenis)"); 
+            System.out.println("[Player] Added new type: " + itemKey + ", Types in bin: " + shippingBinTypes.size());
+            return true;
+        }
+    }
+
+    public void clearShippingBin() {
+        shippingBinTypes.clear();
+        itemsInShippingBinToday.clear();
+        hasUsedShippingBinToday = false;
+        System.out.println("[Player] Shipping bin cleared for new day");
     }
 }

@@ -1,12 +1,12 @@
 package spakborhills.action;
 
 import spakborhills.GamePanel;
+import spakborhills.entity.Entity;
 import spakborhills.entity.Player;
 import spakborhills.enums.Season;
 import spakborhills.enums.TileState;
-import spakborhills.object.OBJ_Seed;
 import spakborhills.object.OBJ_PlantedCrop;
-import spakborhills.entity.Entity;
+import spakborhills.object.OBJ_Seed;
 
 public class PlantingCommand implements Command {
     private final Player player;
@@ -20,7 +20,7 @@ public class PlantingCommand implements Command {
         Entity equipped = player.getEquippedItem();
 
         if (!(equipped instanceof OBJ_Seed)) {
-            gp.ui.showMessage("You need to hold seeds to plant.");
+            gp.ui.showMessage("Kamu harus equip seed dulu.");
             return;
         }
 
@@ -28,7 +28,7 @@ public class PlantingCommand implements Command {
 
         Season currentSeason = gp.gameClock.getCurrentSeason();
         if (seed.getSeason() != currentSeason) {
-            gp.ui.showMessage("These seeds can only be planted in " + seed.getSeason() + ".");
+            gp.ui.showMessage("Seed ini hanya bisa ditanam di musim " + seed.getSeason() + ".");
             return;
         }
 
@@ -44,7 +44,7 @@ public class PlantingCommand implements Command {
         }
 
         if (playerCol < 0 || playerCol >= gp.maxWorldCol || playerRow < 0 || playerRow >= gp.maxWorldRow) {
-            gp.ui.showMessage("Cannot plant outside map boundaries.");
+            gp.ui.showMessage("Tidak bisa ditanam di luar batas map");
             return;
         }
 
@@ -53,13 +53,13 @@ public class PlantingCommand implements Command {
         if (tileIndex == getTileIndexFromState(TileState.SOIL)) {
 
             if (isLocationOccupied(gp, playerCol * tileSize, playerRow * tileSize)) {
-                gp.ui.showMessage("Something is already planted here!");
+                gp.ui.showMessage("Sudah ada tanaman di sini!");
                 return;
             }
 
             boolean success = player.tryDecreaseEnergy(5);
             if (!success) {
-                gp.ui.showMessage("Too tired to plant!");
+                gp.ui.showMessage("Lelah sekali! Tidak bisa planting");
                 return;
             }
 
@@ -71,15 +71,15 @@ public class PlantingCommand implements Command {
             OBJ_PlantedCrop plantedCrop = new OBJ_PlantedCrop(gp, cropType, worldX, worldY);
             gp.entities.add(plantedCrop);
 
-            gp.gameClock.getTime().advanceTime(-5);
+            gp.gameClock.getTime().advanceTime(5);
 
-            gp.ui.showMessage("Planted " + cropType + " seeds!");
+            gp.ui.showMessage("Berhasil menanam " + cropType + " seeds!");
             System.out.println("DEBUG: Planted " + cropType + " at tile (" + playerCol + "," + playerRow + ")");
 
             player.consumeItemFromInventory(seed);
 
         } else {
-            gp.ui.showMessage("This tile cannot be planted (need tilled soil).");
+            gp.ui.showMessage("Tile ini tidak bisa ditanam (perlu tilled soil).");
             System.out.println(
                     "DEBUG: Tile index " + tileIndex + " is not SOIL (" + getTileIndexFromState(TileState.SOIL) + ")");
         }

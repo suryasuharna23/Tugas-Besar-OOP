@@ -1,8 +1,9 @@
 package spakborhills.action;
 
 import spakborhills.GamePanel;
+import spakborhills.entity.Entity;
+import spakborhills.entity.Player;
 import spakborhills.object.OBJ_PlantedCrop;
-import spakborhills.entity.*;
 
 public class WateringCommand implements Command {
     private final Player player;
@@ -29,12 +30,12 @@ public class WateringCommand implements Command {
         }
 
         if (!player.isHoldingTool("Watering Can equipment")) {
-            gp.ui.showMessage("You need to hold a Watering Can.");
+            gp.ui.showMessage("Kamu harus memegang Watering Can.");
             return;
         }
 
         if (targetCol < 0 || targetCol >= gp.maxWorldCol || targetRow < 0 || targetRow >= gp.maxWorldRow) {
-            gp.ui.showMessage("Cannot water outside map boundaries.");
+            gp.ui.showMessage("Tidak bisa watering di luar batas map");
             return;
         }
 
@@ -64,42 +65,42 @@ public class WateringCommand implements Command {
             System.out.println("DEBUG WateringCommand: Found crop " + cropToWater.getCropType() + " at target. Ready: "
                     + cropToWater.isReadyToHarvest() + ", Watered: " + cropToWater.isWatered());
             if (cropToWater.isReadyToHarvest()) {
-                gp.ui.showMessage(cropToWater.getCropType() + " is ready to harvest, no need to water.");
+                gp.ui.showMessage(cropToWater.getCropType() + " sudah siap dipanen. Tidak perlu air lagi.");
                 return;
             }
             if (cropToWater.isWatered()) {
-                gp.ui.showMessage(cropToWater.getCropType() + " is already watered today!");
+                gp.ui.showMessage(cropToWater.getCropType() + " sudah diairi hari ini");
                 return;
             }
 
-            boolean success = player.tryDecreaseEnergy(2);
+            boolean success = player.tryDecreaseEnergy(5);
             if (!success) {
-                gp.ui.showMessage("Too tired to water!");
+                gp.ui.showMessage("Lelah sekali! Ga bisa menyiram");
                 return;
             }
 
             cropToWater.water();
-            gp.ui.showMessage("Watered " + cropToWater.getCropType() + " for today!");
-            gp.gameClock.getTime().advanceTime(-5);
+            gp.ui.showMessage("Berhasil menyiram " + cropToWater.getCropType() + " hari ini");
+            gp.gameClock.getTime().advanceTime(5);
 
         } else if (tileIndexAtTarget == plantedSoilIndex) {
 
             System.out.println(
                     "DEBUG WateringCommand: Tile is PLANTED_SOIL (55) but no crop entity found. Watering tile directly.");
-            boolean success = player.tryDecreaseEnergy(2);
+            boolean success = player.tryDecreaseEnergy(5);
             if (!success) {
-                gp.ui.showMessage("Too tired to water!");
+                gp.ui.showMessage("Lelah sekali! Ga bisa menyiram");
                 return;
             }
             gp.tileManager.mapTileNum[targetCol][targetRow] = wateredPlantedIndex;
-            gp.ui.showMessage("Watered the soil!");
-            gp.gameClock.getTime().advanceTime(-5);
+            gp.ui.showMessage("Berhasil menyiram!");
+            gp.gameClock.getTime().advanceTime(5);
 
         } else if (tileIndexAtTarget == wateredPlantedIndex) {
 
-            gp.ui.showMessage("This soil is already watered today!");
+            gp.ui.showMessage("Sudah disiram hari ini!");
         } else {
-            gp.ui.showMessage("This tile cannot be watered.");
+            gp.ui.showMessage("Tile tidak bisa disiram");
         }
     }
 }

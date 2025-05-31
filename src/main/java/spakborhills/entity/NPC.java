@@ -68,7 +68,7 @@ public class NPC extends Entity {
             }
         }
         gp.player.tryDecreaseEnergy(10);
-        gp.gameClock.getTime().advanceTime(-10);
+        gp.gameClock.getTime().advanceTime(10);
         addHeartPoints(10);
 
         if (gp.player != null) {
@@ -210,7 +210,7 @@ public class NPC extends Entity {
                 this.engaged = true;
                 this.proposalDay = gp.gameClock.getTime().getDay();
                 gp.player.tryDecreaseEnergy(10);
-                gp.gameClock.getTime().advanceTime(-60);
+                gp.gameClock.getTime().advanceTime(60);
             } else {
                 gp.ui.currentDialogue = "You need a special item to propose...";
             }
