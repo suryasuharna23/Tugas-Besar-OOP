@@ -145,7 +145,7 @@ public class KeyHandler implements KeyListener {
             System.out.println("[KeyHandler] DEBUG - Current gameState value: " + gp.gameState);
             System.out.println("[KeyHandler] DEBUG - enterPressed status: " + enterPressed);
 
-            if (code == KeyEvent.VK_ENTER) {
+            if (code == KeyEvent.VK_ENTER || code == KeyEvent.VK_ESCAPE) {
                 System.out.println("[KeyHandler] DEBUG - ENTER key detected in endGameState");
 
                 enterPressed = false;
@@ -168,17 +168,6 @@ public class KeyHandler implements KeyListener {
                 }
 
                 System.out.println("[KeyHandler] DEBUG - New gameState after ENTER: " + gp.gameState);
-
-            } else if (code == KeyEvent.VK_ESCAPE) {
-                System.out.println("[KeyHandler] DEBUG - ESC key detected in endGameState");
-
-                gp.gameState = GamePanel.titleState;
-                gp.ui.mapSelectionState = 0;
-                gp.ui.commandNumber = 0;
-                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
-                    gp.gameClock.pauseTime();
-                }
-                System.out.println("[KeyHandler] ESC pressed in endGameState. Returning to titleState.");
             }
         }
 
@@ -252,9 +241,9 @@ public class KeyHandler implements KeyListener {
                 gp.player.startFishing();
             } else if (code == KeyEvent.VK_E) {
                 eatPressed = true;
-            } else if (code == KeyEvent.VK_R) {
-                new TillingCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_T) {
+                new TillingCommand(gp.player).execute(gp);
+            } else if (code == KeyEvent.VK_R) {
                 new RecoverLandCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_G) {
                 new WateringCommand(gp.player).execute(gp);
@@ -262,7 +251,6 @@ public class KeyHandler implements KeyListener {
                 plantPressed = true;
                 new PlantingCommand(gp.player).execute(gp);
                 plantPressed = false;
-
             } else if (code == KeyEvent.VK_C) {
                 harvestPressed = true;
                 new HarvestCommand(gp.player).execute(gp);
@@ -275,13 +263,6 @@ public class KeyHandler implements KeyListener {
                     if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                         gp.gameClock.pauseTime();
                     }
-                }
-            } else if (code == KeyEvent.VK_U) {
-                System.out.println("[KeyHandler] TEST - Force triggering endgame");
-                gp.previousGameState = gp.gameState;
-                gp.gameState = gp.endGameState;
-                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
-                    gp.gameClock.pauseTime();
                 }
             } else if (code == KeyEvent.VK_BACK_QUOTE) {
                 gp.gameState = gp.helpPageState;

@@ -2195,7 +2195,7 @@ public class UI {
                 int labelWidth = g.getFontMetrics(tFont).stringWidth(label + ": ");
                 if (startX + labelWidth + g.getFontMetrics(tFont).stringWidth(value) > startX + columnWidth - 5) {
                     g.drawString(label + ":", startX, currentY);
-                    currentY += lht - 2;
+                    currentY += (lht);
                     g.setColor(themecolor);
                     g.drawString(value, startX + 10, currentY);
                 } else {
@@ -2237,7 +2237,7 @@ public class UI {
         }
 
         int statStartXCol1 = paddingHorizontal + 40;
-        StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont, lineHeight,
+        StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont, lineHeight-4,
                 sectionSpacing);
 
         statsDrawer.drawHeader("~General~");
@@ -2310,8 +2310,8 @@ public class UI {
 
                 g2.setFont(npcNameFont);
                 g2.setColor(themecolor);
-                g2.drawString(npc.name, statStartXCol3, statsDrawer.getCurrentY() - 4);
-                statsDrawer.advanceY(0.15);
+                g2.drawString(npc.name, statStartXCol3, statsDrawer.getCurrentY());
+                statsDrawer.advanceY(0.95);
 
                 statsDrawer.drawStat(" Hearts", npc.currentHeartPoints + "/" + npc.maxHeartPoints);
                 statsDrawer.drawStat(" Chats", gp.player.npcChatFrequency.getOrDefault(npc.name, 0));
