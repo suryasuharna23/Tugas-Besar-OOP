@@ -178,7 +178,7 @@ public class Player extends Entity implements Observer {
         type = EntityType.PLAYER;
         currentEnergy = MAX_POSSIBLE_ENERGY;
         this.isCurrentlySleeping = false;
-        gold = 1500;
+        gold = 5000000;
         initializeRecipeStatus();
 
         addItemToInventory(new OBJ_Equipment(gp, ItemType.EQUIPMENT, "Hoe", false, 0, 0));
