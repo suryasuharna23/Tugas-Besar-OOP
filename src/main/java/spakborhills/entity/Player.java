@@ -321,6 +321,16 @@ public class Player extends Entity implements Observer {
         gp.ui.currentDialogue = sleepMessagePrefix + "\n" + energyRecoveryMessage;
         System.out.println("[Player] Sleeping. Message: " + gp.ui.currentDialogue);
         teleportToPlayerHouse();
+
+        this.playerIsActuallyFishing = false;
+        this.fishToCatchInMinigame = null;
+        this.fishingPlayerInput = "";
+        this.fishingInfoMessage = "";
+        this.fishingFeedbackMessage = "";
+        this.fishingCurrentAttempts = 0;
+        if (gp.gameState == gp.fishingMinigameState) {
+            gp.gameState = gp.playState;
+        }
     }
 
     private void teleportToPlayerHouse() {
