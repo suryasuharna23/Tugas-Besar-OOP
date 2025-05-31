@@ -1,11 +1,6 @@
-
 plugins {
     id 'java'
     id 'application'
-}
-
-application {
-    mainClass = 'spakborhills.Main'
 }
 
 group = 'org.example'
@@ -15,61 +10,26 @@ repositories {
     mavenCentral()
 }
 
-sourceSets {
-    main {
-        java {
-            srcDirs = ['src/main/java']
-        }
-        resources {
-            srcDirs = ['src/main/resources']
-            include '**/*'
-        }
-    }
+application {
+    mainClass = 'spakborhills.Main'
 }
 
-processResources {
-    from 'src/main/resources'
-    include '**/*'
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    
-    doLast {
-        println "Processed resources:"
-        fileTree(destinationDir).visit { FileVisitDetails details ->
-            if (!details.isDirectory()) {
-                println "  ${details.relativePath}"
-            }
-        }
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java']
+        resources.srcDirs = ['src/main/resources']
     }
 }
 
 jar {
     manifest {
-        attributes 'Main-Class': 'spakborhills.Main'
+        attributes 'Main-Class': application.mainClass
     }
-    
-    from(sourceSets.main.resources) {
-        include '**/*'
-    }
-    
     from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.findAll { it.isDirectory() }.collect { it } +
+                configurations.runtimeClasspath.findAll { !it.isDirectory() }.collect { zipTree(it) }
     }
-    
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    
-    doLast {
-        println "JAR created at: ${archivePath}"
-        println "JAR contents (resources only):"
-        zipTree(archivePath).matching {
-            include '**/*.png'
-            include '**/*.jpg'
-            include '**/*.jpeg'
-        }.visit { FileVisitDetails details ->
-            if (!details.isDirectory()) {
-                println "  ${details.relativePath}"
-            }
-        }
-    }
 }
 
 dependencies {
