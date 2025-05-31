@@ -1,14 +1,17 @@
 package spakborhills.object;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+
 import spakborhills.GamePanel;
 import spakborhills.entity.Entity;
 import spakborhills.entity.Player;
 import spakborhills.enums.EntityType;
 import spakborhills.enums.ItemType;
 import spakborhills.interfaces.Harvestable;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
 
 public class OBJ_PlantedCrop extends Entity implements Harvestable {
     private String cropType;
@@ -386,7 +389,7 @@ public class OBJ_PlantedCrop extends Entity implements Harvestable {
             if (harvestedItem != null) {
                 boolean added = player.addItemToInventory(harvestedItem);
                 if (added) {
-                    gp.ui.showMessage("Harvested " + harvestedItem.quantity + "x " + cropType + "!");
+                    gp.ui.showMessage("Berhasil panen " + harvestedItem.quantity + "x " + cropType + "!");
                     System.out.println("[Crop: " + cropType + "] Dipanen. Jumlah: " + harvestedItem.quantity);
 
                     int tileX = worldX / gp.tileSize;
@@ -397,14 +400,14 @@ public class OBJ_PlantedCrop extends Entity implements Harvestable {
                             + ") direset ke SOIL (76).");
 
                 } else {
-                    gp.ui.showMessage("Inventory full! Cannot harvest " + cropType + ".");
+                    gp.ui.showMessage("Inventory penuh. Tidak bisa panen " + cropType + ".");
                 }
             }
         } else {
             int daysLeft = getDaysUntilHarvest();
             String wateredStatusMsg;
             if (isWatered) {
-                wateredStatusMsg = " (Watered for today)";
+                wateredStatusMsg = " (Sudah disiram hari ini)";
             } else {
                 boolean isRainingToday = false;
                 if (gp.gameClock != null && gp.gameClock.getWeather() != null) {
@@ -417,7 +420,7 @@ public class OBJ_PlantedCrop extends Entity implements Harvestable {
                 }
             }
             gp.ui.showMessage(cropType + " - " + String.format("%.0f%%", getGrowthProgress() * 100) +
-                    " grown. " + daysLeft + " days left." + wateredStatusMsg);
+                    " tumbuh. " + daysLeft + " hari lagi." + wateredStatusMsg);
         }
     }
 }

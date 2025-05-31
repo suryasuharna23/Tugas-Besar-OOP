@@ -30,7 +30,7 @@ public class OBJ_Pond extends Entity {
         
         // Cek apakah player memiliki Fishing Rod
         if (!gp.player.isHoldingTool("Fishing Rod equipment")) {
-            gp.ui.showMessage("You need a Fishing Rod to fish!");
+            gp.ui.showMessage("Kamu butuh FISHING rOD");
             System.out.println("[OBJ_Pond] Player doesn't have Fishing Rod");
             return;
         }
@@ -40,7 +40,7 @@ public class OBJ_Pond extends Entity {
         System.out.println("[OBJ_Pond] Player location set to 'Pond' for fishing");
         
         // Start fishing process
-        gp.ui.showMessage("You cast your line into the pond...");
+        gp.ui.showMessage("Kamu sudah di dekat pond...");
         gp.player.startFishing();
         
         System.out.println("[OBJ_Pond] Fishing started at pond");

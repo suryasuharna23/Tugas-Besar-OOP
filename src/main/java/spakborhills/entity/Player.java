@@ -83,6 +83,7 @@ public class Player extends Entity implements Observer {
     private boolean married = false;
 
     public int MAX_POSSIBLE_ENERGY = 100;
+    public int MAX_SHIPPING_BIN_TYPES = 16;
     public static final int MIN_ENERGY_THRESHOLD = -20;
     public static final int LOW_ENERGY_PENALTY_THRESHOLD_PERCENT = 10;
     public static final int ENERGY_REFILL_AT_ZERO = 10;
@@ -135,18 +136,19 @@ public class Player extends Entity implements Observer {
 
     public void getPlayerImage() {
         String genderFolder = (gender == Gender.FEMALE) ? "female" : "male";
-        up1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_W1");
-        up2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_W2");
-        down1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_S1");
-        down2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_S2");
-        left1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_A1");
-        left2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_A2");
-        right1 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_D1");
-        right2 = setup("/player/" + genderFolder + "/"+ capitalize(genderFolder) + "_D2");
+        up1 = setup("/player/" + genderFolder + "/" + capitalize(genderFolder) + "_W1");
+        up2 = setup("/player/" + genderFolder + "/" + capitalize(genderFolder) + "_W2");
+        down1 = setup("/player/" + genderFolder + "/" + capitalize(genderFolder) + "_S1");
+        down2 = setup("/player/" + genderFolder + "/" + capitalize(genderFolder) + "_S2");
+        left1 = setup("/player/" + genderFolder + "/" + capitalize(genderFolder) + "_A1");
+        left2 = setup("/player/" + genderFolder + "/" + capitalize(genderFolder) + "_A2");
+        right1 = setup("/player/" + genderFolder + "/" + capitalize(genderFolder) + "_D1");
+        right2 = setup("/player/" + genderFolder + "/" + capitalize(genderFolder) + "_D2");
     }
 
     private String capitalize(String str) {
-        if (str == null || str.isEmpty()) return str;
+        if (str == null || str.isEmpty())
+            return str;
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
@@ -192,6 +194,14 @@ public class Player extends Entity implements Observer {
                     Weather.RAINY));
         }
 
+        itemsInShippingBinToday.clear();
+        if (shippingBinTypes == null) {
+            shippingBinTypes = new HashMap<>();
+        }
+        shippingBinTypes.clear();
+        hasUsedShippingBinToday = false;
+        goldFromShipping = 0;
+
     }
 
     private void initializeRecipeStatus() {
@@ -202,7 +212,7 @@ public class Player extends Entity implements Observer {
     }
 
     public void checkAndUnlockRecipes() {
-        if (gp.gameState == gp.titleState)
+        if (gp.gameState == GamePanel.titleState)
             return;
 
         for (Recipe recipe : RecipeManager.getAllRecipes()) {
@@ -234,7 +244,7 @@ public class Player extends Entity implements Observer {
                 if (unlocked) {
                     recipeUnlockStatus.put(recipe.recipeId, true);
                     if (gp.ui != null) {
-                        gp.ui.showMessage("New Recipe Unlocked: " + recipe.outputFoodName + "!");
+                        gp.ui.showMessage("Resep behasil didapat: " + recipe.outputFoodName + "!");
                     }
                 }
             }
@@ -254,9 +264,9 @@ public class Player extends Entity implements Observer {
             return true;
 
         if (currentEnergy <= MIN_ENERGY_THRESHOLD) {
-            gp.ui.showMessage("You're completely exhausted and can't do anything else!");
+            gp.ui.showMessage("Kamu terlalu lelah, tidak bisa melakukan apapun!");
             if (!isCurrentlySleeping) {
-                sleep("You tried to work while utterly exhausted and passed out again!");
+                sleep("Kamu mencoba bekerja saat sedang lelah, kamu ketiduran lagi!");
             }
             return false;
         }
@@ -265,8 +275,8 @@ public class Player extends Entity implements Observer {
 
         if (currentEnergy <= MIN_ENERGY_THRESHOLD) {
             currentEnergy = MIN_ENERGY_THRESHOLD;
-            gp.ui.showMessage("You've collapsed from exhaustion!");
-            sleep("You collapsed from sheer exhaustion!");
+            gp.ui.showMessage("Kamu ketiduran karena terlalu lelah!");
+            sleep("Kamu ketiduran karena terlalu lelah!");
             return true;
         }
         return true;
@@ -384,11 +394,11 @@ public class Player extends Entity implements Observer {
                         eatAction.execute(gp);
                     } else {
                         if (gp.ui != null)
-                            gp.ui.showMessage(equippedItem.name + " is not edible.");
+                            gp.ui.showMessage(equippedItem.name + " tidak dedible.");
                     }
                 } else {
                     if (gp.ui != null)
-                        gp.ui.showMessage("Nothing held to eat.");
+                        gp.ui.showMessage("Belum memegang makanan.");
                 }
                 this.keyH.eatPressed = false;
             }
@@ -403,7 +413,7 @@ public class Player extends Entity implements Observer {
         }
 
         if (gp.gameClock != null) {
-            // System.out.println("Game Time: " + gp.gameClock.getFormattedTime());
+
         }
     }
 
@@ -429,9 +439,9 @@ public class Player extends Entity implements Observer {
 
                         addItemToInventory(FoodRegistry.createFood(gp, process.foodNameToProduce));
                     }
-                    gp.ui.showMessage(process.foodNameToProduce + " is ready!");
+                    gp.ui.showMessage(process.foodNameToProduce + " sudah siap!");
                 } else {
-                    gp.ui.showMessage("Error creating " + process.foodNameToProduce + " after cooking.");
+                    gp.ui.showMessage("Error membuat " + process.foodNameToProduce + " setelah masak.");
                 }
                 iterator.remove();
             }
@@ -530,7 +540,7 @@ public class Player extends Entity implements Observer {
                 return true;
             } else {
                 if (gp.ui != null)
-                    gp.ui.showMessage("Inventaris penuh!");
+                    gp.ui.showMessage("Inventory penuh!");
                 return false;
             }
         }
@@ -626,6 +636,7 @@ public class Player extends Entity implements Observer {
                     gp.ui.showMessage("Kamu membeli resep: " + itemToBuy.name.replace("Recipe: ", "")
                             + ", tapi ada masalah saat mempelajarinya.");
                 }
+                return true;
             } else {
 
                 OBJ_Item purchasedItemInstance = null;
@@ -634,7 +645,8 @@ public class Player extends Entity implements Observer {
                     purchasedItemInstance = new OBJ_Seed(gp, seedTemplate.getType(),
                             seedTemplate.name.replace(" seeds", ""), seedTemplate.isEdible(),
                             seedTemplate.getBuyPrice(), seedTemplate.getSellPrice(),
-                            seedTemplate.getCountWater(), seedTemplate.getDayToHarvest(), seedTemplate.getSeason(), seedTemplate.getWeather());
+                            seedTemplate.getCountWater(), seedTemplate.getDayToHarvest(), seedTemplate.getSeason(),
+                            seedTemplate.getWeather());
                 } else if (itemToBuy instanceof OBJ_Food) {
                     OBJ_Food foodTemplate = (OBJ_Food) itemToBuy;
                     purchasedItemInstance = FoodRegistry.createFood(gp, foodTemplate.name.replace(" food", ""));
@@ -831,14 +843,16 @@ public class Player extends Entity implements Observer {
                     830, 831, 203, 366,
                     301, 302, 303, 304, 305,
                     333, 334, 335,
-                    0, 76, 590, 232, 301, 239,914, 974, 972, 923, 913, 940, 945, 913, 914, 915, 931, 882, 845, 846, 847, 848, 850, 931, 931, 877, 878, 879, 880, 931, 882, 883
+                    0, 76, 590, 232, 301, 239, 914, 974, 972, 923, 913, 940, 945, 913, 914, 915, 931, 882, 845, 846,
+                    847, 848, 850, 931, 931, 877, 878, 879, 880, 931, 882, 883
 
             ));
         } else if ("Forest River".equalsIgnoreCase(mapName)) {
             waterTileIds.addAll(Arrays.asList(
                     430, 816, 252, 410, 388, 389, 293, 840, 841, 833, 706, 752,
                     783, 867, 969, 992, 553, 209, 210, 212, 327, 354, 221, 222,
-                    306, 333, 335, 339, 351, 28, 30, 31, 0, 733, 671, 417, 449, 126, 449, 481, 575, 413, 513, 449, 417, 385, 321, 639, 257));
+                    306, 333, 335, 339, 351, 28, 30, 31, 0, 733, 671, 417, 449, 126, 449, 481, 575, 413, 513, 449, 417,
+                    385, 321, 639, 257));
         } else if ("Ocean".equalsIgnoreCase(mapName)) {
             waterTileIds.addAll(Arrays.asList(
                     143, 992, 32, 58, 96, 235, 267, 171, 203, 331, 504, 547, 548, 565, 549, 575, 551, 552, 572, 573,
@@ -853,7 +867,8 @@ public class Player extends Entity implements Observer {
     public void startFishing() {
         if (!isHoldingTool("Fishing Rod")) {
             gp.ui.showMessage("Kamu harus memegang Fishing Rod untuk memancing.");
-            System.out.println("[DEBUG Player.startFishing] ERROR: Pemain tidak memegang Fishing Rod. Proses dihentikan.");
+            System.out.println(
+                    "[DEBUG Player.startFishing] ERROR: Pemain tidak memegang Fishing Rod. Proses dihentikan.");
             return;
         }
 
@@ -1253,16 +1268,16 @@ public class Player extends Entity implements Observer {
 
     public void incrementChatFrequency(String name) {
         if (name != null && !name.trim().isEmpty()) {
-            int currentChat  = npcChatFrequency.getOrDefault(name, 0);
-            npcChatFrequency.put(name, currentChat+1);
-             System.out.println("[Player] Chat count for " + name + ": " + npcChatFrequency.get(name));
+            int currentChat = npcChatFrequency.getOrDefault(name, 0);
+            npcChatFrequency.put(name, currentChat + 1);
+            System.out.println("[Player] Chat count for " + name + ": " + npcChatFrequency.get(name));
         }
     }
 
     public void incrementGiftFrequency(String name) {
         if (name != null && !name.trim().isEmpty()) {
             int currentGift = npcGiftFrequency.getOrDefault(name, 0);
-            npcGiftFrequency.put(name, currentGift+1);
+            npcGiftFrequency.put(name, currentGift + 1);
             System.out.println("[Player] Gift count for " + name + ": " + npcGiftFrequency.get(name));
 
         }
@@ -1271,7 +1286,7 @@ public class Player extends Entity implements Observer {
     public void incrementVisitFrequency(String name) {
         if (name != null && !name.trim().isEmpty()) {
             int currentVisit = npcVisitFrequency.getOrDefault(name, 0);
-            npcVisitFrequency.put(name, currentVisit+1);
+            npcVisitFrequency.put(name, currentVisit + 1);
             System.out.println("[Player] Visit count for " + name + ": " + npcVisitFrequency.get(name));
 
         }
@@ -1283,5 +1298,84 @@ public class Player extends Entity implements Observer {
 
     public void setGender(Gender gender) {
         this.gender = gender;
+    }
+
+    public OBJ_Item createShippingBinItem(OBJ_Item original) {
+        OBJ_Item newItem = null;
+
+        if (original instanceof spakborhills.object.OBJ_Crop) {
+            spakborhills.object.OBJ_Crop originalCrop = (spakborhills.object.OBJ_Crop) original;
+            newItem = new spakborhills.object.OBJ_Crop(gp, originalCrop.getType(),
+                    originalCrop.baseName, originalCrop.isEdible(),
+                    originalCrop.getBuyPrice(), originalCrop.getSellPrice(),
+                    originalCrop.getHarvestAmount(), originalCrop.getEnergy());
+        } else if (original instanceof spakborhills.object.OBJ_Fish) {
+            spakborhills.object.OBJ_Fish originalFish = (spakborhills.object.OBJ_Fish) original;
+            newItem = new spakborhills.object.OBJ_Fish(gp, originalFish.getType(), originalFish.getFishName(),
+                    originalFish.isEdible(), originalFish.getSellPrice(),
+                    originalFish.getSeasons(), originalFish.getWeathers(),
+                    originalFish.getLocations(), originalFish.getFishType(),
+                    originalFish.getStartHour(), originalFish.getEndHour());
+        } else {
+
+            newItem = new OBJ_Item(gp, original.getType(), original.name, original.isEdible(),
+                    original.getBuyPrice(), original.getSellPrice(), 1);
+        }
+
+        if (newItem != null) {
+            newItem.quantity = original.quantity;
+        }
+
+        return newItem;
+    }
+
+    public boolean addItemToShippingBin(OBJ_Item itemToAdd) {
+        if (itemToAdd == null) {
+            gp.ui.showMessage("Invalid item!");
+            return false;
+        }
+
+        String itemKey = itemToAdd.name;
+
+        if (shippingBinTypes.containsKey(itemKey)) {
+
+            OBJ_Item existingItem = shippingBinTypes.get(itemKey);
+            existingItem.quantity += itemToAdd.quantity;
+
+            for (Entity entity : itemsInShippingBinToday) {
+                if (entity instanceof OBJ_Item && ((OBJ_Item) entity).name.equals(itemKey)) {
+                    ((OBJ_Item) entity).quantity = existingItem.quantity;
+                    break;
+                }
+            }
+
+            gp.ui.showMessage("Menambahkan " + itemToAdd.quantity + " " + itemToAdd.name + " ke shipping bin!");
+            System.out.println(
+                    "[Player] Added to existing type: " + itemKey + ", New quantity: " + existingItem.quantity);
+            return true;
+
+        } else {
+
+            if (shippingBinTypes.size() >= MAX_SHIPPING_BIN_TYPES) {
+                gp.ui.showMessage("Shipping bin penuh! Maximum " + MAX_SHIPPING_BIN_TYPES + " jenis item.");
+                return false;
+            }
+
+            OBJ_Item newShippingItem = createShippingBinItem(itemToAdd);
+            shippingBinTypes.put(itemKey, newShippingItem);
+            itemsInShippingBinToday.add(newShippingItem);
+
+            gp.ui.showMessage("Menambahkan " + itemToAdd.name + " ke shipping bin! (" +
+                    shippingBinTypes.size() + "/" + MAX_SHIPPING_BIN_TYPES + " jenis)");
+            System.out.println("[Player] Added new type: " + itemKey + ", Types in bin: " + shippingBinTypes.size());
+            return true;
+        }
+    }
+
+    public void clearShippingBin() {
+        shippingBinTypes.clear();
+        itemsInShippingBinToday.clear();
+        hasUsedShippingBinToday = false;
+        System.out.println("[Player] Shipping bin cleared for new day");
     }
 }

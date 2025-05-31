@@ -30,7 +30,7 @@ public class HarvestCommand implements Command {
         System.out.println("DEBUG HarvestCommand: Checking tile (" + targetCol + "," + targetRow + ")");
 
         if (targetCol < 0 || targetCol >= gp.maxWorldCol || targetRow < 0 || targetRow >= gp.maxWorldRow) {
-            gp.ui.showMessage("Cannot interact outside map boundaries.");
+            gp.ui.showMessage("Tidak bisa diharvest di luar batas map");
             return;
         }
 
@@ -46,10 +46,10 @@ public class HarvestCommand implements Command {
             cropToInteract.interact();
 
             player.tryDecreaseEnergy(5);
-            gp.gameClock.getTime().advanceTime(-5);
+            gp.gameClock.getTime().advanceTime(5);
             player.totalHarvested++;
         } else {
-            gp.ui.showMessage("No crops here to interact with.");
+            gp.ui.showMessage("Tidak ada crop.");
         }
     }
 

@@ -46,7 +46,7 @@ public class OBJ_House extends Entity {
         
         if (playerHouseIndex != -1) {
             
-            gp.ui.showMessage("Entering house...");
+            gp.ui.showMessage("Masuk rumah...");
             
             
             gp.loadMapbyIndex(playerHouseIndex);
@@ -60,7 +60,7 @@ public class OBJ_House extends Entity {
                             entranceX + "," + entranceY + ")");
         } else {
             System.err.println("[OBJ_House] ERROR: Player's House map not found!");
-            gp.ui.showMessage("Can't enter house right now.");
+            gp.ui.showMessage("Tidak bisa masuk rumah sekarang!");
         }
     }
 }

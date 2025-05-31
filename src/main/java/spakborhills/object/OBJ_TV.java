@@ -48,7 +48,7 @@ public class OBJ_TV extends Entity {
             gp.gameClock.pauseTime();
         }
 
-        gp.gameClock.getTime().advanceTime(-15);
+        gp.gameClock.getTime().advanceTime(15);
         gp.player.tryDecreaseEnergy(5);
     }
 
