@@ -30,15 +30,15 @@ public class OBJ_Recipe extends OBJ_Item {
                     !Boolean.TRUE.equals(player.recipeUnlockStatus.get(recipeIdToUnlock))) {
                 player.recipeUnlockStatus.put(recipeIdToUnlock, true);
                 if (gp.ui != null)
-                    gp.ui.showMessage("You learned the recipe: " + this.name.replace("Recipe: ", ""));
+                    gp.ui.showMessage("Kamu sudah mempelajari resepnya: " + this.name.replace("Resep: ", ""));
                 return true; 
             } else if (Boolean.TRUE.equals(player.recipeUnlockStatus.get(recipeIdToUnlock))) {
                 if (gp.ui != null)
-                    gp.ui.showMessage("You already know this recipe: " + this.name.replace("Recipe: ", ""));
+                    gp.ui.showMessage("Kamu sudah tahu resepnya: " + this.name.replace("Resep: ", ""));
                 return false;
             } else {
                 if (gp.ui != null)
-                    gp.ui.showMessage("This recipe seems unfamiliar or invalid.");
+                    gp.ui.showMessage("Resep tidak dikenali dan invalid");
                 return false;
             }
         }

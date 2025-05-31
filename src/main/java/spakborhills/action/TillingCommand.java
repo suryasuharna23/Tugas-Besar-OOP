@@ -40,7 +40,7 @@ public class TillingCommand implements Command {
 
             gp.tileManager.mapTileNum[playerCol][playerRow] = getTileIndexFromState(TileState.SOIL);
             gp.gameClock.getTime().advanceTime(5);
-
+            gp.playSE(7);
             System.out.println("Tile berhasil dibajak.");
         } else {
             System.out.println("Tile ini tidak bisa dibajak.");

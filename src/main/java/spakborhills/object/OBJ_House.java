@@ -35,7 +35,6 @@ public class OBJ_House extends Entity {
     private void teleportToPlayerHouse() {
         System.out.println("[OBJ_House] Teleporting player to Player's House...");
         
-        
         int playerHouseIndex = -1;
         for (int i = 0; i < gp.mapInfos.size(); i++) {
             if (gp.mapInfos.get(i).getMapName().equalsIgnoreCase("Player's House")) {
@@ -46,12 +45,12 @@ public class OBJ_House extends Entity {
         
         if (playerHouseIndex != -1) {
             
-            gp.ui.showMessage("Entering house...");
+            gp.ui.showMessage("Masuk rumah...");
             
             
             gp.loadMapbyIndex(playerHouseIndex);
             
-            
+            gp.playSE(4);
             int entranceX = gp.tileSize * 25; 
             int entranceY = gp.tileSize * 32; 
             gp.player.setPositionForMapEntry(entranceX, entranceY, "up");
@@ -60,7 +59,7 @@ public class OBJ_House extends Entity {
                             entranceX + "," + entranceY + ")");
         } else {
             System.err.println("[OBJ_House] ERROR: Player's House map not found!");
-            gp.ui.showMessage("Can't enter house right now.");
+            gp.ui.showMessage("Tidak bisa masuk rumah sekarang!");
         }
     }
 }

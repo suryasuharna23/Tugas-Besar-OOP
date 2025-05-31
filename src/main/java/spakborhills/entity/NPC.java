@@ -68,7 +68,7 @@ public class NPC extends Entity {
             }
         }
         gp.player.tryDecreaseEnergy(10);
-        gp.gameClock.getTime().advanceTime(-10);
+        gp.gameClock.getTime().advanceTime(10);
         addHeartPoints(10);
 
         if (gp.player != null) {
@@ -93,6 +93,9 @@ public class NPC extends Entity {
         currentHeartPoints += heartPoints;
         if (currentHeartPoints + heartPoints > maxHeartPoints) {
             currentHeartPoints = maxHeartPoints;
+        }
+        else if (currentHeartPoints - heartPoints < 0){
+            currentHeartPoints = 0;
         }
     }
 
@@ -144,8 +147,12 @@ public class NPC extends Entity {
             gp.ui.currentDialogue = reaction;
             System.out.println("[NPC.receiveGift] Loved gift. Dialogue: " + gp.ui.currentDialogue);
             giftProcessedLogically = true;
+        } else if (hatedItems.contains(giftedItemBaseName)){
+            addHeartPoints(-25);
+            String reaction = "Ummm... Aku sebenernya gak suka ini, tapi terima kasih yaa.";
+            gp.ui.currentDialogue = reaction;
+            giftProcessedLogically = true;
         }
-
         else {
             addHeartPoints(0);
             gp.ui.currentDialogue = this.giftReactionDialogue + " (HP: " + this.currentHeartPoints + ")";
@@ -210,7 +217,7 @@ public class NPC extends Entity {
                 this.engaged = true;
                 this.proposalDay = gp.gameClock.getTime().getDay();
                 gp.player.tryDecreaseEnergy(10);
-                gp.gameClock.getTime().advanceTime(-60);
+                gp.gameClock.getTime().advanceTime(60);
             } else {
                 gp.ui.currentDialogue = "You need a special item to propose...";
             }

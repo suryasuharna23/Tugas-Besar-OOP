@@ -1,19 +1,24 @@
 package spakborhills;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Map;
+
+import javax.swing.JPanel;
+
+import spakborhills.Tile.TileManager;
 import spakborhills.cooking.Recipe;
 import spakborhills.entity.Entity;
 import spakborhills.entity.NPC;
 import spakborhills.entity.Player;
 import spakborhills.enums.Season;
-import spakborhills.Tile.TileManager;
 import spakborhills.environment.EnvironmentManager;
 import spakborhills.object.OBJ_Item;
 import spakborhills.object.OBJ_PlantedCrop;
-
-import javax.swing.JPanel;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Comparator;
 
 public class GamePanel extends JPanel implements Runnable {
     final int originalTileSize = 16;
@@ -50,6 +55,10 @@ public class GamePanel extends JPanel implements Runnable {
     public ArrayList<NPC> npcs = new ArrayList<>();
     public Entity currentInteractingNPC = null;
     public ArrayList<CropSaveData> farmCropData = new ArrayList<>();
+    private float musicVolume = 0.7f;
+    private float seVolume = 0.8f;
+    private boolean musicMuted = false;
+    private boolean seMuted = false;
 
     public static class CropSaveData {
         public String cropType;
@@ -91,6 +100,7 @@ public class GamePanel extends JPanel implements Runnable {
     public int helpPageState = 17;
     public int playerStatsState = 18;
     public final int genderSelectionState = 19;
+    public final int playerInfoState = 20;
 
     public final int FARM_MAP_INDEX = 8;
     public final int PLAYER_HOUSE_INDEX = 9;
@@ -193,6 +203,9 @@ public class GamePanel extends JPanel implements Runnable {
         generateNewFarmLayout();
         gameClock.addObserver(player);
         weather.addObserver(player);
+        playMusic(0);
+        setMusicVolume(20f);
+
     }
 
     public void startGameThread() {
@@ -292,6 +305,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         if (gameState == playState) {
 
+
             if (!hasTriggeredEndgame && (player.gold >= 17209 || player.isMarried())) {
                 System.out.println("[GamePanel] Endgame condition met for the first time. Gold: " + player.gold
                         + ", Married: " + player.isMarried());
@@ -345,6 +359,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         else if (gameState == endGameState) {
             if (environmentManager != null) {
+                playSE(1);
                 environmentManager.update();
             }
 
@@ -367,8 +382,11 @@ public class GamePanel extends JPanel implements Runnable {
                         ui.currentDialogue = "";
                     if (!ui.currentDialogue.isEmpty())
                         ui.currentDialogue += "\n";
-                    ui.currentDialogue += "You earned " + player.goldFromShipping + "G from shipping.";
+                    ui.currentDialogue += "Kamu mendapat " + player.goldFromShipping + "G dari penjualan.";
+
+                    System.out.println("TESTTT PLIS MASUK");
                 }
+
                 Time countTimeforSeason = gameClock.getTime();
                 if ((countTimeforSeason.getDay() - 1) % 10 == 0) {
                     Season season = gameClock.getCurrentSeason();
@@ -408,7 +426,8 @@ public class GamePanel extends JPanel implements Runnable {
             if (gameClock != null && !gameClock.isPaused()) {
                 gameClock.pauseTime();
             }
-        } else if (gameState == playerNameInputState || gameState == farmNameInputState || gameState == genderSelectionState) {
+        } else if (gameState == playerNameInputState || gameState == farmNameInputState
+                || gameState == genderSelectionState) {
             if (this.gameClock != null && !this.gameClock.isPaused()) {
                 this.gameClock.pauseTime();
             }
@@ -511,8 +530,8 @@ public class GamePanel extends JPanel implements Runnable {
             boolean playerCollapsedFromTravel = false;
             if (previousMapIndex != -1 && !isSafeTransition && this.currentMapIndex != previousMapIndex) {
                 if (player.tryDecreaseEnergy(10)) {
-                    this.time.advanceTime(-15);
-                    ui.showMessage("Travel tired you out. -10 Energy.");
+                    this.time.advanceTime(15);
+                    ui.showMessage("Capek juga jalan-jalan. -10 energy.");
                 }
                 if (player.isCurrentlySleeping()) {
                     playerCollapsedFromTravel = true;
@@ -664,7 +683,7 @@ public class GamePanel extends JPanel implements Runnable {
             currentTime.setCurrentTime(22, 0);
             player.tryDecreaseEnergy(80);
 
-            ui.showMessage("The day flew by! It's now 10:00 PM.");
+            ui.showMessage("Udah jam 22.00 aja nih");
 
         } else {
             System.err.println("[GamePanel] Cannot skip time: GameClock, Time, or Player is null.");
@@ -672,17 +691,22 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void processShippingBin() {
-        if (!player.hasUsedShippingBinToday || player.itemsInShippingBinToday.isEmpty()) {
+        if (!player.hasUsedShippingBinToday || player.shippingBinTypes.isEmpty()) {
             player.goldFromShipping = 0;
             return;
         }
 
         int totalEarnings = 0;
-        for (Entity itemEntity : player.itemsInShippingBinToday) {
-            if (itemEntity instanceof OBJ_Item) {
-                OBJ_Item item = (OBJ_Item) itemEntity;
-                totalEarnings += item.getSellPrice();
-            }
+        int totalItemsSold = 0;
+
+        for (Map.Entry<String, OBJ_Item> entry : player.shippingBinTypes.entrySet()) {
+            String itemName = entry.getKey();
+            OBJ_Item item = entry.getValue();
+            int earnings = item.getSellPrice() * item.quantity;
+            totalEarnings += earnings;
+            totalItemsSold += item.quantity;
+
+            System.out.println("[GamePanel] Sold " + item.quantity + "x " + itemName + " for " + earnings + "G");
         }
 
         if (totalEarnings > 0) {
@@ -692,17 +716,17 @@ public class GamePanel extends JPanel implements Runnable {
             player.totalIncome += totalEarnings;
 
             Season currentSeason = gameClock.getCurrentSeason();
-            player.seasonalIncome.put(currentSeason, player.seasonalIncome.getOrDefault(currentSeason, 0L) + totalEarnings);
+            player.seasonalIncome.put(currentSeason,
+                    player.seasonalIncome.getOrDefault(currentSeason, 0L) + totalEarnings);
             player.countIncome.put(currentSeason, player.countIncome.getOrDefault(currentSeason, 0) + 1);
 
             System.out.println("[GamePanel] Player earned " + totalEarnings +
                     "G from shipped items. Total gold: " + player.gold);
+            playSE(5);
         } else {
             player.goldFromShipping = 0;
         }
-
-        player.itemsInShippingBinToday.clear();
-        player.hasUsedShippingBinToday = false;
+        player.clearShippingBin();
         System.out.println("[GamePanel] Shipping bin processed and reset for the new day.");
     }
 
@@ -713,7 +737,12 @@ public class GamePanel extends JPanel implements Runnable {
         }
         System.out.println("[GamePanel] Performing daily resets for Day " + gameClock.getTime().getDay() + "...");
         processShippingBin();
-        growAllCrops();
+
+        if (gameClock != null && gameClock.getCurrentSeason() == Season.WINTER) {
+            System.out.println("[GamePanel] WINTER - Tidak bisa tumbuh");
+        } else {
+            growAllCrops();
+        }
 
         for (NPC npc : npcs) {
             if (npc != null) {
@@ -792,16 +821,15 @@ public class GamePanel extends JPanel implements Runnable {
             return;
         }
 
-        if (player.itemsInShippingBinToday.isEmpty()) {
-
+        if (player.shippingBinTypes.isEmpty()) {
             System.out.println("[GamePanel] No items shipped, shipping bin remains available");
-            ui.showMessage("No items placed in shipping bin.");
+            ui.showMessage("Tidak ada item di shipping bin.");
         } else {
 
             player.hasUsedShippingBinToday = true;
             System.out.println("[GamePanel] Shipping bin transaction completed. " +
-                    player.itemsInShippingBinToday.size() + " items will be sold overnight.");
-            ui.showMessage("Items placed in shipping bin! You'll receive payment tomorrow morning.");
+                    player.shippingBinTypes.size() + " items will be sold overnight.");
+            ui.showMessage("Item berhasil diletakkan di shipping bin. Kamu akan dapat uang besok!");
         }
 
         gameState = playState;
@@ -817,27 +845,24 @@ public class GamePanel extends JPanel implements Runnable {
             return;
         }
 
-        if (!player.itemsInShippingBinToday.isEmpty()) {
-            System.out.println("[GamePanel] Returning " + player.itemsInShippingBinToday.size() +
-                    " items from shipping bin to inventory");
+        if (!player.shippingBinTypes.isEmpty()) {
+            System.out.println("[GamePanel] Returning " + player.shippingBinTypes.size() +
+                    " item types from shipping bin to inventory");
 
-            for (Entity binEntity : player.itemsInShippingBinToday) {
-                if (binEntity instanceof OBJ_Item) {
-                    OBJ_Item binItem = (OBJ_Item) binEntity;
+            for (Map.Entry<String, OBJ_Item> entry : player.shippingBinTypes.entrySet()) {
+                OBJ_Item binItem = entry.getValue();
 
-                    boolean addedSuccessfully = player.addItemToInventory(binItem);
+                boolean addedSuccessfully = player.addItemToInventory(binItem);
 
-                    if (!addedSuccessfully) {
-
-                        System.out.println("[GamePanel] Warning: Could not return " + binItem.name +
-                                " to inventory (full). Item may be lost.");
-                        ui.showMessage("Inventory full! Some items couldn't be returned.");
-                    }
+                if (!addedSuccessfully) {
+                    System.out.println("[GamePanel] Warning: Could not return " + binItem.name +
+                            " to inventory (full). Item may be lost.");
+                    ui.showMessage("Inventory penuh. Beberapa barang bisa hilang.");
                 }
             }
 
-            player.itemsInShippingBinToday.clear();
-            ui.showMessage("Items returned from shipping bin.");
+            player.clearShippingBin();
+            ui.showMessage("Item dikembalikan.");
         }
 
         player.hasUsedShippingBinToday = false;
@@ -850,23 +875,87 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
+    public void setMusicVolume(float volume) {
+        musicVolume = Math.max(0.0f, Math.min(1.0f, volume));
+        music.setVolume(musicMuted ? 0.0f : musicVolume);
+        System.out.println("[GamePanel] Music volume set to: " + (musicVolume * 100) + "%");
+    }
+
+    public void setSoundEffectVolume(float volume) {
+        seVolume = Math.max(0.0f, Math.min(1.0f, volume));
+        se.setVolume(seMuted ? 0.0f : seVolume);
+        System.out.println("[GamePanel] Sound effects volume set to: " + (seVolume * 100) + "%");
+    }
+
+    public void toggleMusicMute() {
+        musicMuted = !musicMuted;
+        music.setVolume(musicMuted ? 0.0f : musicVolume);
+        System.out.println("[GamePanel] Music " + (musicMuted ? "muted" : "unmuted"));
+    }
+
+    public void toggleSoundEffectMute() {
+        seMuted = !seMuted;
+        se.setVolume(seMuted ? 0.0f : seVolume);
+        System.out.println("[GamePanel] Sound effects " + (seMuted ? "muted" : "unmuted"));
+    }
+
+    public void increaseMusicVolume() {
+        setMusicVolume(musicVolume + 0.1f);
+    }
+
+    public void decreaseMusicVolume() {
+        setMusicVolume(musicVolume - 0.1f);
+    }
+
+    public void increaseSoundEffectVolume() {
+        setSoundEffectVolume(seVolume + 0.1f);
+    }
+
+    public void decreaseSoundEffectVolume() {
+        setSoundEffectVolume(seVolume - 0.1f);
+    }
+
     public void playMusic(int i) {
         music.setFile(i);
+        music.setVolume(musicMuted ? 0.0f : musicVolume);
         music.play();
         music.loop();
     }
 
-    public void stopMusic() {
-        music.stop();
-    }
-
     public void playSE(int i) {
         se.setFile(i);
+        se.setVolume(seMuted ? 0.0f : seVolume);
         se.play();
+    }
+
+    public float getMusicVolume() {
+        return musicVolume;
+    }
+
+    public float getSoundEffectVolume() {
+        return seVolume;
+    }
+
+    public boolean isMusicMuted() {
+        return musicMuted;
+    }
+
+    public boolean isSoundEffectMuted() {
+        return seMuted;
     }
 
     public void growAllCrops() {
         System.out.println("[GamePanel] ======= PROCESSING END OF DAY GROWTH & PREPARING CROPS FOR NEW DAY =======");
+
+        Season currentSeason = null;
+        if (gameClock != null) {
+            currentSeason = gameClock.getCurrentSeason();
+            if (currentSeason == Season.WINTER) {
+                System.out.println("[GamePanel] ❄️ WINTER SEASON - All crop growth PAUSED");
+                System.out.println("[GamePanel] ======================= WINTER MODE ACTIVE ========================");
+                return; // STOP SEMUA PERTUMBUHAN
+            }
+        }
 
         boolean isRainingForNewDay = false;
         if (gameClock != null && gameClock.getWeather() != null) {
@@ -969,7 +1058,7 @@ public class GamePanel extends JPanel implements Runnable {
         } else if (!crop.isWatered()) {
             System.out.println("[GamePanel] ✗ " + crop.getCropType() + " SKIPPED growth - not watered yesterday");
         } else if (crop.getGrewToday()) {
-            System.out.println("[GamePanel] ⏩ " + crop.getCropType() + " already grew today");
+            System.out.println("[GamePanel]" + crop.getCropType() + " already grew today");
         }
 
         System.out.println("[GamePanel] Resetting " + crop.getCropType() + " for new day...");

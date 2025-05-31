@@ -21,12 +21,10 @@ import spakborhills.entity.NPC_EMILY;
 import spakborhills.entity.Player;
 import spakborhills.interfaces.Edible;
 import spakborhills.object.OBJ_Fish;
-import spakborhills.object.OBJ_Food;
 import spakborhills.object.OBJ_Item;
 import spakborhills.object.OBJ_Misc;
 import spakborhills.object.OBJ_PlantedCrop;
 import spakborhills.object.OBJ_Recipe;
-import spakborhills.object.OBJ_Seed;
 
 public class KeyHandler implements KeyListener {
     public boolean upPressed, downPressed, leftPressed, rightPressed, enterPressed, inventoryPressed, eatPressed,
@@ -84,34 +82,29 @@ public class KeyHandler implements KeyListener {
                         gp.ui.commandNumber = 0;
                     }
                 } else if (code == KeyEvent.VK_ENTER) {
-                    if (gp.ui.commandNumber >= 0 && gp.ui.commandNumber < gp.mapInfos.size() && gp.ui.commandNumber != gp.currentMapIndex) {
+                    if (gp.ui.commandNumber >= 0 && gp.ui.commandNumber < gp.mapInfos.size()
+                            && gp.ui.commandNumber != gp.currentMapIndex) {
                         System.out.println("DEBUG: KeyHandler - Map Selected Index: " + gp.ui.commandNumber);
                         gp.loadMapbyIndex(gp.ui.commandNumber);
 
                         if (gp.ui.commandNumber == 0) {
                             gp.player.incrementVisitFrequency("Abigail");
-                        }
-                        else if (gp.ui.commandNumber == 1) {
+                        } else if (gp.ui.commandNumber == 1) {
                             gp.player.incrementVisitFrequency("Caroline");
-                        }
-                        else if (gp.ui.commandNumber == 2) {
+                        } else if (gp.ui.commandNumber == 2) {
                             gp.player.incrementVisitFrequency("Dasco");
-                        }
-                        else if (gp.ui.commandNumber == 3) {
+                        } else if (gp.ui.commandNumber == 3) {
                             gp.player.incrementVisitFrequency("Mayor Tadi");
-                        }
-                        else if (gp.ui.commandNumber == 4) {
+                        } else if (gp.ui.commandNumber == 4) {
                             gp.player.incrementVisitFrequency("Perry");
-                        }
-                        else if (gp.ui.commandNumber == 10) {
+                        } else if (gp.ui.commandNumber == 10) {
                             gp.player.incrementVisitFrequency("Emily");
                         }
 
                         if (gp.gameClock != null && gp.gameClock.isPaused()) {
                             gp.gameClock.resumeTime();
                         }
-                    }
-                    else if (gp.ui.commandNumber == gp.currentMapIndex) {
+                    } else if (gp.ui.commandNumber == gp.currentMapIndex) {
                         gp.gameState = gp.playState;
                     }
                 } else if (code == KeyEvent.VK_ESCAPE) {
@@ -136,8 +129,8 @@ public class KeyHandler implements KeyListener {
             }
         }
 
-        else if (gp.gameState == gp.playerStatsState) {
-            if (code == KeyEvent.VK_ESCAPE) {
+        else if (gp.gameState == gp.playerInfoState) {
+            if (code == KeyEvent.VK_ESCAPE || code == KeyEvent.VK_L) {
                 gp.gameState = gp.playState;
             }
         }
@@ -152,7 +145,7 @@ public class KeyHandler implements KeyListener {
             System.out.println("[KeyHandler] DEBUG - Current gameState value: " + gp.gameState);
             System.out.println("[KeyHandler] DEBUG - enterPressed status: " + enterPressed);
 
-            if (code == KeyEvent.VK_ENTER) {
+            if (code == KeyEvent.VK_ENTER || code == KeyEvent.VK_ESCAPE) {
                 System.out.println("[KeyHandler] DEBUG - ENTER key detected in endGameState");
 
                 enterPressed = false;
@@ -175,17 +168,6 @@ public class KeyHandler implements KeyListener {
                 }
 
                 System.out.println("[KeyHandler] DEBUG - New gameState after ENTER: " + gp.gameState);
-
-            } else if (code == KeyEvent.VK_ESCAPE) {
-                System.out.println("[KeyHandler] DEBUG - ESC key detected in endGameState");
-
-                gp.gameState = GamePanel.titleState;
-                gp.ui.mapSelectionState = 0;
-                gp.ui.commandNumber = 0;
-                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
-                    gp.gameClock.pauseTime();
-                }
-                System.out.println("[KeyHandler] ESC pressed in endGameState. Returning to titleState.");
             }
         }
 
@@ -211,8 +193,6 @@ public class KeyHandler implements KeyListener {
                 gp.gameState = gp.pauseState;
                 if (gp.gameClock != null)
                     gp.gameClock.pauseTime();
-            } else if (code == KeyEvent.VK_C) {
-                System.out.println("[KeyHandler] Collision debugging toggled");
             } else if (code == KeyEvent.VK_ENTER) {
                 enterPressed = true;
             } else if (code == KeyEvent.VK_M) {
@@ -225,12 +205,12 @@ public class KeyHandler implements KeyListener {
                         if (gp.gameClock != null && !gp.gameClock.isPaused()) {
                             gp.gameClock.pauseTime();
                         }
-                        gp.ui.showMessage("World Map opened from farm edge!");
+                        gp.ui.showMessage("World Map berhasil dibuka!");
                     } else {
-                        gp.ui.showMessage("You need to go to the farm edge to access the world map!");
+                        gp.ui.showMessage("Kamu harus ke ujung Farm untuk membuka World Map!");
                     }
                 } else if (gp.currentMapIndex == gp.PLAYER_HOUSE_INDEX) {
-                    gp.ui.showMessage("You need to go out to the farm first!");
+                    gp.ui.showMessage("Ke Farm dulu ya!");
                 } else {
                     gp.gameState = GamePanel.titleState;
                     gp.ui.mapSelectionState = 1;
@@ -255,18 +235,13 @@ public class KeyHandler implements KeyListener {
                 }
                 gp.ui.showMessage("Found " + cropCount + " crops (check console for details)");
 
-            } else if (code == KeyEvent.VK_X) {
-
-                System.out.println("=== FORCE DAILY RESETS ===");
-                gp.performDailyResets();
-                gp.ui.showMessage("Daily resets triggered!");
             } else if (code == KeyEvent.VK_K) {
                 gp.player.startFishing();
             } else if (code == KeyEvent.VK_E) {
                 eatPressed = true;
-            } else if (code == KeyEvent.VK_R) {
-                new TillingCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_T) {
+                new TillingCommand(gp.player).execute(gp);
+            } else if (code == KeyEvent.VK_R) {
                 new RecoverLandCommand(gp.player).execute(gp);
             } else if (code == KeyEvent.VK_G) {
                 new WateringCommand(gp.player).execute(gp);
@@ -274,7 +249,6 @@ public class KeyHandler implements KeyListener {
                 plantPressed = true;
                 new PlantingCommand(gp.player).execute(gp);
                 plantPressed = false;
-
             } else if (code == KeyEvent.VK_C) {
                 harvestPressed = true;
                 new HarvestCommand(gp.player).execute(gp);
@@ -288,18 +262,11 @@ public class KeyHandler implements KeyListener {
                         gp.gameClock.pauseTime();
                     }
                 }
-            } else if (code == KeyEvent.VK_U) {
-                System.out.println("[KeyHandler] TEST - Force triggering endgame");
-                gp.previousGameState = gp.gameState;
-                gp.gameState = gp.endGameState;
-                if (gp.gameClock != null && !gp.gameClock.isPaused()) {
-                    gp.gameClock.pauseTime();
-                }
             } else if (code == KeyEvent.VK_BACK_QUOTE) {
                 gp.gameState = gp.helpPageState;
 
-            } else if (code == KeyEvent.VK_TAB) {
-                gp.gameState = gp.playerStatsState;
+            } else if (code == KeyEvent.VK_L) {
+                gp.gameState = gp.playerInfoState;
             }
         } else if (gp.gameState == gp.pauseState) {
             if (code == KeyEvent.VK_P) {
@@ -435,7 +402,8 @@ public class KeyHandler implements KeyListener {
 
     private void handleSellScreenInput(int code) {
         if (code == KeyEvent.VK_ESCAPE) {
-            if (!gp.player.itemsInShippingBinToday.isEmpty()) {
+
+            if (!gp.player.shippingBinTypes.isEmpty()) {
                 gp.completeShippingBinTransaction();
             } else {
                 gp.cancelShippingBinTransaction();
@@ -445,129 +413,47 @@ public class KeyHandler implements KeyListener {
             if (!gp.player.inventory.isEmpty() && gp.ui.commandNumber < gp.player.inventory.size()
                     && gp.ui.commandNumber >= 0) {
 
-                if (gp.player.itemsInShippingBinToday.size() < 16) {
-                    Entity itemEntityToShip = gp.player.inventory.get(gp.ui.commandNumber);
+                Entity itemEntityToShip = gp.player.inventory.get(gp.ui.commandNumber);
 
-                    if (itemEntityToShip instanceof OBJ_Item) {
-                        OBJ_Item itemToShip = (OBJ_Item) itemEntityToShip;
-                        if (itemToShip.getSellPrice() > 0) {
-                            boolean stackedSuccessfully = false;
+                if (itemEntityToShip instanceof OBJ_Item) {
+                    OBJ_Item itemToShip = (OBJ_Item) itemEntityToShip;
+                    if (itemToShip.getSellPrice() > 0) {
 
-                            for (Entity binEntity : gp.player.itemsInShippingBinToday) {
-                                if (binEntity instanceof OBJ_Item) {
-                                    OBJ_Item binItem = (OBJ_Item) binEntity;
+                        OBJ_Item itemToShipCopy = gp.player.createShippingBinItem(itemToShip);
+                        itemToShipCopy.quantity = 1;
 
-                                    if (binItem.name.equals(itemToShip.name) &&
-                                            binItem.getType() == itemToShip.getType()) {
+                        if (gp.player.addItemToShippingBin(itemToShipCopy)) {
 
-                                        binItem.quantity += 1;
-                                        itemToShip.quantity -= 1;
+                            itemToShip.quantity--;
+                            if (itemToShip.quantity <= 0) {
+                                gp.player.inventory.remove(gp.ui.commandNumber);
 
-                                        System.out.println("[KeyHandler] Stacked 1 " + itemToShip.name +
-                                                " to existing bin stack. Bin stack now: " + binItem.quantity);
-
-                                        if (itemToShip.quantity <= 0) {
-                                            gp.player.inventory.remove(gp.ui.commandNumber);
-
-                                            if (gp.ui.commandNumber >= gp.player.inventory.size()
-                                                    && !gp.player.inventory.isEmpty()) {
-                                                gp.ui.commandNumber = gp.player.inventory.size() - 1;
-                                            } else if (gp.player.inventory.isEmpty()) {
-                                                gp.ui.commandNumber = 0;
-                                            }
-                                        }
-
-                                        stackedSuccessfully = true;
-                                        gp.ui.showMessage(itemToShip.name + " moved to bin (x" + binItem.quantity +
-                                                "). Inventory: x" + itemToShip.quantity + " remaining");
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (!stackedSuccessfully) {
-                                OBJ_Item binItem = createSingleBinItem(itemToShip);
-
-                                if (binItem != null) {
-                                    gp.player.itemsInShippingBinToday.add(binItem);
-
-                                    itemToShip.quantity--;
-
-                                    if (itemToShip.quantity <= 0) {
-                                        gp.player.inventory.remove(gp.ui.commandNumber);
-
-                                        if (gp.ui.commandNumber >= gp.player.inventory.size()
-                                                && !gp.player.inventory.isEmpty()) {
-                                            gp.ui.commandNumber = gp.player.inventory.size() - 1;
-                                        } else if (gp.player.inventory.isEmpty()) {
-                                            gp.ui.commandNumber = 0;
-                                        }
-                                    }
-
-                                    gp.ui.showMessage(binItem.name + " moved to bin (new stack). Inventory: x" +
-                                            itemToShip.quantity + " remaining");
-                                    System.out.println("[KeyHandler] Added new item to bin: " + binItem.name +
-                                            " (quantity: 1)");
+                                if (gp.ui.commandNumber >= gp.player.inventory.size()
+                                        && !gp.player.inventory.isEmpty()) {
+                                    gp.ui.commandNumber = gp.player.inventory.size() - 1;
+                                } else if (gp.player.inventory.isEmpty()) {
+                                    gp.ui.commandNumber = 0;
                                 }
                             }
 
                             if (gp.player.inventory.isEmpty()) {
-                                gp.ui.showMessage("Inventory empty. Press Esc to close bin.");
+                                gp.ui.showMessage("Inventory kamu kosong. Tekan ESC untuk keluar.");
                             }
-                        } else {
-                            gp.ui.showMessage(itemToShip.name + " cannot be sold.");
                         }
+
                     } else {
-                        gp.ui.showMessage(itemEntityToShip.name + " is not a sellable item type.");
+                        gp.ui.showMessage(itemToShip.name + " tidak bisa dijual.");
                     }
                 } else {
-                    gp.ui.showMessage("Shipping bin is full (16 different item types max).");
+                    gp.ui.showMessage(itemEntityToShip.name + " bukan tipe barang yang bisa dijual.");
                 }
+
                 gp.gameClock.getTime().advanceTime(15);
             } else if (gp.player.inventory.isEmpty()) {
-                gp.ui.showMessage("Inventory is empty. Nothing to ship.");
+                gp.ui.showMessage("Inventory kosong. Tidak ada yang bisa dijual.");
             }
         }
         sellScreenControls(code);
-    }
-
-    private OBJ_Item createSingleBinItem(OBJ_Item original) {
-        try {
-            if (original instanceof OBJ_Seed) {
-                OBJ_Seed seedOriginal = (OBJ_Seed) original;
-                return new OBJ_Seed(gp, seedOriginal.getType(), seedOriginal.name,
-
-                        seedOriginal.isEdible(), seedOriginal.getBuyPrice(),
-                        seedOriginal.getSellPrice(), 1,
-                        seedOriginal.dayToHarvest, seedOriginal.getSeason(),
-                        seedOriginal.weather);
-            } else if (original instanceof OBJ_Food) {
-                OBJ_Food foodOriginal = (OBJ_Food) original;
-                OBJ_Food newFood = new OBJ_Food(gp, foodOriginal.getType(), foodOriginal.name,
-                        foodOriginal.isEdible(), foodOriginal.getBuyPrice(),
-                        foodOriginal.getSellPrice(), foodOriginal.getEnergy());
-                newFood.quantity = 1;
-                return newFood;
-            } else if (original instanceof OBJ_Fish) {
-                OBJ_Fish fishOriginal = (OBJ_Fish) original;
-                OBJ_Fish newFish = new OBJ_Fish(gp, fishOriginal.getType(), fishOriginal.name,
-                        fishOriginal.isEdible(),
-                        fishOriginal.getSellPrice(), fishOriginal.getSeasons(),
-                        fishOriginal.getWeathers(), fishOriginal.getLocations(),
-                        fishOriginal.getFishType(), fishOriginal.getStartHour(),
-                        fishOriginal.getEndHour());
-                newFish.quantity = 1;
-                return newFish;
-            } else {
-
-                return new OBJ_Item(gp, original.getType(), original.name,
-                        original.isEdible(), original.getBuyPrice(),
-                        original.getSellPrice(), 1);
-            }
-        } catch (Exception e) {
-            System.err.println("[KeyHandler] Error creating single bin item: " + e.getMessage());
-            return null;
-        }
     }
 
     private void handleFishingMinigameInput(KeyEvent e) {
@@ -624,9 +510,13 @@ public class KeyHandler implements KeyListener {
                 gp.gameClock.resumeTime();
             return;
         }
+
         NPC_EMILY emily = (NPC_EMILY) gp.currentInteractingNPC;
-        if (emily.shopInventory.isEmpty()) {
-            gp.ui.showMessage("Emily has nothing to sell right now.");
+
+        List<OBJ_Item> availableItems = emily.getAvailableShopInventory();
+
+        if (availableItems.isEmpty()) {
+            gp.ui.showMessage("Emily tidak punya barang untuk dijual saat ini.");
             if (code == KeyEvent.VK_ESCAPE) {
                 gp.gameState = gp.playState;
                 if (gp.gameClock != null && gp.gameClock.isPaused())
@@ -638,29 +528,77 @@ public class KeyHandler implements KeyListener {
         if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
             gp.ui.storeCommandNum--;
             if (gp.ui.storeCommandNum < 0) {
-                gp.ui.storeCommandNum = emily.shopInventory.size() - 1;
+                gp.ui.storeCommandNum = availableItems.size() - 1;
             }
         } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
             gp.ui.storeCommandNum++;
-            if (gp.ui.storeCommandNum >= emily.shopInventory.size()) {
+            if (gp.ui.storeCommandNum >= availableItems.size()) {
                 gp.ui.storeCommandNum = 0;
             }
         } else if (code == KeyEvent.VK_ENTER) {
-            if (gp.ui.storeCommandNum >= 0 && gp.ui.storeCommandNum < emily.shopInventory.size()) {
-                OBJ_Item selectedShopItem = emily.shopInventory.get(gp.ui.storeCommandNum);
-                String recipeIdToUnlock = null;
+            if (gp.ui.storeCommandNum >= 0 && gp.ui.storeCommandNum < availableItems.size()) {
+                OBJ_Item selectedShopItem = availableItems.get(gp.ui.storeCommandNum);
+
                 if (selectedShopItem instanceof OBJ_Recipe) {
-                    recipeIdToUnlock = ((OBJ_Recipe) selectedShopItem).recipeIdToUnlock;
+                    handleRecipePurchase((OBJ_Recipe) selectedShopItem, emily);
+                } else {
+
+                    String recipeIdToUnlock = null;
+                    gp.player.buyItem(selectedShopItem, recipeIdToUnlock);
                 }
-                gp.player.buyItem(selectedShopItem, recipeIdToUnlock);
             }
         } else if (code == KeyEvent.VK_ESCAPE) {
             gp.gameState = gp.playState;
             if (gp.gameClock != null && gp.gameClock.isPaused()) {
                 gp.gameClock.resumeTime();
             }
-            gp.ui.showMessage("Leaving the shop.");
+            gp.ui.showMessage("Meninggalkan store");
         }
+    }
+
+    private void handleRecipePurchase(OBJ_Recipe recipe, NPC_EMILY emily) {
+        System.out.println("[KeyHandler] Processing recipe purchase: " + recipe.name);
+
+        if (gp.player.gold < recipe.buyPrice) {
+            gp.ui.showMessage("Gold tidak cukup! Butuh " + recipe.buyPrice + " gold.");
+            System.out.println("[KeyHandler] Recipe purchase failed - insufficient gold");
+            return;
+        }
+
+        if (!showRecipePurchaseConfirmation(recipe)) {
+            gp.ui.showMessage("Pembelian recipe dibatalkan.");
+            return;
+        }
+
+        gp.player.gold -= recipe.buyPrice;
+        System.out.println("[KeyHandler] Deducted " + recipe.buyPrice + " gold. Remaining: " + gp.player.gold);
+
+        if (recipe.recipeIdToUnlock != null) {
+            gp.player.recipeUnlockStatus.put(recipe.recipeIdToUnlock, true);
+            System.out.println("[KeyHandler] Unlocked recipe: " + recipe.recipeIdToUnlock);
+        }
+
+        emily.purchaseRecipe(recipe.name);
+
+        List<OBJ_Item> newAvailableItems = emily.getAvailableShopInventory();
+        if (gp.ui.storeCommandNum >= newAvailableItems.size() && !newAvailableItems.isEmpty()) {
+            gp.ui.storeCommandNum = newAvailableItems.size() - 1;
+        } else if (newAvailableItems.isEmpty()) {
+            gp.ui.storeCommandNum = 0;
+        }
+
+        gp.ui.showMessage("Recipe berhasil dibeli! " + recipe.name + " dipelajari!");
+        System.out.println("[KeyHandler] Recipe purchase completed successfully: " + recipe.name);
+
+        gp.gameClock.getTime().advanceTime(10);
+        gp.player.tryDecreaseEnergy(5);
+    }
+
+    private boolean showRecipePurchaseConfirmation(OBJ_Recipe recipe) {
+
+        System.out.println("[KeyHandler] Recipe purchase confirmation for: " + recipe.name);
+
+        return true;
     }
 
     private void handleCookingInput(int code) {
@@ -669,7 +607,7 @@ public class KeyHandler implements KeyListener {
                 .toList();
 
         if (availableRecipes.isEmpty() && gp.ui.cookingSubState == 0) {
-            gp.ui.showMessage("You don't know any recipes yet!");
+            gp.ui.showMessage("Kamu belum tau resepnya :(");
             if (code == KeyEvent.VK_ESCAPE) {
                 gp.gameState = gp.playState;
                 if (gp.gameClock != null && gp.gameClock.isPaused())
@@ -693,7 +631,7 @@ public class KeyHandler implements KeyListener {
                     if (canPlayerCookRecipe(gp.selectedRecipeForCooking, gp.player)) {
                         gp.ui.cookingSubState = 1;
                         gp.ui.showMessage(
-                                "Cook " + gp.selectedRecipeForCooking.outputFoodName + "? (Cost: 10 Energy, 1hr)");
+                                "Masak " + gp.selectedRecipeForCooking.outputFoodName + "? (Cost: 10 Energy, 1 jam)");
                     } else {
                         gp.selectedRecipeForCooking = null;
                     }
@@ -718,7 +656,7 @@ public class KeyHandler implements KeyListener {
             } else if (code == KeyEvent.VK_ESCAPE) {
                 gp.ui.cookingSubState = 0;
                 gp.selectedRecipeForCooking = null;
-                gp.ui.showMessage("Recipe selection cancelled.");
+                gp.ui.showMessage("Cancel pemilihan resep");
             }
         }
     }
@@ -744,7 +682,7 @@ public class KeyHandler implements KeyListener {
 
         if (!hasFuel) {
             System.out.println("DEBUG Cook: No fuel (Firewood: " + firewoodQty + ", Coal: " + coalQty + ")");
-            gp.ui.showMessage("You need Firewood or Coal to cook.");
+            gp.ui.showMessage("Kamu butuh Firewood atau Coal.");
             return false;
         }
 
@@ -792,7 +730,7 @@ public class KeyHandler implements KeyListener {
             if (playerHasQty < requiredQty) {
                 System.out.println("DEBUG Cook: Not enough " + requiredIngredientBaseName + ". Has: " + playerHasQty
                         + ", Needs: " + requiredQty);
-                gp.ui.showMessage("You don't have enough " + requiredIngredientBaseName + ".");
+                gp.ui.showMessage("Kamu tidak punya cukup " + requiredIngredientBaseName + ".");
                 return false;
             }
         }
@@ -801,7 +739,7 @@ public class KeyHandler implements KeyListener {
 
     private void initiateCookingProcess(Recipe recipe, Player player) {
         if (!player.tryDecreaseEnergy(10)) {
-            gp.ui.showMessage("Not enough energy to cook!");
+            gp.ui.showMessage("Energy kamu kurang banyak untuk masak");
             return;
         }
 
@@ -855,7 +793,7 @@ public class KeyHandler implements KeyListener {
                         ". Had: " + qtyActuallyConsumed + ", Needed: " + qtyToConsume
                         + ". Inventory might be corrupted or check logic failed.");
                 gp.ui.showMessage(
-                        "Error: Could not find enough " + requiredIngredientBaseName + " during consumption!");
+                        "Error: Tidak cukup " + requiredIngredientBaseName);
                 player.increaseEnergy(10);
                 return;
             }
@@ -903,7 +841,7 @@ public class KeyHandler implements KeyListener {
         if (!fuelConsumed) {
             System.err.println(
                     "CRITICAL COOKING ERROR: No fuel consumed. This should have been caught by canPlayerCookRecipe.");
-            gp.ui.showMessage("Error: No fuel to cook with!");
+            gp.ui.showMessage("Error: Tidak ada fuel");
             player.increaseEnergy(10);
             return;
         }
@@ -918,7 +856,7 @@ public class KeyHandler implements KeyListener {
         }
         player.activeCookingProcesses.add(new ActiveCookingProcess(recipe.outputFoodName, recipe.outputFoodQuantity,
                 finishDay, finishHour, finishMinute));
-        gp.ui.showMessage(recipe.outputFoodName + " is cooking! Ready in 1 hour.");
+        gp.ui.showMessage(recipe.outputFoodName + " sedang dimasak. Selesai dalam 1 jam");
         System.out.println("DEBUG Cook: Started cooking " + recipe.outputFoodName + ". Will finish on Day " + finishDay
                 + " at " + finishHour + ":" + finishMinute);
     }
@@ -980,7 +918,7 @@ public class KeyHandler implements KeyListener {
                 gp.gameState = gp.genderSelectionState;
                 gp.ui.farmNameInput = "";
             } else {
-                gp.ui.showMessage("Player name cannot be empty!");
+                gp.ui.showMessage("Nama player tidak boleh kosong!");
             }
         } else if (keyCode == KeyEvent.VK_BACK_SPACE) {
             if (gp.ui.playerNameInput.length() > 0) {
@@ -1059,7 +997,7 @@ public class KeyHandler implements KeyListener {
                     if (npc.name.equals("Emily")) {
                         gp.gameState = gp.buyingState;
                         gp.ui.storeCommandNum = 0;
-                        gp.ui.showMessage("Welcome to Emily's Shop!");
+                        gp.ui.showMessage("Selamat datang di Emily's Store");
                     }
                     break;
                 case "Leave":
@@ -1197,12 +1135,12 @@ public class KeyHandler implements KeyListener {
                                 + ", dialogue: " + gp.ui.currentDialogue);
 
                     } else {
-                        gp.ui.showMessage("Invalid item selection for gift.");
+                        gp.ui.showMessage("Item untuk gift invalid");
                         gp.gameState = gp.interactionMenuState;
                         gp.ui.isSelectingGift = false;
                     }
                 } else {
-                    gp.ui.showMessage("Cannot give a gift: no valid NPC selected.");
+                    gp.ui.showMessage("Tidak bisa gifting, tidak ada NPC valid.");
                     gp.gameState = gp.playState;
                     if (gp.gameClock != null && gp.gameClock.isPaused())
                         gp.gameClock.resumeTime();
@@ -1250,7 +1188,7 @@ public class KeyHandler implements KeyListener {
                 }
 
             } else {
-                gp.ui.showMessage("Farm name cannot be empty!");
+                gp.ui.showMessage("Nama Farm tidak boleh kosong!");
             }
         } else if (keyCode == KeyEvent.VK_BACK_SPACE) {
             if (gp.ui.farmNameInput.length() > 0) {
@@ -1297,16 +1235,15 @@ public class KeyHandler implements KeyListener {
 
     private void handleGenderInput(int keyCode) {
         if (keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_A ||
-            keyCode == KeyEvent.VK_RIGHT || keyCode == KeyEvent.VK_D) {
-            gp.ui.genderSelectionIndex = 1 - gp.ui.genderSelectionIndex; // 0 <-> 1
-        }
-        else if (keyCode == KeyEvent.VK_ENTER) {
+                keyCode == KeyEvent.VK_RIGHT || keyCode == KeyEvent.VK_D) {
+            gp.ui.genderSelectionIndex = 1 - gp.ui.genderSelectionIndex;
+        } else if (keyCode == KeyEvent.VK_ENTER) {
             if (gp.ui.genderSelectionIndex == 0) {
                 gp.player.setGender(spakborhills.enums.Gender.MALE);
             } else {
                 gp.player.setGender(spakborhills.enums.Gender.FEMALE);
             }
-            gp.player.getPlayerImage(); // <-- Tambahkan ini!
+            gp.player.getPlayerImage();
             gp.gameState = gp.farmNameInputState;
             gp.ui.farmNameInput = "";
         }

@@ -30,13 +30,13 @@ public class OBJ_ShippingBin extends Entity {
     public void interact() {
 
         if (gp.player.hasUsedShippingBinToday) {
-            gp.ui.showMessage("You've already shipped items today. Come back tomorrow!");
+            gp.ui.showMessage("Kamu sudah menjual item hari ini. Balik lagi besok ya!");
             return;
         }
 
         gp.gameState = gp.sellState;
         gp.ui.commandNumber = 0;
-        gp.ui.showMessage("Place items in bin to sell overnight (Max 16). Press ESC to finish.");
+        gp.ui.showMessage("Letakkan items untuk dijual lewat Shipping Bin (MAX 16 jenis). Tekan ESC untuk keluar.");
 
         if (gp.gameClock != null && !gp.gameClock.isPaused()) {
             gp.gameClock.pauseTime();

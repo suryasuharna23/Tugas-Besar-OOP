@@ -19,6 +19,7 @@ import java.util.List;
 
 public class NPC_EMILY extends NPC {
         public List<OBJ_Item> shopInventory;
+        private List<String> purchasedRecipe;
 
         public NPC_EMILY(GamePanel gp) {
                 super(gp);
@@ -28,12 +29,16 @@ public class NPC_EMILY extends NPC {
                 type = EntityType.NPC;
                 isMarriageCandidate = true;
                 currentHeartPoints = 0;
-                Collections.addAll(lovedGiftsName, "seluruh item seeds");
+
+                purchasedRecipe = new ArrayList<>();
+
+                initializeShopInventory();
+                addAllSeedsToLovedGifts();
                 Collections.addAll(likedGiftsName, "Catfish", "Salmon", "Sardine");
-                Collections.addAll(hatedItems, "Coal", "Wood");
+                Collections.addAll(hatedItems, "Coal", "Firewood");
                 setDialogue();
                 getNPCImage();
-                initializeShopInventory();
+
         }
 
         public void initializeShopInventory() {
@@ -82,7 +87,6 @@ public class NPC_EMILY extends NPC {
                 shopInventory.add(new OBJ_Food(gp, ItemType.FOOD, "Fish Sandwich", true, 200, 180, 50));
                 shopInventory.add(new OBJ_Food(gp, ItemType.FOOD, "Cooked Pig's Head", true, 1000, 0, 100));
 
-
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Parsnip", true, 50, 35, 1, 3));
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Cauliflower", true, 200, 150, 1, 3));
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Wheat", true, 50, 30, 3, 3));
@@ -90,7 +94,6 @@ public class NPC_EMILY extends NPC {
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Tomato", true, 90, 60, 1, 3));
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Pumpkin", true, 300, 250, 1, 3));
                 shopInventory.add(new OBJ_Crop(gp, ItemType.CROP, "Grape", true, 100, 10, 20, 3));
-
 
                 shopInventory.add(new OBJ_Recipe(gp, "Recipe: Fish n' Chips", 500, "recipe_1"));
                 shopInventory.add(new OBJ_Recipe(gp, "Recipe: Fish Sandwich", 500, "recipe_10"));
@@ -125,5 +128,77 @@ public class NPC_EMILY extends NPC {
                 gp.gameState = gp.interactionMenuState;
                 gp.ui.npcMenuCommandNum = 0;
 
+        }
+
+        private void addAllSeedsToLovedGifts() {
+                System.out.println("[NPC_EMILY] Auto-detecting seeds from shop inventory...");
+
+                for (OBJ_Item item : shopInventory) {
+                        if (item instanceof OBJ_Seed) {
+                                String seedName = item.name;
+                                if (!lovedGiftsName.contains(seedName)) {
+                                        lovedGiftsName.add(seedName);
+                                        System.out.println("[NPC_EMILY] Added seed to loved gifts: " + seedName);
+                                }
+                        }
+                }
+
+                System.out.println("[NPC_EMILY] Total loved seeds: " +
+                                lovedGiftsName.stream().filter(name -> shopInventory.stream()
+                                                .anyMatch(item -> item instanceof OBJ_Seed && item.name.equals(name)))
+                                                .count());
+        }
+
+        public void purchaseRecipe(String recipeName) {
+                System.out.println("[NPC_EMILY] Player purchased recipe: " + recipeName);
+
+                if (!purchasedRecipe.contains(recipeName)) {
+                        purchasedRecipe.add(recipeName);
+                        System.out.println("[NPC_EMILY] Added to purchased recipes: " + recipeName);
+                }
+
+                shopInventory.removeIf(item -> {
+                        if (item instanceof OBJ_Recipe && item.name.equals(recipeName)) {
+                                System.out.println("[NPC_EMILY] Removed recipe from shop: " + recipeName);
+                                return true;
+                        }
+                        return false;
+                });
+
+                System.out.println("[NPC_EMILY] Shop inventory size after removal: " + shopInventory.size());
+        }
+
+        public boolean isRecipePurchased(String recipeName) {
+                return purchasedRecipe.contains(recipeName);
+        }
+
+        public List<OBJ_Item> getAvailableShopInventory() {
+                List<OBJ_Item> availableItems = new ArrayList<>();
+
+                for (OBJ_Item item : shopInventory) {
+
+                        if (item instanceof OBJ_Recipe) {
+                                if (!isRecipePurchased(item.name)) {
+                                        availableItems.add(item);
+                                }
+                        } else {
+
+                                availableItems.add(item);
+                        }
+                }
+
+                return availableItems;
+        }
+
+        public List<String> getPurchasedRecipes() {
+                return new ArrayList<>(purchasedRecipe);
+        }
+
+        public void resetPurchasedRecipes() {
+                purchasedRecipe.clear();
+                System.out.println("[NPC_EMILY] Reset purchased recipes list");
+
+                initializeShopInventory();
+                System.out.println("[NPC_EMILY] Restored all recipes to shop");
         }
 }

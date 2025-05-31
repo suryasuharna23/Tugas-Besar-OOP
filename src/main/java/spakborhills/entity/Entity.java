@@ -1,17 +1,25 @@
 package spakborhills.entity;
 
-import spakborhills.GamePanel;
-import spakborhills.enums.EntityType;
-import spakborhills.enums.Season;
-import spakborhills.enums.Weather;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-// import java.util.Objects; // No longer needed for requireNonNull
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
+
+import spakborhills.GamePanel;
+import spakborhills.enums.EntityType;
+import spakborhills.enums.Season;
+import spakborhills.enums.Weather;
+import spakborhills.object.OBJ_Item;
+
+
 
     public abstract class Entity {
         public GamePanel gp;
@@ -35,6 +43,9 @@ import java.util.ArrayList;
         protected int currentHour;
         protected Weather currentWeather;
 
+        public Map<String, OBJ_Item> shippingBinTypes = new HashMap<>();
+        public int maxBinTypes = 16;
+
     public int imageWidth;
     public int imageHeight;
 
@@ -51,9 +62,9 @@ import java.util.ArrayList;
             InputStream is = getClass().getResourceAsStream(imagePath + ".png");
             if (is == null) {
                 System.err.println("Error in Entity.setup: Could not find image resource: " + imagePath + ".png");
-                // Attempt fallback for objects if a generic placeholder exists
-                // You would need to add an "unknown_item.png" to your /objects/ folder for this
-                // to work
+                
+                
+                
                 if (imagePath.startsWith("/objects/")) {
                     InputStream fallbackIs = getClass().getResourceAsStream("/objects/unknown_item.png");
                     if (fallbackIs != null) {

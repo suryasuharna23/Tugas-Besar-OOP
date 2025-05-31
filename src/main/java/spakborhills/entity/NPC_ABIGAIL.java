@@ -14,7 +14,7 @@ public class NPC_ABIGAIL extends NPC{
         name = "Abigail";
         type = EntityType.NPC;
         isMarriageCandidate = true;
-        currentHeartPoints = 150;
+        currentHeartPoints = 0;
         Collections.addAll(lovedGiftsName, "Blueberry", "Melon", "Pumpkin", "Grape", "Cranberry");
         Collections.addAll(likedGiftsName, "Baguette", "Pumpkin Pie", "Wine");
         Collections.addAll(hatedItems, "Hot Pepper", "Cauliflower", "Parsnip", "Wheat");

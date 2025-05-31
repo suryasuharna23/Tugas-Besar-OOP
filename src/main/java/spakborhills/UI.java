@@ -87,20 +87,101 @@ public class UI {
     public UI(GamePanel gp, GameClock gameClock) {
         this.gp = gp;
         this.gameClock = gameClock;
-
-        InputStream inputStream = getClass().getResourceAsStream("/fonts/Minecraftia-Regular.ttf");
-        try {
-            mineCraftia = Font.createFont(Font.TRUETYPE_FONT, inputStream);
-            inputStream = getClass().getResourceAsStream("/fonts/PressStart2PRegular.ttf");
-            pressStart = Font.createFont(Font.TRUETYPE_FONT, inputStream);
-        } catch (FontFormatException | IOException e) {
-            System.out.println(e.getMessage());
-        }
+        loadFonts();
         this.currentDialogueLines = new ArrayList<>();
         this.dialogueCurrentPage = 0;
         this.dialogueLinesPerPage = 6;
         this.lastProcessedDialogue = "";
         loadTitleScreenImage();
+    }
+
+    private void loadFonts() {
+        System.out.println("[UI] Starting font loading...");
+
+        mineCraftia = loadFont("/fonts/Minecraftia-Regular.ttf", "Minecraftia");
+        if (mineCraftia == null) {
+            mineCraftia = loadFont("/fonts/minecraftia-regular.ttf", "Minecraftia (lowercase)");
+        }
+        if (mineCraftia == null) {
+            mineCraftia = loadFont("/Minecraftia-Regular.ttf", "Minecraftia (root)");
+        }
+        if (mineCraftia == null) {
+            System.err.println("[UI] Failed to load Minecraftia font, using Arial fallback");
+            mineCraftia = new Font("Arial", Font.PLAIN, 12);
+        }
+
+        pressStart = loadFont("/fonts/PressStart2PRegular.ttf", "PressStart2P");
+        if (pressStart == null) {
+            pressStart = loadFont("/fonts/pressstart2pregular.ttf", "PressStart2P (lowercase)");
+        }
+        if (pressStart == null) {
+            pressStart = loadFont("/PressStart2PRegular.ttf", "PressStart2P (root)");
+        }
+        if (pressStart == null) {
+            System.err.println("[UI] Failed to load PressStart2P font, using monospaced fallback");
+            pressStart = new Font("Monospaced", Font.PLAIN, 12);
+        }
+
+        System.out.println("[UI] Font loading completed");
+        System.out.println("[UI] Minecraftia loaded: " + (mineCraftia != null ? mineCraftia.getName() : "null"));
+        System.out.println("[UI] PressStart loaded: " + (pressStart != null ? pressStart.getName() : "null"));
+    }
+
+    private Font loadFont(String resourcePath, String fontName) {
+        System.out.println("[UI] Attempting to load font: " + fontName + " from " + resourcePath);
+
+        try {
+
+            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+
+            if (inputStream == null) {
+                System.out.println("[UI] Method 1 failed for " + fontName + ", trying ClassLoader...");
+
+                String pathWithoutSlash = resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath;
+                inputStream = getClass().getClassLoader().getResourceAsStream(pathWithoutSlash);
+            }
+
+            if (inputStream == null) {
+                System.out.println("[UI] Method 2 failed for " + fontName + ", trying alternative paths...");
+
+                String[] alternativePaths = {
+                        resourcePath.toLowerCase(),
+                        resourcePath.replace("-", "_"),
+                        resourcePath.replace("_", "-"),
+                        "/assets" + resourcePath,
+                        "/resources" + resourcePath
+                };
+
+                for (String altPath : alternativePaths) {
+                    inputStream = getClass().getResourceAsStream(altPath);
+                    if (inputStream != null) {
+                        System.out.println("[UI] Found " + fontName + " at alternative path: " + altPath);
+                        break;
+                    }
+                }
+            }
+
+            if (inputStream != null) {
+                Font font = Font.createFont(Font.TRUETYPE_FONT, inputStream);
+                inputStream.close();
+                System.out.println("[UI] Successfully loaded font: " + fontName);
+                return font;
+            } else {
+                System.err.println("[UI] All methods failed for font: " + fontName);
+                return null;
+            }
+
+        } catch (FontFormatException e) {
+            System.err.println("[UI] Font format error for " + fontName + ": " + e.getMessage());
+            return null;
+        } catch (IOException e) {
+            System.err.println("[UI] IO error loading " + fontName + ": " + e.getMessage());
+            return null;
+        } catch (Exception e) {
+            System.err.println("[UI] Unexpected error loading " + fontName + ": " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public void showMessage(String text) {
@@ -134,8 +215,9 @@ public class UI {
         g2.setColor(Color.white);
 
         drawSharedBackground(g2, gp.gameState);
-        if (gp.gameState == gp.titleState) {
+        if (gp.gameState == GamePanel.titleState) {
             drawTitleScreen();
+            drawTimedMessage(g2);
         } else if (gp.gameState == gp.playerNameInputState) {
             drawPlayerNameInputScreen();
             drawTimedMessage(g2);
@@ -175,6 +257,10 @@ public class UI {
             drawFishingMinigameScreen(g2);
         } else if (gp.gameState == gp.endGameState) {
             drawEndGameStatisticsScreen(g2);
+        } else if (gp.gameState == gp.endGameState) {
+            drawEndGameStatisticsScreen(g2);
+        } else if (gp.gameState == gp.playerInfoState) {
+            drawPlayerInfoScreen();
         }
     }
 
@@ -347,7 +433,7 @@ public class UI {
                 inputStream = getClass().getResourceAsStream("/background/endgame.png");
             } else if (gameState == gp.helpPageState) {
                 inputStream = getClass().getResourceAsStream("/background/help.png");
-            } else if (gameState == gp.titleState) {
+            } else if (gameState == GamePanel.titleState) {
                 if (this.mapSelectionState == 0) {
                     inputStream = getClass().getResourceAsStream("/background/welcome.png");
                 } else if (this.mapSelectionState == 1) {
@@ -361,12 +447,11 @@ public class UI {
                 inputStream = getClass().getResourceAsStream("/background/input_farm.png");
             } else if (gameState == gp.genderSelectionState) {
                 inputStream = getClass().getResourceAsStream("/background/input_gender.png");
-            }    
+            }
 
             if (inputStream != null) {
                 backgroundImage = ImageIO.read(inputStream);
             } else {
-                // System.err.println("Cannot load the background for state: " + gameState);
 
                 return;
             }
@@ -602,7 +687,7 @@ public class UI {
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
         int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
         int x = gp.screenWidth / 2 - textWidth / 2;
-        int y = gp.screenHeight / 2 + 30;
+        int y = gp.screenHeight / 2 + 25;
         g2.drawString(displayText, x, y);
     }
 
@@ -623,7 +708,7 @@ public class UI {
         g2.setFont(pressStart.deriveFont(Font.PLAIN, 28F));
         int textWidth = (int) g2.getFontMetrics().getStringBounds(displayText, g2).getWidth();
         int x = gp.screenWidth / 2 - textWidth / 2;
-        int y = gp.screenHeight / 2 + 30;
+        int y = gp.screenHeight / 2 + 25;
         g2.drawString(displayText, x, y);
     }
 
@@ -833,26 +918,20 @@ public class UI {
             }
         }
 
-        // --- SHADOW & BACKGROUND: Ikuti style gold box ---
         int boxX = x - 7;
         int boxY = y;
         int boxWidth = barTotalWidth + 14;
         int boxHeight = barTotalHeight + 16;
 
-        // Shadow
         g2.setColor(new Color(0, 0, 0, 110));
         g2.fillRoundRect(boxX + 3, boxY + 4, boxWidth, boxHeight, 18, 18);
 
-        // Background
         g2.setColor(new Color(30, 30, 40, 200));
         g2.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 18, 18);
 
-        // Border
         g2.setColor(new Color(255, 255, 255, 60));
         g2.setStroke(new BasicStroke(2f));
         g2.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 18, 18);
-
-        // --- END SHADOW & BACKGROUND ---
 
         double partialFill = 0;
         if (gp.player.MAX_POSSIBLE_ENERGY > 0) {
@@ -868,7 +947,6 @@ public class UI {
 
         y += 8;
 
-        // Segments
         for (int i = 0; i < totalSegments; i++) {
             int currentSegmentX = x + (i * (segmentWidth + segmentSpacing));
 
@@ -893,23 +971,17 @@ public class UI {
             }
         }
 
-        // ...existing code...
-
-        // Setelah loop segmen bar
         g2.setFont(pressStart.deriveFont(Font.BOLD, 14F));
         String energyText = gp.player.currentEnergy + "/" + gp.player.MAX_POSSIBLE_ENERGY;
         FontMetrics fmText = g2.getFontMetrics();
         int textWidth = fmText.stringWidth(energyText);
 
-        // Posisi angka di luar box, rata kiri dengan bar, sedikit jarak ke kanan
         int textX = boxX + boxWidth + 14;
         int textY = boxY + (boxHeight + fmText.getAscent()) / 2 - 2;
 
-        // Shadow tipis untuk teks
         g2.setColor(new Color(0, 0, 0, 180));
         g2.drawString(energyText, textX + 2, textY + 2);
 
-        // Teks utama
         g2.setColor(Color.WHITE);
         g2.drawString(energyText, textX, textY);
 
@@ -1001,7 +1073,7 @@ public class UI {
         Font titleFont = (pressStart != null) ? pressStart.deriveFont(24F) : new Font("Arial", Font.BOLD, 24);
         g2.setFont(titleFont);
 
-        g2.drawString("INVENTORY", getXForInventoryTitle("INVENTORY", frameX, frameWidth), frameY + gp.tileSize - 10);
+        g2.drawString("Inventory", getXForInventoryTitle("Inventory", frameX, frameWidth), frameY + gp.tileSize);
 
         final int slotStartX = frameX + gp.tileSize / 2;
         final int slotStartY = frameY + gp.tileSize + 20;
@@ -1116,60 +1188,73 @@ public class UI {
         }
         options.add("Leave");
 
-        int frameX = gp.tileSize * 2;
-        int frameY = gp.screenHeight / 2 - gp.tileSize * 2;
-        int frameWidth = gp.tileSize * 6;
+        int totalMargin = gp.tileSize;
+        int panelGap = gp.tileSize / 3;
+        int availableWidth = gp.screenWidth - (totalMargin * 2) - panelGap;
 
-        int titleHeight = gp.tileSize;
-        int optionHeight = gp.tileSize * options.size();
-        int padding = gp.tileSize / 2;
-        int frameHeight = titleHeight + optionHeight + padding * 2;
+        int leftPanelWidth = (int) (availableWidth * 0.35);
+        int leftPanelX = totalMargin;
 
-        if (frameY + frameHeight > gp.screenHeight) {
-            frameY = gp.screenHeight - frameHeight - gp.tileSize / 2;
+        int rightPanelWidth = availableWidth - leftPanelWidth;
+        int rightPanelX = leftPanelX + leftPanelWidth + panelGap;
+
+        int panelY = gp.screenHeight / 2 - gp.tileSize * 3;
+        int panelHeight = gp.tileSize * 6;
+
+        if (panelY < gp.tileSize / 2) {
+            panelY = gp.tileSize / 2;
         }
-        if (frameY < gp.tileSize / 2) {
-            frameY = gp.tileSize / 2;
-
-            int maxHeight = gp.screenHeight - gp.tileSize;
-            if (frameHeight > maxHeight) {
-                frameHeight = maxHeight;
-            }
+        if (panelY + panelHeight > gp.screenHeight - gp.tileSize / 2) {
+            panelHeight = gp.screenHeight - panelY - gp.tileSize / 2;
+        }
+        if (rightPanelX + rightPanelWidth > gp.screenWidth - totalMargin) {
+            rightPanelWidth = gp.screenWidth - rightPanelX - totalMargin;
         }
 
-        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+        drawSubWindow(leftPanelX, panelY, leftPanelWidth, panelHeight);
 
         g2.setColor(Color.white);
-        g2.setFont(pressStart.deriveFont(Font.PLAIN, 18F));
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 16F));
 
-        String title = npc.name;
-        int titleX = getXForCenteredTextInFrame(title, frameX, frameWidth);
-        int titleY = frameY + gp.tileSize / 2 + 15;
+        String title = "Actions";
+        int titleX = getXForCenteredTextInFrame(title, leftPanelX, leftPanelWidth);
+        int titleY = panelY + gp.tileSize / 2;
         g2.drawString(title, titleX, titleY);
 
-        int textX = frameX + gp.tileSize / 2;
-        int textY = titleY + gp.tileSize / 2 + 10;
-        int lineSpacing = (frameHeight - titleHeight - padding * 2) / options.size();
-        lineSpacing = Math.max(lineSpacing, 25);
+        int optionStartY = titleY + gp.tileSize / 2;
+        int optionSpacing = Math.max(25, (panelHeight - gp.tileSize) / options.size());
 
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 14F));
         for (int i = 0; i < options.size(); i++) {
-            int currentY = textY + (i * lineSpacing);
+            int optionY = optionStartY + (i * optionSpacing);
 
-            if (currentY > frameY + frameHeight - gp.tileSize / 2) {
+            if (optionY > panelY + panelHeight - 20)
                 break;
-            }
 
             if (i == npcMenuCommandNum) {
-                g2.setColor(Color.YELLOW);
-                g2.drawString("> " + options.get(i), textX, currentY);
-                g2.setColor(Color.WHITE);
-            } else {
-                g2.drawString("  " + options.get(i), textX, currentY);
+                g2.setColor(Color.yellow);
+                g2.drawString(">", leftPanelX + 15, optionY);
+                g2.setColor(Color.white);
             }
+            g2.drawString(options.get(i), leftPanelX + 35, optionY);
         }
 
-        g2.setFont(pressStart.deriveFont(Font.PLAIN, 10F));
+        drawSubWindow(rightPanelX, panelY, rightPanelWidth, panelHeight);
+        drawNPCInfoPanel(npc, rightPanelX, panelY, rightPanelWidth, panelHeight);
+
+        g2.setFont(pressStart.deriveFont(Font.PLAIN, 7F));
         g2.setColor(Color.LIGHT_GRAY);
+        String controls = "[UP/Down] Navigate | [Enter] Select | [Esc] Close";
+
+        FontMetrics controlsFm = g2.getFontMetrics();
+        List<String> controlLines = wrapText(controls, leftPanelWidth - 20, controlsFm);
+
+        int controlY = panelY + panelHeight - (controlLines.size() * controlsFm.getHeight()) - 10;
+        for (String line : controlLines) {
+            int controlX = getXForCenteredTextInFrame(line, leftPanelX, leftPanelWidth);
+            g2.drawString(line, controlX, controlY);
+            controlY += controlsFm.getHeight();
+        }
     }
 
     public void drawSellScreen() {
@@ -1189,7 +1274,7 @@ public class UI {
         Font titleFont = pressStart.deriveFont(Font.BOLD, 24F);
         Font headerFont = pressStart.deriveFont(Font.BOLD, 14F);
         Font bodyFont = pressStart.deriveFont(Font.PLAIN, 12F);
-        Font smallFont = pressStart.deriveFont(Font.PLAIN, 10F);
+        Font smallFont = pressStart.deriveFont(Font.PLAIN, 7F);
         Font tinyFont = pressStart.deriveFont(Font.PLAIN, 8F);
 
         int currentY = frameY + TEXT_PADDING;
@@ -1210,12 +1295,10 @@ public class UI {
         int totalStacks = gp.player.itemsInShippingBinToday.size();
         int estimatedValue = 0;
 
-        for (Entity binEntity : gp.player.itemsInShippingBinToday) {
-            if (binEntity instanceof OBJ_Item) {
-                OBJ_Item binItem = (OBJ_Item) binEntity;
-                totalItemsInBin += binItem.quantity;
-                estimatedValue += binItem.getSellPrice() * binItem.quantity;
-            }
+        for (Map.Entry<String, OBJ_Item> entry : gp.player.shippingBinTypes.entrySet()) {
+            OBJ_Item binItem = entry.getValue();
+            totalItemsInBin += binItem.quantity;
+            estimatedValue += binItem.getSellPrice() * binItem.quantity;
         }
 
         g2.setFont(bodyFont);
@@ -1239,7 +1322,7 @@ public class UI {
         currentY += statusBarHeight + SECTION_SPACING;
 
         int binPreviewHeight = 0;
-        if (!gp.player.itemsInShippingBinToday.isEmpty()) {
+        if (!gp.player.shippingBinTypes.isEmpty()) {
             g2.setFont(headerFont);
             g2.setColor(new Color(200, 200, 220));
             g2.drawString("Bin Contents:", frameX + TEXT_PADDING, currentY + g2.getFontMetrics().getAscent());
@@ -1256,20 +1339,23 @@ public class UI {
             int itemListY = currentY + TEXT_PADDING + g2.getFontMetrics().getAscent();
             int maxItemsToShow = Math.min(6, totalStacks);
 
-            for (int i = 0; i < maxItemsToShow; i++) {
-                Entity binEntity = gp.player.itemsInShippingBinToday.get(i);
-                if (binEntity instanceof OBJ_Item) {
-                    OBJ_Item binItem = (OBJ_Item) binEntity;
-                    String itemText = "• " + binItem.name + " x" + binItem.quantity +
-                            " (" + (binItem.getSellPrice() * binItem.quantity) + "G)";
-                    g2.drawString(itemText, frameX + TEXT_PADDING * 2, itemListY);
-                    itemListY += 16;
-                }
+            int index = 0;
+            for (Map.Entry<String, OBJ_Item> entry : gp.player.shippingBinTypes.entrySet()) {
+                if (index >= maxItemsToShow)
+                    break;
+
+                String itemName = entry.getKey();
+                OBJ_Item binItem = entry.getValue();
+                String itemText = "• " + itemName + " x" + binItem.quantity +
+                        " (" + (binItem.getSellPrice() * binItem.quantity) + "G)";
+                g2.drawString(itemText, frameX + TEXT_PADDING * 2, itemListY);
+                itemListY += 16;
+                index++;
             }
 
             if (totalStacks > maxItemsToShow) {
                 g2.setColor(new Color(150, 150, 150));
-                g2.drawString("... and " + (totalStacks - maxItemsToShow) + " more items",
+                g2.drawString("... and " + (totalStacks - maxItemsToShow) + " more types",
                         frameX + TEXT_PADDING * 2, itemListY);
             }
 
@@ -1400,7 +1486,7 @@ public class UI {
 
         g2.setFont(smallFont);
         g2.setColor(Color.WHITE);
-        String instructions = "[↑↓] Navigate  |  [Enter] Move 1 Item to Bin  |  [Esc] Finish Transaction";
+        String instructions = "[Up/Down] Navigate  |  [Enter] Move 1 Item to Bin  |  [Esc] Finish Transaction";
         int instrX = getXForCenteredTextInFrame(instructions, frameX, frameWidth);
         g2.drawString(instructions, instrX, currentY + 16);
 
@@ -1483,8 +1569,8 @@ public class UI {
             int totalBoxWidth = blackLineAreaWidth + (outerBorderThickness * 2);
             int totalBoxHeight = blackLineAreaHeight + (outerBorderThickness * 2);
 
-            int totalBoxX = (gp.screenWidth - totalBoxWidth) / 2;
-            int totalBoxY = (gp.screenHeight / 3) - (totalBoxHeight / 2) - gp.tileSize;
+            int totalBoxX = gp.tileSize;
+            int totalBoxY = gp.screenHeight - totalBoxHeight - gp.tileSize - 30;
             if (totalBoxY < gp.tileSize / 2)
                 totalBoxY = gp.tileSize / 2;
 
@@ -1620,7 +1706,7 @@ public class UI {
             }
             g2.setFont(baseFont.deriveFont(Font.PLAIN, 10F));
             g2.drawString("[Up/Down] Select | [Enter] View/Confirm | [Esc] Exit",
-                    listStartX, frameY + frameHeight - gp.tileSize + 10);
+                    listStartX, frameY + frameHeight - gp.tileSize + 35);
 
         } else if (cookingSubState == 1 && gp.selectedRecipeForCooking != null) {
             Recipe selected = gp.selectedRecipeForCooking;
@@ -1747,7 +1833,7 @@ public class UI {
         for (int i = 0; i < labels.length; i++) {
             int lineY = contentY + (i * lineSpacing) + titleFm.getAscent();
 
-            Color labelColor = (i == 0) ? primaryColor
+            Color labelColor = (i == 0) ? Color.WHITE
                     : (i == 1) ? new Color(255, 215, 0)
                             : (i == 2) ? primaryColor
                                     : accentColor;
@@ -1858,7 +1944,7 @@ public class UI {
         if (gp.player != null) {
             String playerLocation = gp.player.getLocation();
             if (playerLocation != null && !playerLocation.isEmpty() && !playerLocation.equals("Unknown")) {
-                // Jika di farm, pakai nama farm hasil input
+
                 if (playerLocation.equalsIgnoreCase("Farm")) {
                     String farmName = gp.player.getFarmName();
                     if (farmName != null && !farmName.trim().isEmpty()) {
@@ -1871,7 +1957,7 @@ public class UI {
                 }
             } else if (gp.currentMapIndex >= 0 && gp.currentMapIndex < gp.mapInfos.size()) {
                 String mapName = gp.mapInfos.get(gp.currentMapIndex).getMapName();
-                // Jika di farm, pakai nama farm hasil input
+
                 if (mapName != null && mapName.equalsIgnoreCase("Farm")) {
                     String farmName = gp.player.getFarmName();
                     if (farmName != null && !farmName.trim().isEmpty()) {
@@ -1886,7 +1972,6 @@ public class UI {
         }
 
         String locationText = currentLocation.replace("'", "’").toUpperCase();
-
 
         FontMetrics fm = g2.getFontMetrics();
         int textWidth = fm.stringWidth(locationText);
@@ -2114,7 +2199,7 @@ public class UI {
 
         g2.setFont(bodyFont.deriveFont(Font.PLAIN, 10F));
         g2.setColor(Color.WHITE);
-        String instructions = "UP/DOWN: Navigate  |  ENTER: Buy  |  ESC: Exit";
+        String instructions = "Up/Down: Navigate  |  ENTER: Buy  |  ESC: Exit";
         int instrX = getXForCenteredTextInFrame(instructions, frameX, frameWidth);
         g2.drawString(instructions, instrX, footerY + 5);
 
@@ -2174,7 +2259,8 @@ public class UI {
             private final int lht;
             private final int lhs;
 
-            public StatDrawer(Graphics2D g, int startX, int startY, Font headerFont, Font textFont, int lineHeightText, int lineHeightSection) {
+            public StatDrawer(Graphics2D g, int startX, int startY, Font headerFont, Font textFont, int lineHeightText,
+                    int lineHeightSection) {
                 this.g = g;
                 this.startX = startX;
                 this.currentY = startY;
@@ -2190,7 +2276,7 @@ public class UI {
                 int labelWidth = g.getFontMetrics(tFont).stringWidth(label + ": ");
                 if (startX + labelWidth + g.getFontMetrics(tFont).stringWidth(value) > startX + columnWidth - 5) {
                     g.drawString(label + ":", startX, currentY);
-                    currentY += lht-2;
+                    currentY += (lht);
                     g.setColor(themecolor);
                     g.drawString(value, startX + 10, currentY);
                 } else {
@@ -2232,7 +2318,8 @@ public class UI {
         }
 
         int statStartXCol1 = paddingHorizontal + 40;
-        StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont, lineHeight,
+        StatDrawer statsDrawer = new StatDrawer(g2, statStartXCol1, contentStartY, headerFont, statTextFont,
+                lineHeight - 4,
                 sectionSpacing);
 
         statsDrawer.drawHeader("~General~");
@@ -2269,7 +2356,7 @@ public class UI {
         }
 
         int statStartXCol2 = statStartXCol1 + columnWidth + paddingHorizontal;
-        statsDrawer.setStartX(statStartXCol2-30);
+        statsDrawer.setStartX(statStartXCol2 - 30);
         statsDrawer.setCurrentY(contentStartY);
 
         statsDrawer.drawHeader("~Harvesting~");
@@ -2305,13 +2392,13 @@ public class UI {
 
                 g2.setFont(npcNameFont);
                 g2.setColor(themecolor);
-                g2.drawString(npc.name, statStartXCol3, statsDrawer.getCurrentY()-4);
-                statsDrawer.advanceY(0.15);
+                g2.drawString(npc.name, statStartXCol3, statsDrawer.getCurrentY());
+                statsDrawer.advanceY(0.95);
 
                 statsDrawer.drawStat(" Hearts", npc.currentHeartPoints + "/" + npc.maxHeartPoints);
                 statsDrawer.drawStat(" Chats", gp.player.npcChatFrequency.getOrDefault(npc.name, 0));
                 statsDrawer.drawStat(" Gifts", gp.player.npcGiftFrequency.getOrDefault(npc.name, 0));
-            statsDrawer.drawStat(" Visits", gp.player.npcVisitFrequency.getOrDefault(npc.name, 0));
+                statsDrawer.drawStat(" Visits", gp.player.npcVisitFrequency.getOrDefault(npc.name, 0));
 
                 if (npc.isMarriageCandidate) {
                     String marriageStatus = "Single";
@@ -2334,37 +2421,566 @@ public class UI {
         drawSharedBackground(g2, gp.genderSelectionState);
 
         String[] genderLabels = { "Male", "Female" };
-        String[] spriteFiles = { "male_standing.png", "female_standing.png" };
+        String[] spriteFiles = { "Male_standing.png", "Female_standing.png" };
         String[] genderFolders = { "male", "female" };
 
-        int selected = genderSelectionIndex; // 0 = Male, 1 = Female
+        int selected = genderSelectionIndex;
 
-        // Load gambar sesuai pilihan
         BufferedImage preview = null;
+        String resourcePath = "/player/" + genderFolders[selected] + "/" + spriteFiles[selected];
+
+        System.out.println("[UI.drawGenderSelectionScreen] Attempting to load: " + resourcePath);
+
         try {
-            preview = ImageIO.read(getClass().getResourceAsStream(
-                "/player/" + genderFolders[selected] + "/" + spriteFiles[selected]
-            ));
+            InputStream inputStream = getClass().getResourceAsStream(resourcePath);
+
+            if (inputStream == null) {
+                System.err.println("[UI.drawGenderSelectionScreen] Resource not found: " + resourcePath);
+
+                String[] alternativePaths = {
+                        "/player/" + genderFolders[selected] + "/" + genderFolders[selected] + "_standing.png",
+                        "/player/" + genderFolders[selected] + "/standing.png",
+                        "/player/" + genderFolders[selected] + ".png"
+                };
+
+                for (String altPath : alternativePaths) {
+                    System.out.println("[UI.drawGenderSelectionScreen] Trying alternative: " + altPath);
+                    inputStream = getClass().getResourceAsStream(altPath);
+                    if (inputStream != null) {
+                        System.out.println("[UI.drawGenderSelectionScreen] Found at: " + altPath);
+                        resourcePath = altPath;
+                        break;
+                    }
+                }
+            }
+
+            if (inputStream != null) {
+                preview = ImageIO.read(inputStream);
+                System.out.println("[UI.drawGenderSelectionScreen] Successfully loaded: " + resourcePath);
+                inputStream.close();
+            } else {
+                System.err.println("[UI.drawGenderSelectionScreen] All resource paths failed for gender: "
+                        + genderFolders[selected]);
+            }
+
         } catch (Exception e) {
-            // Gambar tidak ditemukan, biarkan preview null
+            System.err.println("[UI.drawGenderSelectionScreen] Error loading " + resourcePath + ": " + e.getMessage());
+            e.printStackTrace();
         }
 
-        int imgW = gp.tileSize * 3;
-        int imgH = gp.tileSize * 3;
+        float charScale = 0.8f;
+        int imgW = Math.round(gp.tileSize * 3 * charScale);
+        int imgH = Math.round((gp.tileSize * 3 + 100) * charScale);
         int imgX = gp.screenWidth / 2 - imgW / 2;
-        int imgY = gp.screenHeight / 2 - imgH / 2 - 20;
+        int imgY = gp.screenHeight / 2 - imgH / 2 - 10;
 
+        if (preview != null) {
+            g2.drawImage(preview, imgX, imgY, imgW, imgH, null);
+            System.out.println("[UI.drawGenderSelectionScreen] Image drawn successfully");
+        } else {
+
+            g2.setColor(new Color(100, 100, 100, 150));
+            g2.fillRoundRect(imgX, imgY, imgW, imgH, 10, 10);
+            g2.setColor(Color.WHITE);
+            g2.drawRoundRect(imgX, imgY, imgW, imgH, 10, 10);
+
+            g2.setFont(pressStart.deriveFont(Font.PLAIN, 12F));
+            String placeholder = "Character\nPreview\nNot Available";
+            String[] lines = placeholder.split("\n");
+            int lineHeight = g2.getFontMetrics().getHeight();
+            int startY = imgY + (imgH - (lines.length * lineHeight)) / 2 + lineHeight;
+
+            for (int i = 0; i < lines.length; i++) {
+                int lineWidth = g2.getFontMetrics().stringWidth(lines[i]);
+                int lineX = imgX + (imgW - lineWidth) / 2;
+                g2.drawString(lines[i], lineX, startY + (i * lineHeight));
+            }
+
+            System.err.println("[UI.drawGenderSelectionScreen] Drawing placeholder instead of image");
+        }
+
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 24F));
+        g2.setColor(themecolor);
+        String genderText = genderLabels[selected];
+        int textWidth = g2.getFontMetrics().stringWidth(genderText);
+        int textX = gp.screenWidth / 2 - textWidth / 2;
+        int textY = imgY + imgH + 60;
+        g2.drawString(genderText, textX, textY);
+    }
+
+    public void drawPlayerInfoScreen() {
+        int frameX = gp.tileSize * 2;
+        int frameY = gp.tileSize;
+        int frameWidth = gp.screenWidth - (gp.tileSize * 4);
+        int frameHeight = gp.tileSize * 8;
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+
+        g2.setColor(Color.white);
+        Font titleFont = (pressStart != null) ? pressStart.deriveFont(Font.BOLD, 24F)
+                : new Font("Arial", Font.BOLD, 24);
+        g2.setFont(titleFont);
+        String title = "Player Info";
+        int titleX = getXForCenteredTextInFrame(title, frameX, frameWidth);
+        int titleY = frameY + gp.tileSize;
+        g2.drawString(title, titleX, titleY);
+
+        float charScale = 0.8f;
+        int imgW = Math.round(gp.tileSize * 3 * charScale);
+        int imgH = Math.round((gp.tileSize * 3 + 100) * charScale);
+        int imgX = frameX + gp.tileSize + 10;
+        int imgY = titleY + 20;
+
+        String genderFolder = (gp.player.getGender() == spakborhills.enums.Gender.FEMALE) ? "female" : "male";
+        String spriteName = genderFolder.substring(0, 1).toUpperCase() + genderFolder.substring(1) + "_standing.png";
+        BufferedImage preview = null;
+        try {
+            preview = ImageIO.read(getClass().getResourceAsStream("/player/" + genderFolder + "/" + spriteName));
+        } catch (Exception e) {
+
+        }
         if (preview != null) {
             g2.drawImage(preview, imgX, imgY, imgW, imgH, null);
         }
 
-        // --- Tulisan gender di bawah gambar ---
-        g2.setFont(pressStart.deriveFont(Font.BOLD, 24F));
-        g2.setColor(themecolor); // warna sama dengan judul
-        String genderText = genderLabels[selected];
-        int textWidth = g2.getFontMetrics().stringWidth(genderText);
-        int textX = gp.screenWidth / 2 - textWidth / 2;
-        int textY = imgY + imgH + 60; // bawah gambar, beri jarak 40px
-        g2.drawString(genderText, textX, textY);
+        int goldY = imgY + imgH + 10;
+        int energyY = goldY + gp.tileSize + 8;
+
+        drawPlayerGoldAt(g2, imgX + 5, goldY - 5);
+        drawEnergyBarAt(g2, imgX - 28, energyY - 20, 0.7f);
+
+        int infoX = imgX + imgW + gp.tileSize * 2 - 35;
+        int infoY = imgY + 30;
+        int lineSpacing = 38;
+        Font infoFont = (pressStart != null) ? pressStart.deriveFont(Font.PLAIN, 18F)
+                : new Font("Arial", Font.PLAIN, 18);
+        g2.setFont(infoFont);
+        g2.setColor(Color.white);
+
+        String[] labels = { "Name", "Gender", "Farm", "Partner" };
+        String[] values = {
+                gp.player.name,
+                (gp.player.getGender() == spakborhills.enums.Gender.FEMALE ? "Female" : "Male"),
+                (gp.player.getFarmName() != null ? gp.player.getFarmName() : "-"),
+                (gp.player.partner != null ? gp.player.partner.name : "-")
+        };
+
+        int maxLabelWidth = 0;
+        for (String label : labels) {
+            int width = g2.getFontMetrics().stringWidth(label + ":");
+            if (width > maxLabelWidth)
+                maxLabelWidth = width;
+        }
+        int colonX = infoX + maxLabelWidth;
+
+        for (int i = 0; i < labels.length; i++) {
+            int y = infoY + lineSpacing * i;
+            String label = labels[i];
+            String value = values[i];
+
+            g2.drawString(label, infoX, y);
+
+            int colonWidth = g2.getFontMetrics().stringWidth(":");
+            g2.drawString(":", colonX - colonWidth, y);
+
+            int valueX = colonX + Math.round(lineSpacing * 0.2f);
+            g2.drawString(value, valueX, y);
+        }
+
+        int favLabelY = infoY + lineSpacing * labels.length;
+        g2.drawString("Favorite Item:", infoX, favLabelY);
+
+        String[] favoriteItems = { "Blueberry", "Wine" };
+        int favListStartY = favLabelY + lineSpacing;
+        for (int i = 0; i < favoriteItems.length; i++) {
+            String item = "\u2022 " + favoriteItems[i];
+            g2.drawString(item, infoX + Math.round(lineSpacing * 0.2f), favListStartY + i * lineSpacing);
+        }
+
+        String closeText = "[L/Esc] Tutup";
+        Font closeFont = (pressStart != null) ? pressStart.deriveFont(Font.PLAIN, 12F)
+                : new Font("Arial", Font.PLAIN, 12);
+        g2.setFont(closeFont);
+        g2.setColor(Color.white);
+
+        int closeTextWidth = g2.getFontMetrics().stringWidth(closeText);
+        int closeTextX = frameX + (frameWidth - closeTextWidth) / 2;
+        int closeTextY = frameY + frameHeight - 13;
+
+        g2.drawString(closeText, closeTextX, closeTextY);
+    }
+
+    public void drawEnergyBarAt(Graphics2D g2, int x, int y, float scale) {
+        int segmentWidth = Math.round((gp.tileSize / 2) * scale);
+        int segmentHeight = Math.round((gp.tileSize / 2 - 5) * scale);
+        int segmentSpacing = Math.round(2 * scale);
+        int totalSegments = 10;
+        int barTotalWidth = totalSegments * (segmentWidth + segmentSpacing) - segmentSpacing;
+        int barTotalHeight = segmentHeight;
+
+        int filledSegments = 0;
+        if (gp.player.MAX_POSSIBLE_ENERGY > 0) {
+            double energyPerSegment = (double) gp.player.MAX_POSSIBLE_ENERGY / totalSegments;
+            if (energyPerSegment > 0) {
+                filledSegments = (int) Math.ceil(gp.player.currentEnergy / energyPerSegment);
+            }
+        }
+
+        int boxX = x - Math.round(7 * scale);
+        int boxY = y;
+        int boxWidth = barTotalWidth + Math.round(14 * scale);
+        int boxHeight = barTotalHeight + Math.round(16 * scale);
+
+        g2.setColor(new Color(0, 0, 0, 110));
+        g2.fillRoundRect(boxX + Math.round(3 * scale), boxY + Math.round(4 * scale), boxWidth, boxHeight,
+                Math.round(18 * scale), Math.round(18 * scale));
+
+        g2.setColor(new Color(30, 30, 40, 200));
+        g2.fillRoundRect(boxX, boxY, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        g2.setColor(new Color(255, 255, 255, 60));
+        g2.setStroke(new BasicStroke(2f * scale));
+        g2.drawRoundRect(boxX, boxY, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        double partialFill = 0;
+        if (gp.player.MAX_POSSIBLE_ENERGY > 0) {
+            double energyPerSegment = (double) gp.player.MAX_POSSIBLE_ENERGY / totalSegments;
+            if (energyPerSegment > 0 && filledSegments > 0) {
+                double currentSegmentEnergy = gp.player.currentEnergy - ((filledSegments - 1) * energyPerSegment);
+                partialFill = Math.min(1.0, currentSegmentEnergy / energyPerSegment);
+            }
+        }
+
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 14f * scale));
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        int barY = y + Math.round(8 * scale);
+
+        for (int i = 0; i < totalSegments; i++) {
+            int currentSegmentX = x + (i * (segmentWidth + segmentSpacing));
+
+            g2.setColor(new Color(40, 40, 40, 180));
+            g2.fillRoundRect(currentSegmentX, barY, segmentWidth, segmentHeight, Math.round(4 * scale),
+                    Math.round(4 * scale));
+
+            g2.setColor(new Color(80, 80, 80, 200));
+            g2.setStroke(new BasicStroke(1.5f * scale));
+            g2.drawRoundRect(currentSegmentX, barY, segmentWidth, segmentHeight, Math.round(4 * scale),
+                    Math.round(4 * scale));
+
+            if (i < filledSegments - 1) {
+                Color segmentColor = getEnergyColor(i, totalSegments, 1.0);
+                drawGradientSegment(g2, currentSegmentX, barY, segmentWidth, segmentHeight, segmentColor, 1.0);
+            } else if (i == filledSegments - 1 && partialFill > 0) {
+                Color segmentColor = getEnergyColor(i, totalSegments, partialFill);
+                drawGradientSegment(g2, currentSegmentX, barY, segmentWidth, segmentHeight, segmentColor, partialFill);
+            }
+
+            if (i < filledSegments || (i == filledSegments - 1 && partialFill > 0)) {
+                g2.setColor(new Color(255, 255, 255, 60));
+                g2.fillRoundRect(currentSegmentX + Math.round(2 * scale), barY + Math.round(2 * scale),
+                        segmentWidth - Math.round(4 * scale), Math.round(3 * scale), Math.round(2 * scale),
+                        Math.round(2 * scale));
+            }
+        }
+
+        g2.setFont(pressStart.deriveFont(Font.BOLD, 14F * scale));
+        String energyText = gp.player.currentEnergy + "/" + gp.player.MAX_POSSIBLE_ENERGY;
+        FontMetrics fmText = g2.getFontMetrics();
+        int textWidth = fmText.stringWidth(energyText);
+
+        int textX = boxX + (boxWidth - textWidth) / 2;
+        int textY = boxY + boxHeight + Math.round(30 * scale);
+
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(energyText, textX + 2, textY + 2);
+
+        g2.setColor(Color.WHITE);
+        g2.drawString(energyText, textX, textY);
+
+        g2.setStroke(new BasicStroke(1));
+    }
+
+    public void drawPlayerGoldAt(Graphics2D g2, int x, int y) {
+        String goldText = "" + gp.player.gold;
+        float scale = 0.8f;
+        int padding = Math.round(18 * scale);
+        int iconPadding = Math.round(8 * scale);
+        int boxHeight = Math.round(38 * scale);
+        int iconSize = Math.round(28 * scale);
+
+        Font goldFont = pressStart.deriveFont(Font.BOLD, 15F * scale);
+        g2.setFont(goldFont);
+        FontMetrics fm = g2.getFontMetrics();
+        int textWidth = fm.stringWidth(goldText);
+
+        int boxWidth = iconSize + iconPadding + textWidth + padding * 2;
+
+        int boxX = x;
+        int boxY = y;
+
+        g2.setColor(new Color(0, 0, 0, 110));
+        g2.fillRoundRect(boxX + 3, boxY + 4, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        g2.setColor(new Color(30, 30, 40, 200));
+        g2.fillRoundRect(boxX, boxY, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        g2.setColor(new Color(255, 255, 255, 60));
+        g2.setStroke(new BasicStroke(2f * scale));
+        g2.drawRoundRect(boxX, boxY, boxWidth, boxHeight, Math.round(18 * scale), Math.round(18 * scale));
+
+        int contentWidth = iconSize + iconPadding + textWidth;
+        int contentX = boxX + (boxWidth - contentWidth) / 2;
+        int iconX = contentX;
+        int iconY = boxY + (boxHeight - iconSize) / 2 + 1;
+
+        try {
+            InputStream inputStream = getClass().getResourceAsStream("/objects/gold.png");
+            BufferedImage coinImage = ImageIO.read(inputStream);
+            g2.drawImage(coinImage, iconX, iconY, iconSize, iconSize, null);
+        } catch (IOException e) {
+            g2.setColor(new Color(255, 215, 0));
+            g2.fillOval(iconX, iconY, iconSize, iconSize);
+        }
+
+        int textX = iconX + iconSize + iconPadding;
+        int textY = boxY + (boxHeight + fm.getAscent()) / 2 + 1;
+
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(goldText, textX + 2, textY + 2);
+        g2.setColor(Color.WHITE);
+        g2.drawString(goldText, textX, textY);
+    }
+
+    private void drawNPCInfoPanel(NPC npc, int panelX, int panelY, int panelWidth, int panelHeight) {
+
+        float fontScale = Math.min(1.0f, panelWidth / 400.0f);
+        Font headerFont = pressStart.deriveFont(Font.BOLD, 14F * fontScale);
+        Font subHeaderFont = pressStart.deriveFont(Font.BOLD, 11F * fontScale);
+        Font bodyFont = pressStart.deriveFont(Font.PLAIN, 9F * fontScale);
+        Font smallFont = pressStart.deriveFont(Font.PLAIN, 7F * fontScale);
+        Font tinyFont = pressStart.deriveFont(Font.PLAIN, 6F * fontScale);
+
+        int currentY = panelY + 15;
+        int leftMargin = panelX + 12;
+        int rightMargin = panelX + panelWidth - 12;
+        int contentWidth = panelWidth - 24;
+
+        int baseLineSpacing = Math.max(12, (int) (14 * fontScale));
+        int sectionSpacing = Math.max(15, (int) (20 * fontScale));
+
+        g2.setFont(headerFont);
+        FontMetrics headerFm = g2.getFontMetrics();
+
+        int nameBoxHeight = headerFm.getHeight() + 8;
+        g2.setColor(new Color(40, 40, 60, 120));
+        g2.fillRoundRect(leftMargin - 5, currentY - headerFm.getAscent() - 4,
+                contentWidth + 10, nameBoxHeight, 8, 8);
+
+        g2.setColor(new Color(255, 215, 0));
+        g2.drawString(npc.name, leftMargin, currentY);
+        currentY += nameBoxHeight + sectionSpacing;
+
+        g2.setFont(subHeaderFont);
+        g2.setColor(Color.WHITE);
+        g2.drawString("Heart Points:", leftMargin, currentY);
+        currentY += baseLineSpacing;
+
+        int barWidth = Math.min(contentWidth - 80, 200);
+        int barHeight = Math.max(8, (int) (10 * fontScale));
+        int barX = leftMargin + 5;
+        int barY = currentY - 6;
+
+        g2.setColor(new Color(60, 60, 60));
+        g2.fillRoundRect(barX, barY, barWidth, barHeight, 4, 4);
+        g2.setColor(new Color(100, 100, 100));
+        g2.drawRoundRect(barX, barY, barWidth, barHeight, 4, 4);
+
+        double fillPercentage = (double) npc.currentHeartPoints / npc.maxHeartPoints;
+        int fillWidth = (int) (barWidth * fillPercentage);
+
+        Color heartColor = getHeartPointColor(fillPercentage);
+        Color lightHeartColor = brightenColor(heartColor, 0.3f);
+
+        if (fillWidth > 0) {
+            GradientPaint gradient = new GradientPaint(
+                    barX, barY, lightHeartColor,
+                    barX, barY + barHeight, heartColor);
+            g2.setPaint(gradient);
+            g2.fillRoundRect(barX, barY, fillWidth, barHeight, 4, 4);
+            g2.setPaint(Color.WHITE);
+        }
+
+        g2.setFont(bodyFont);
+        g2.setColor(Color.WHITE);
+        String heartText = npc.currentHeartPoints + "/" + npc.maxHeartPoints;
+        int heartTextX = barX + barWidth + 8;
+        g2.drawString(heartText, heartTextX, currentY);
+        currentY += sectionSpacing;
+
+        g2.setFont(subHeaderFont);
+        g2.setColor(Color.WHITE);
+        g2.drawString("Status:", leftMargin, currentY);
+        currentY += baseLineSpacing;
+
+        String relationshipStatus = getRelationshipStatus(npc);
+        Color statusColor = getRelationshipColor(npc);
+
+        g2.setFont(bodyFont);
+        g2.setColor(statusColor);
+        g2.drawString(relationshipStatus, leftMargin + 5, currentY);
+        currentY += sectionSpacing;
+
+        int availableHeight = (panelY + panelHeight) - currentY - 20;
+        int itemSectionHeight = availableHeight / 3;
+
+        currentY = drawCompactItemSection(npc.lovedGiftsName, "Loved:",
+                new Color(255, 105, 180), new Color(255, 182, 193),
+                leftMargin, currentY, contentWidth, itemSectionHeight,
+                subHeaderFont, bodyFont, tinyFont, 2);
+
+        currentY = drawCompactItemSection(npc.likedGiftsName, "Liked:",
+                new Color(144, 238, 144), new Color(173, 255, 173),
+                leftMargin, currentY, contentWidth, itemSectionHeight,
+                subHeaderFont, bodyFont, tinyFont, 2);
+
+        currentY = drawCompactItemSection(npc.hatedItems, "Hated:",
+                new Color(255, 99, 71), new Color(255, 160, 160),
+                leftMargin, currentY, contentWidth, itemSectionHeight,
+                subHeaderFont, bodyFont, tinyFont, 3);
+
+        if (npc.isMarriageCandidate) {
+            g2.setFont(tinyFont);
+            g2.setColor(new Color(255, 215, 0, 180));
+            String marriageText = "Marriage Candidate";
+            FontMetrics tinyFm = g2.getFontMetrics();
+            int marriageX = rightMargin - tinyFm.stringWidth(marriageText);
+            int marriageY = panelY + panelHeight - 8;
+
+            g2.setColor(new Color(255, 215, 0, 30));
+            g2.fillRoundRect(marriageX - 3, marriageY - tinyFm.getAscent() - 2,
+                    tinyFm.stringWidth(marriageText) + 6, tinyFm.getHeight() + 4, 4, 4);
+
+            g2.setColor(new Color(255, 215, 0, 180));
+            g2.drawString(marriageText, marriageX, marriageY);
+        }
+    }
+
+    private String getRelationshipStatus(NPC npc) {
+        if (!npc.isMarriageCandidate) {
+            return "Friend";
+        } else if (npc.marriedToPlayer) {
+            return "Spouse";
+        } else if (npc.engaged) {
+            return "Fiance(e)";
+        } else {
+            return "Single";
+        }
+    }
+
+    private Color getRelationshipColor(NPC npc) {
+        if (npc.marriedToPlayer) {
+            return new Color(255, 105, 180);
+        } else if (npc.engaged) {
+            return new Color(255, 182, 193);
+        } else if (npc.currentHeartPoints >= 100) {
+            return new Color(255, 215, 0);
+        } else if (npc.currentHeartPoints >= 50) {
+            return new Color(144, 238, 144);
+        } else if (npc.currentHeartPoints >= 25) {
+            return new Color(255, 255, 255);
+        } else {
+            return new Color(169, 169, 169);
+        }
+    }
+
+    private Color getHeartPointColor(double fillPercentage) {
+        if (fillPercentage >= 0.8) {
+            return new Color(255, 105, 180);
+        } else if (fillPercentage >= 0.5) {
+            return new Color(255, 182, 193);
+        } else if (fillPercentage >= 0.2) {
+            return new Color(255, 255, 0);
+        } else {
+            return new Color(255, 99, 71);
+        }
+    }
+
+    private Color brightenColor(Color color, float factor) {
+        int r = Math.min(255, (int) (color.getRed() + (255 - color.getRed()) * factor));
+        int g = Math.min(255, (int) (color.getGreen() + (255 - color.getGreen()) * factor));
+        int b = Math.min(255, (int) (color.getBlue() + (255 - color.getBlue()) * factor));
+        return new Color(r, g, b, color.getAlpha());
+    }
+
+    private int drawCompactItemSection(List<String> items, String sectionTitle,
+            Color headerColor, Color itemColor,
+            int x, int startY, int maxWidth, int maxHeight,
+            Font headerFont, Font bodyFont, Font tinyFont, int maxItems) {
+        int currentY = startY;
+
+        g2.setFont(headerFont);
+        g2.setColor(headerColor);
+        g2.drawString(sectionTitle, x, currentY);
+        currentY += g2.getFontMetrics().getHeight() + 3;
+
+        if (items.isEmpty()) {
+            g2.setFont(bodyFont);
+            g2.setColor(Color.GRAY);
+            g2.drawString("None", x + 10, currentY);
+            currentY += g2.getFontMetrics().getHeight() + 5;
+        } else {
+            g2.setFont(bodyFont);
+            FontMetrics fm = g2.getFontMetrics();
+
+            int itemsShown = 0;
+            int lineHeight = fm.getHeight() + 2;
+
+            for (String item : items) {
+                if (itemsShown >= maxItems) {
+
+                    int remaining = items.size() - maxItems;
+                    if (remaining > 0) {
+                        g2.setFont(tinyFont);
+                        g2.setColor(Color.LIGHT_GRAY);
+                        g2.drawString("+" + remaining + " more", x + 10, currentY);
+                        currentY += g2.getFontMetrics().getHeight() + 2;
+                    }
+                    break;
+                }
+
+                if (currentY + lineHeight > startY + maxHeight - 5) {
+
+                    g2.setFont(tinyFont);
+                    g2.setColor(Color.LIGHT_GRAY);
+                    g2.drawString("...", x + 10, currentY);
+                    break;
+                }
+
+                g2.setColor(itemColor);
+                g2.setFont(bodyFont);
+
+                String displayItem = truncateItemName(item, maxWidth - 20, fm);
+                g2.drawString("- " + displayItem, x + 10, currentY);
+
+                currentY += lineHeight;
+                itemsShown++;
+            }
+        }
+
+        return Math.min(currentY + 5, startY + maxHeight);
+    }
+
+    private String truncateItemName(String item, int maxWidth, FontMetrics fm) {
+        if (fm.stringWidth(item) <= maxWidth) {
+            return item;
+        }
+
+        for (int i = item.length() - 1; i > 0; i--) {
+            String truncated = item.substring(0, i);
+            if (fm.stringWidth(truncated + "...") <= maxWidth) {
+                return truncated + "...";
+            }
+        }
+        return item.substring(0, 1) + "...";
     }
 }
