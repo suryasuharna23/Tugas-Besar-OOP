@@ -1,5 +1,11 @@
+
 plugins {
     id 'java'
+    id 'application'
+}
+
+application {
+    mainClass = 'spakborhills.Main'
 }
 
 group = 'org.example'
@@ -9,9 +15,60 @@ repositories {
     mavenCentral()
 }
 
-jar{
-    manifest{
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+            include '**/*'
+        }
+    }
+}
+
+processResources {
+    from 'src/main/resources'
+    include '**/*'
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    
+    doLast {
+        println "Processed resources:"
+        fileTree(destinationDir).visit { FileVisitDetails details ->
+            if (!details.isDirectory()) {
+                println "  ${details.relativePath}"
+            }
+        }
+    }
+}
+
+jar {
+    manifest {
         attributes 'Main-Class': 'spakborhills.Main'
+    }
+    
+    from(sourceSets.main.resources) {
+        include '**/*'
+    }
+    
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    
+    doLast {
+        println "JAR created at: ${archivePath}"
+        println "JAR contents (resources only):"
+        zipTree(archivePath).matching {
+            include '**/*.png'
+            include '**/*.jpg'
+            include '**/*.jpeg'
+        }.visit { FileVisitDetails details ->
+            if (!details.isDirectory()) {
+                println "  ${details.relativePath}"
+            }
+        }
     }
 }
 
@@ -22,4 +79,9 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+run {
+    standardInput = System.in
+    jvmArgs = ['-Xmx1024m', '-Dfile.encoding=UTF-8']
 }
