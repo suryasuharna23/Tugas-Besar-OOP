@@ -42,16 +42,16 @@ public class KeyHandler implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
-        if (gp.gameState == gp.titleState) {
+        if (gp.gameState == GamePanel.titleState) {
             if (gp.ui.mapSelectionState == 0) {
                 if (code == KeyEvent.VK_W || code == KeyEvent.VK_UP) {
                     gp.ui.commandNumber--;
                     if (gp.ui.commandNumber < 0) {
-                        gp.ui.commandNumber = 3;
+                        gp.ui.commandNumber = 2;
                     }
                 } else if (code == KeyEvent.VK_S || code == KeyEvent.VK_DOWN) {
                     gp.ui.commandNumber++;
-                    if (gp.ui.commandNumber > 3) {
+                    if (gp.ui.commandNumber > 2) {
                         gp.ui.commandNumber = 0;
                     }
                 } else if (code == KeyEvent.VK_ENTER) {
@@ -62,11 +62,9 @@ public class KeyHandler implements KeyListener {
                             gp.gameClock.pauseTime();
                         }
                     } else if (gp.ui.commandNumber == 1) {
-                        gp.ui.showMessage("Load Game (Not Implemented Yet)");
-                    } else if (gp.ui.commandNumber == 2) {
                         gp.gameState = gp.creditPageState;
                         enterPressed = true;
-                    } else if (gp.ui.commandNumber == 3) {
+                    } else if (gp.ui.commandNumber == 2) {
                         System.exit(0);
                     }
                 }
@@ -115,7 +113,7 @@ public class KeyHandler implements KeyListener {
         } else if (gp.gameState == gp.creditPageState) {
             if (code == KeyEvent.VK_ESCAPE) {
                 enterPressed = false;
-                gp.gameState = gp.titleState;
+                gp.gameState = GamePanel.titleState;
                 gp.ui.commandNumber = 0;
                 ;
             }
