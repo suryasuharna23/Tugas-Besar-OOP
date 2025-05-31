@@ -35,7 +35,6 @@ public class OBJ_House extends Entity {
     private void teleportToPlayerHouse() {
         System.out.println("[OBJ_House] Teleporting player to Player's House...");
         
-        
         int playerHouseIndex = -1;
         for (int i = 0; i < gp.mapInfos.size(); i++) {
             if (gp.mapInfos.get(i).getMapName().equalsIgnoreCase("Player's House")) {
@@ -51,7 +50,7 @@ public class OBJ_House extends Entity {
             
             gp.loadMapbyIndex(playerHouseIndex);
             
-            
+            gp.playSE(4);
             int entranceX = gp.tileSize * 25; 
             int entranceY = gp.tileSize * 32; 
             gp.player.setPositionForMapEntry(entranceX, entranceY, "up");

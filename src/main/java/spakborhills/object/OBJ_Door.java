@@ -26,6 +26,7 @@ public class OBJ_Door extends Entity {
     }
 
     public void interact() {
+        gp.playSE(4);
         System.out.println("[OBJ_Door] Player is exiting the house...");
         teleportToFarm();
     }
@@ -35,7 +36,7 @@ public class OBJ_Door extends Entity {
 
         
         int farmIndex = -1;
-        for (int i = 0; i < gp.mapInfos.size(); i++) {
+        for (int i = 0; i < gp.mapInfos.size(); i++)     {
             if (gp.mapInfos.get(i).getMapName().equalsIgnoreCase("Farm")) {
                 farmIndex = i;
                 break;

@@ -55,6 +55,10 @@ public class GamePanel extends JPanel implements Runnable {
     public ArrayList<NPC> npcs = new ArrayList<>();
     public Entity currentInteractingNPC = null;
     public ArrayList<CropSaveData> farmCropData = new ArrayList<>();
+    private float musicVolume = 0.7f;
+    private float seVolume = 0.8f;
+    private boolean musicMuted = false;
+    private boolean seMuted = false;
 
     public static class CropSaveData {
         public String cropType;
@@ -199,6 +203,9 @@ public class GamePanel extends JPanel implements Runnable {
         generateNewFarmLayout();
         gameClock.addObserver(player);
         weather.addObserver(player);
+        playMusic(0);
+        setMusicVolume(20f);
+
     }
 
     public void startGameThread() {
@@ -298,6 +305,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         if (gameState == playState) {
 
+
             if (!hasTriggeredEndgame && (player.gold >= 17209 || player.isMarried())) {
                 System.out.println("[GamePanel] Endgame condition met for the first time. Gold: " + player.gold
                         + ", Married: " + player.isMarried());
@@ -351,6 +359,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         else if (gameState == endGameState) {
             if (environmentManager != null) {
+                playSE(1);
                 environmentManager.update();
             }
 
@@ -377,7 +386,7 @@ public class GamePanel extends JPanel implements Runnable {
 
                     System.out.println("TESTTT PLIS MASUK");
                 }
-                
+
                 Time countTimeforSeason = gameClock.getTime();
                 if ((countTimeforSeason.getDay() - 1) % 10 == 0) {
                     Season season = gameClock.getCurrentSeason();
@@ -417,11 +426,12 @@ public class GamePanel extends JPanel implements Runnable {
             if (gameClock != null && !gameClock.isPaused()) {
                 gameClock.pauseTime();
             }
-        } else if (gameState == playerNameInputState || gameState == farmNameInputState || gameState == genderSelectionState) {
+        } else if (gameState == playerNameInputState || gameState == farmNameInputState
+                || gameState == genderSelectionState) {
             if (this.gameClock != null && !this.gameClock.isPaused()) {
                 this.gameClock.pauseTime();
             }
-        } 
+        }
     }
 
     public void initializeMapInfos() {
@@ -689,14 +699,13 @@ public class GamePanel extends JPanel implements Runnable {
         int totalEarnings = 0;
         int totalItemsSold = 0;
 
-
         for (Map.Entry<String, OBJ_Item> entry : player.shippingBinTypes.entrySet()) {
             String itemName = entry.getKey();
             OBJ_Item item = entry.getValue();
             int earnings = item.getSellPrice() * item.quantity;
             totalEarnings += earnings;
             totalItemsSold += item.quantity;
-            
+
             System.out.println("[GamePanel] Sold " + item.quantity + "x " + itemName + " for " + earnings + "G");
         }
 
@@ -707,15 +716,16 @@ public class GamePanel extends JPanel implements Runnable {
             player.totalIncome += totalEarnings;
 
             Season currentSeason = gameClock.getCurrentSeason();
-            player.seasonalIncome.put(currentSeason, player.seasonalIncome.getOrDefault(currentSeason, 0L) + totalEarnings);
+            player.seasonalIncome.put(currentSeason,
+                    player.seasonalIncome.getOrDefault(currentSeason, 0L) + totalEarnings);
             player.countIncome.put(currentSeason, player.countIncome.getOrDefault(currentSeason, 0) + 1);
 
             System.out.println("[GamePanel] Player earned " + totalEarnings +
                     "G from shipped items. Total gold: " + player.gold);
+            playSE(5);
         } else {
             player.goldFromShipping = 0;
         }
-
         player.clearShippingBin();
         System.out.println("[GamePanel] Shipping bin processed and reset for the new day.");
     }
@@ -825,57 +835,108 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void cancelShippingBinTransaction() {
-    if (player == null) {
-        System.err.println("[GamePanel] Cannot cancel shipping: Player is null");
-        return;
-    }
-
-    
-    if (!player.shippingBinTypes.isEmpty()) {
-        System.out.println("[GamePanel] Returning " + player.shippingBinTypes.size() +
-                " item types from shipping bin to inventory");
-
-        
-        for (Map.Entry<String, OBJ_Item> entry : player.shippingBinTypes.entrySet()) {
-            OBJ_Item binItem = entry.getValue();
-            
-            boolean addedSuccessfully = player.addItemToInventory(binItem);
-
-            if (!addedSuccessfully) {
-                System.out.println("[GamePanel] Warning: Could not return " + binItem.name +
-                        " to inventory (full). Item may be lost.");
-                ui.showMessage("Inventory penuh. Beberapa barang bisa hilang.");
-            }
+        if (player == null) {
+            System.err.println("[GamePanel] Cannot cancel shipping: Player is null");
+            return;
         }
 
-        
-        player.clearShippingBin();
-        ui.showMessage("Item dikembalikan.");
+        if (!player.shippingBinTypes.isEmpty()) {
+            System.out.println("[GamePanel] Returning " + player.shippingBinTypes.size() +
+                    " item types from shipping bin to inventory");
+
+            for (Map.Entry<String, OBJ_Item> entry : player.shippingBinTypes.entrySet()) {
+                OBJ_Item binItem = entry.getValue();
+
+                boolean addedSuccessfully = player.addItemToInventory(binItem);
+
+                if (!addedSuccessfully) {
+                    System.out.println("[GamePanel] Warning: Could not return " + binItem.name +
+                            " to inventory (full). Item may be lost.");
+                    ui.showMessage("Inventory penuh. Beberapa barang bisa hilang.");
+                }
+            }
+
+            player.clearShippingBin();
+            ui.showMessage("Item dikembalikan.");
+        }
+
+        player.hasUsedShippingBinToday = false;
+        System.out.println("[GamePanel] Shipping bin transaction cancelled, remains available");
+
+        gameState = playState;
+
+        if (gameClock != null && gameClock.isPaused()) {
+            gameClock.resumeTime();
+        }
     }
 
-    player.hasUsedShippingBinToday = false;
-    System.out.println("[GamePanel] Shipping bin transaction cancelled, remains available");
-
-    gameState = playState;
-
-    if (gameClock != null && gameClock.isPaused()) {
-        gameClock.resumeTime();
+    public void setMusicVolume(float volume) {
+        musicVolume = Math.max(0.0f, Math.min(1.0f, volume));
+        music.setVolume(musicMuted ? 0.0f : musicVolume);
+        System.out.println("[GamePanel] Music volume set to: " + (musicVolume * 100) + "%");
     }
+
+    public void setSoundEffectVolume(float volume) {
+        seVolume = Math.max(0.0f, Math.min(1.0f, volume));
+        se.setVolume(seMuted ? 0.0f : seVolume);
+        System.out.println("[GamePanel] Sound effects volume set to: " + (seVolume * 100) + "%");
+    }
+
+    public void toggleMusicMute() {
+        musicMuted = !musicMuted;
+        music.setVolume(musicMuted ? 0.0f : musicVolume);
+        System.out.println("[GamePanel] Music " + (musicMuted ? "muted" : "unmuted"));
+    }
+
+    public void toggleSoundEffectMute() {
+        seMuted = !seMuted;
+        se.setVolume(seMuted ? 0.0f : seVolume);
+        System.out.println("[GamePanel] Sound effects " + (seMuted ? "muted" : "unmuted"));
+    }
+
+    public void increaseMusicVolume() {
+        setMusicVolume(musicVolume + 0.1f);
+    }
+
+    public void decreaseMusicVolume() {
+        setMusicVolume(musicVolume - 0.1f);
+    }
+
+    public void increaseSoundEffectVolume() {
+        setSoundEffectVolume(seVolume + 0.1f);
+    }
+
+    public void decreaseSoundEffectVolume() {
+        setSoundEffectVolume(seVolume - 0.1f);
     }
 
     public void playMusic(int i) {
         music.setFile(i);
+        music.setVolume(musicMuted ? 0.0f : musicVolume);
         music.play();
         music.loop();
     }
 
-    public void stopMusic() {
-        music.stop();
-    }
-
     public void playSE(int i) {
         se.setFile(i);
+        se.setVolume(seMuted ? 0.0f : seVolume);
         se.play();
+    }
+
+    public float getMusicVolume() {
+        return musicVolume;
+    }
+
+    public float getSoundEffectVolume() {
+        return seVolume;
+    }
+
+    public boolean isMusicMuted() {
+        return musicMuted;
+    }
+
+    public boolean isSoundEffectMuted() {
+        return seMuted;
     }
 
     public void growAllCrops() {
