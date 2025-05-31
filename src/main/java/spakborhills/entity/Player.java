@@ -211,7 +211,7 @@ public class Player extends Entity implements Observer {
     }
 
     public void checkAndUnlockRecipes() {
-        if (gp.gameState == gp.titleState)
+        if (gp.gameState == GamePanel.titleState)
             return;
 
         for (Recipe recipe : RecipeManager.getAllRecipes()) {
