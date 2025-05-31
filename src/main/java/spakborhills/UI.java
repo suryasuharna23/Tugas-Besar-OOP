@@ -1274,7 +1274,7 @@ public class UI {
         Font titleFont = pressStart.deriveFont(Font.BOLD, 24F);
         Font headerFont = pressStart.deriveFont(Font.BOLD, 14F);
         Font bodyFont = pressStart.deriveFont(Font.PLAIN, 12F);
-        Font smallFont = pressStart.deriveFont(Font.PLAIN, 10F);
+        Font smallFont = pressStart.deriveFont(Font.PLAIN, 7F);
         Font tinyFont = pressStart.deriveFont(Font.PLAIN, 8F);
 
         int currentY = frameY + TEXT_PADDING;
