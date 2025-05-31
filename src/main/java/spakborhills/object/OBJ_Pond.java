@@ -11,10 +11,10 @@ public class OBJ_Pond extends Entity {
         this.gp = gp;
         type = EntityType.INTERACTIVE_OBJECT;
         name = "POND";
-        down1 = setup("/objects/pond"); // Pastikan path gambar benar
+        down1 = setup("/objects/pond");
         collision = true;
-        int tilesWide = 4; // Sesuaikan jika perlu
-        int tilesHigh = 3; // Sesuaikan jika perlu
+        int tilesWide = 4;
+        int tilesHigh = 3;
 
         this.imageWidth = tilesWide * gp.tileSize;
         this.imageHeight = tilesHigh * gp.tileSize;
@@ -28,12 +28,11 @@ public class OBJ_Pond extends Entity {
 
     @Override
     public void interact() {
-        if (!gp.player.isHoldingTool("Fishing Rod equipment")) { // Pastikan nama tool benar
+        if (!gp.player.isHoldingTool("Fishing Rod equipment")) {
             gp.ui.showMessage("Kamu butuh FISHING ROD");
             return;
         }
 
-        // Tetapkan lokasi logis ke "Farm" jika pemain berinteraksi dengan kolam di peta Farm
         if (gp.currentMapIndex == gp.FARM_MAP_INDEX) {
             gp.player.setLocation("FARM");
         } else {
@@ -41,6 +40,6 @@ public class OBJ_Pond extends Entity {
         }
 
         gp.ui.showMessage("Kamu sudah di dekat pond...");
-        gp.player.startFishing(true); // MODIFIKASI: kirim true
+        gp.player.startFishing(true);
     }
 }
